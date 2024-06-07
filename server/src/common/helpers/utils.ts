@@ -1,0 +1,48 @@
+import NodeCache from 'node-cache';
+
+export const getEnv = (envVar: string): string => {
+  if (!process.env[envVar]) {
+    throw new Error(`${envVar} is not defined`);
+  }
+  return process.env[envVar] as string;
+};
+
+export type AtLeast<T, K extends keyof T> = Partial<T> & Pick<T, K>;
+
+export const getRandomNumbersArray = (
+  min: number,
+  max: number,
+  arrayLength: number,
+  sum: number,
+): number[] =>
+  Array.from({ length: arrayLength }, (_, i) => {
+    const smin = (arrayLength - i - 1) * min,
+      smax = (arrayLength - i - 1) * max,
+      offset = Math.max(sum - smax, min),
+      random = 1 + Math.min(sum - offset, max - offset, sum - smin - min),
+      value = Math.floor(Math.random() * random + offset);
+
+    sum -= value;
+    return value;
+  });
+
+export const sumOfArray = (arr: number[]): number =>
+  arr.reduce(function (acc, val) {
+    return acc + val;
+  }, 0);
+
+export function applyMixins(derivedCtor: any, constructors: any[]) {
+  constructors.forEach((baseCtor) => {
+    Object.getOwnPropertyNames(baseCtor.prototype).forEach((name) => {
+      Object.defineProperty(
+        derivedCtor.prototype,
+        name,
+        Object.getOwnPropertyDescriptor(baseCtor.prototype, name) ||
+          Object.create(null),
+      );
+    });
+  });
+}
+
+export const isDev = ['dev', 'development'].includes(getEnv('APP_ENV'));
+export const isProd = ['prod', 'production'].includes(getEnv('APP_ENV'));

@@ -1,0 +1,35 @@
+{
+  "compilerOptions": {
+    "module": "NodeNext",
+    "declaration": true,
+    "removeComments": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
+    "target": "ESNext",
+    "sourceMap": true,
+    "verbatimModuleSyntax": false,
+    "outDir": "dist",
+    "incremental": true,
+    "skipLibCheck": true,
+    "strictNullChecks": true,
+    "noImplicitAny": false,
+    "strictBindCallApply": false,
+    "forceConsistentCasingInFileNames": false,
+    "noFallthroughCasesInSwitch": false,
+    "moduleResolution": "NodeNext",
+    "esModuleInterop": true,
+    "noEmit": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*", "./src/modules/*"],
+      "@metricsplace/keyword/*": ["node_modules/@metricsplace/keyword/dist/*","node_modules/@metricsplace/keyword/src/*"]
+    }
+  },
+  "include": [
+    "src/**/*",
+  ],
+  "exclude": ["node_modules", "dist", "test"],
+
+}

@@ -1,0 +1,35 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: env-config
+  namespace: mp-account
+data:
+  TZ: "Europe/Moscow"
+
+  APP_PORT: "3000"
+  APP_ENV: "production"
+
+  DOMAIN: '192.168.0.2'
+  REFRESH_TOKEN_COOKIE_NAME: 'jwt'
+  AUTH_SAME_SITE: 'none'
+  AUTH_SECURE: 'true'
+  SSL: 'true'
+
+  REDIS_HOST: "redis.mp.svc.cluster.local"
+  REDIS_PORT: "6379"
+
+  TYPEORM_URL: "postgres://postgres:130504@postgresql.mp-mm.svc.cluster.local:5432/account"
+  TYPEORM_LOGGING: 'false'
+
+  HTTP_BASIC_USERNAME: 'user'
+  HTTP_BASIC_PASSWORD: 'password'
+  JWT_ACCESS_EXP: '5m'
+  JWT_REFRESH_EXP: '7d'
+  JWT_SECRET: 'very_secret'
+  JWT_GOOGLE_CLIENT_ID: 'YOUR_GOOGLE_CLIENT_ID'
+  JWT_GOOGLE_CLIENT_SECRET: 'YOUR_GOOGLE_CLIENT_SECRET'
+
+  TELEGRAF_BOT_TOKEN: '6066046276:AAFijZJQzYSCyHQFoBOkc5wiAYO83IDpCdE'
+
+
+

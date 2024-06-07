@@ -1,0 +1,148 @@
+
+type SkuMetrics_mm {
+  skuId: Int!
+  date: String!
+  availableAmount: Int!
+  sellPrice: Float!
+  orderAmount: Int
+  revenue: Float
+}
+
+type SkuMetricsByDay_mm {
+  date: String!
+  metrics: SkuMetrics_mm
+}
+
+type Sku {
+  id: Int!
+  totalOrderAmount: Int!
+  totalRevenue: Float!
+  metrics: [SkuMetricsByDay_mm!]!
+}
+
+type ProductDetail_mm {
+  productId: Int!
+  title: String!
+  shopId: Int!
+  shopTitle: String
+  categoryId: Int!
+  categoryTitle: String!
+  totalOrderAmount: Int!
+  totalRevenue: Float!
+  competitorsCount: Int!
+  minPrice: Float!
+  skuIds: [Int!]!
+  photoUrl: String
+}
+
+type ProductMetrics_mm {
+  productId: Int!
+  date: String!
+  revenue: Float
+  orderAmount: Int
+  totalAvailableAmount: Int
+}
+
+type ProductMetricsByDate_mm {
+  date: String!
+  metrics: ProductMetrics_mm
+}
+
+type Product_mm {
+  productId: Int!
+  title: String!
+  shopId: Int!
+  shopTitle: String
+  categoryId: Int!
+  categoryTitle: String!
+  totalOrderAmount: Int!
+  totalRevenue: Float!
+  competitorsCount: Int!
+  minPrice: Float!
+  skuIds: [Int!]!
+  photoUrl: String
+  metrics: [ProductMetricsByDate_mm!]!
+  favouriteRating: Int!
+}
+
+type ProductList_mm {
+  items: [Product_mm!]!
+}
+
+type FavouriteList_mm {
+  items: [Product_mm!]!
+  totalCount: Int!
+}
+
+type CompetitorsList_mm {
+  items: [ProductDetail_mm!]!
+  totalCount: Int!
+}
+
+type Query {
+  product_mm(id: Int!, monthRange: Int!): Product_mm!
+  productList_mm(ids: [Int!]!, monthRange: Int!): ProductList_mm!
+  favouriteList_mm(input: FavouriteListInput_mm!): FavouriteList_mm!
+  skuMetrics_mm(id: Int!, monthRange: Int!): Sku!
+  competitorList_mm(input: CompetitorsListInput_mm!): CompetitorsList_mm!
+}
+
+input FavouriteListInput_mm {
+  monthRange: Int!
+  shopId: Int
+  categoryId: Int
+  favouriteRating: Int
+  rangeFilterModel: ProductListRangeFilterModel_mm
+  sortModel: [ProductListSortModelItem_mm!]
+  limit: Int
+  offset: Int
+}
+
+input ProductListRangeFilterModel_mm {
+  items: [ProductListRangeFilterItem_mm!]!
+  logicOperator: LogicOperator_mm
+}
+
+input ProductListRangeFilterItem_mm {
+  field: ProductListRangeField_mm!
+  value: Int!
+  operator: String!
+}
+
+enum ProductListRangeField_mm {
+  totalOrderAmount
+  totalRevenue
+  competitorsCount
+  minPrice
+}
+
+enum LogicOperator_mm {
+  and
+  or
+}
+
+input ProductListSortModelItem_mm {
+  field: ProductListRangeField_mm!
+  sort: mm_SortOperator_mm!
+}
+
+enum mm_SortOperator_mm {
+  asc
+  desc
+}
+
+input CompetitorsListInput_mm {
+  productId: Int!
+  monthRange: Int!
+  limit: Int
+  offset: Int
+}
+
+type ChangeFavouriteRatingResponse_mm {
+  productId: Int!
+  value: Int!
+}
+
+type Mutation {
+  changeRating_mm(productId: Int!, value: Int!): ChangeFavouriteRatingResponse_mm!
+}

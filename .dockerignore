@@ -1,0 +1,25 @@
+Dockerfile
+.dockerignore
+node_modules
+npm-debug.log
+# .next
+.git
+.idea
+.DS_Store
+.yarn/*
+!.yarn/cache
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+
+
+.gitignore
+*.md
+dist
+k3s
+docker-bake.hcl
+graphql.config.yml
+config.json
+.env

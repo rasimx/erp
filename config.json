@@ -1,0 +1,9 @@
+{
+  "graphql": {
+    "subgraphs": [
+      {
+        "name": "kestats",
+        "url": "http://localhost:3000/graphql"}
+    ]
+  }
+}

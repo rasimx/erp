@@ -1,0 +1,3 @@
+[submodule "metricsplace_common"]
+	path = metricsplace_common
+	url = git@github.com:rasimx/metricsplace_common.git

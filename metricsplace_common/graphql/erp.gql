@@ -1,0 +1,126 @@
+type Product {
+  id: Int!
+  sku: String!
+  name: String!
+}
+
+type ProductList {
+  items: [Product!]!
+  totalCount: Int!
+}
+
+type Status {
+  id: Int!
+  title: String!
+}
+
+type ProductBatch {
+  id: Int!
+  product: Product!
+  statusId: Int!
+  count: Int!
+  costPrice: Int!
+  pricePerUnit: Float!
+  fullPrice: Float!
+  date: String!
+  parentId: Int
+  weight: Int!
+  volume: Float!
+}
+
+type Operation {
+  id: Int!
+  name: String!
+  cost: Int!
+  date: String!
+}
+
+
+type OperationList {
+  items: [Operation!]!
+  totalCount: Int!
+}
+
+
+type Query {
+  productList: ProductList!
+  statusList: [Status!]!
+  productBatchList: [ProductBatch!]!
+  operationList(productBatchId: Int!): OperationList!
+}
+
+input CreateProductInput {
+  sku: String!
+  name: String!
+}
+type CreateProductResponse {
+  success: Boolean!
+}
+
+
+input UpdateProductBatchInput {
+  id: Int!
+  statusId: Int!
+}
+input CreateProductBatchInput {
+  statusId: Int!
+  productId: Int!
+  count: Int!
+  costPrice: Int!
+  date: String!
+}
+
+input ProductBatchOperationInput {
+  productBatchId: Int!
+  proportion: Float!
+  cost: Int! # в копейках
+}
+
+enum ProportionType {
+  equal
+  manual
+  weight
+  volume
+  costPrice
+}
+
+input CreateOperationInput {
+  name: String!
+  cost: Int! # в копейках
+  proportionType: ProportionType!
+  productBatchProportions: [ProductBatchOperationInput!]!
+  date: String!
+}
+
+type CreateOperationResponse {
+  success: Boolean!
+}
+
+input SplitProductBatchInput {
+  id: Int!
+  count: Int!
+  statusId: Int
+}
+type SplitProductBatchResponse {
+  newItems: [ProductBatch!]!
+}
+#input MergeProductBatchInput {
+#  sourceProductBatchId: Int!
+#  targetProductBatchId: Int!
+#}
+#type MergeProductBatchResponse {
+#  productBatch: ProductBatch!
+#}
+
+type Mutation {
+  createOperation(input: CreateOperationInput!): CreateOperationResponse!
+  createProduct(input: CreateProductInput!): CreateProductResponse!
+  createProductBatch(input: CreateProductBatchInput!): ProductBatch!
+  updateProductBatch(input: UpdateProductBatchInput!): ProductBatch!
+  splitProductBatch(input: SplitProductBatchInput!): SplitProductBatchResponse!
+  #  mergeProductBatch(input: MergeProductBatchInput!): MergeProductBatchResponse!
+  deleteProductBatch(id: Int!): Int!
+  createStatus(title: String!): [Status!]!
+  deleteStatus(id: Int!): [Status!]!
+}
+

@@ -1,0 +1,16 @@
+{
+  "name": "@metricsplace/common",
+  "version": "1.0.1",
+  "main": "index.js",
+  "repository": "git@github.com:rasimx/metricsplace_common.git",
+  "author": "Rasim <rx.rasim@gmail.com>",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+
+  },
+  "dependencies": {
+  },
+  "devDependencies": {
+  }
+}

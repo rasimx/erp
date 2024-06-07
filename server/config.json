@@ -1,0 +1,14 @@
+{
+  "graphql": {
+    "subgraphs": [
+      {
+        "name": "kestats",
+        "url": "http://192.168.5.2:13001/graphql"
+      },
+      {
+        "name": "auth",
+        "url": "http://localhost:3001/graphql"
+      }
+    ]
+  }
+}

@@ -1,0 +1,3 @@
+schema:
+  - metricsplace_common/graphql/erp.gql
+documents: '**/*.graphql'

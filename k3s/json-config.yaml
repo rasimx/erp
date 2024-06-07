@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: json-config
+  namespace: mp-account
+  labels:
+    pod: nest
+data:
+  config.json: |
+    {
+      
+    }

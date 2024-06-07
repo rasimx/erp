@@ -1,0 +1,34 @@
+import React, { useRef } from 'react';
+import { useDrop } from 'react-dnd';
+
+import { type ProductBatch, type Status } from '../../gql-types/graphql';
+import { useAppDispatch } from '../../hooks';
+import { openSplitProductBatchModal } from './product-batch.slice';
+
+const KanbanColumn = ({
+  status,
+  children,
+}: {
+  status: Status;
+  children: any;
+}) => {
+  const ref = useRef(null);
+  const dispatch = useAppDispatch();
+  const [, drop] = useDrop<ProductBatch>({
+    accept: 'card',
+    hover(item, monitor) {
+      // const a = monitor.isOver({ shallow: true });
+      // console.log(monitor, a);
+    },
+    drop(item: ProductBatch, monitor) {
+      if (monitor.isOver()) {
+        console.log('BBB');
+        dispatch(openSplitProductBatchModal({ item, statusId: status.id }));
+      }
+    },
+  });
+  drop(ref);
+  return <div ref={ref}> {children}</div>;
+};
+
+export default KanbanColumn;

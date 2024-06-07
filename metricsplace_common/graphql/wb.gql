@@ -1,0 +1,58 @@
+type ProductDetail_wb {
+  productId: Int!
+  title: String!
+  shopId: Int!
+  shopTitle: String
+  categoryId: Int!
+  categoryTitle: String!
+  totalOrderAmount: Int!
+  totalRevenue: Float!
+  competitorsCount: Int!
+  minPrice: Float!
+  skuIds: [Int!]!
+  photoUrl: String
+}
+
+type ProductMetrics_wb {
+  productId: Int!
+  date: String!
+  revenue: Float
+  orderAmount: Int
+  totalAvailableAmount: Int
+}
+
+type ProductMetricsByDate_wb {
+  date: String!
+  metrics: ProductMetrics_wb
+}
+
+type Product_wb {
+  productId: Int!
+
+  sellerId: Int!
+  sellerTitle: String!
+  sellerUrl: String!
+
+  totalOrderAmount: Int!
+  totalRevenue: Int! # округляем до рубля
+  avgByDayOrderAmount: Float! # среднее продаж в день
+  totalAvailableAmount: Int!
+}
+
+type ProductList_wb {
+  items: [Product_wb!]!
+}
+
+type Query {
+  product_wb(id: Int!, monthRange: Int): Product_wb!
+  productList_wb(ids: [Int!]!, monthRange: Int): ProductList_wb!
+}
+
+type ChangeFavouriteRatingResponse_wb {
+  productId: Int!
+  value: Int!
+}
+
+type Mutation {
+  changeRating_wb(productId: Int!, value: Int!): ChangeFavouriteRatingResponse_wb!
+}
