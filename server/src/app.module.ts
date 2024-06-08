@@ -17,6 +17,7 @@ import { ProductModule } from '@/product/product.module.js';
 import { ProductBatchModule } from '@/product-batch/product-batch.module.js';
 import { ProductBatchOperationModule } from '@/product-batch-operation/product-batch-operation.module.js';
 import { StatusModule } from '@/status/status.module.js';
+import { TransactionModule } from '@/transaction/transaction.module.js';
 
 import { AppService } from './app.service.js';
 
@@ -31,6 +32,7 @@ import { AppService } from './app.service.js';
     OperationModule,
     ProductBatchOperationModule,
     Microservices,
+    TransactionModule,
     ServeStaticModule.forRoot({
       rootPath: getPathRelativeToRoot('client/dist'),
       serveStaticOptions: {

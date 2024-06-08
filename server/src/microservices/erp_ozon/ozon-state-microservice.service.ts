@@ -1,17 +1,16 @@
 import { Inject, Injectable, type OnModuleInit } from '@nestjs/common';
 import { ClientGrpcProxy } from '@nestjs/microservices';
-import { lastValueFrom, Observable } from 'rxjs';
+import { lastValueFrom } from 'rxjs';
 
-import {
-  ERP_OZON_PACKAGE_NAME,
-  STATE_SERVICE_NAME,
-} from '@/microservices/proto/erp_ozon.pb.js';
 import type {
-  StateServiceClient,
   FullStateItem,
   FullStateItemRequest,
   OzonProduct,
-  ProductListRequest,
+  StateServiceClient,
+} from '@/microservices/proto/erp_ozon.pb.js';
+import {
+  ERP_OZON_PACKAGE_NAME,
+  STATE_SERVICE_NAME,
 } from '@/microservices/proto/erp_ozon.pb.js';
 
 @Injectable()
@@ -41,8 +40,9 @@ export class OzonStateMicroservice implements OnModuleInit {
   }
 
   async productList(skuList: string[]): Promise<OzonProduct[]> {
+    throw new Error('AAAA');
     const { items } = await lastValueFrom(
-      this.stateService.productList({ skuList }),
+      this.stateService.productList({ accountId: 0, skuList }),
     );
     return items;
   }

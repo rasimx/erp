@@ -368,6 +368,9 @@ importers:
       typeorm-naming-strategies:
         specifier: ^4.1.0
         version: 4.1.0(typeorm@0.3.20(ioredis@5.4.1)(pg@8.11.5)(ts-node@10.9.2(@swc/core@1.5.24)(@types/node@20.12.13)(typescript@5.4.5)))
+      uuid:
+        specifier: ^9.0.1
+        version: 9.0.1
     devDependencies:
       '@eslint/js':
         specifier: ^9.1.1
@@ -417,6 +420,9 @@ importers:
       '@types/supertest':
         specifier: ^2.0.14
         version: 2.0.16
+      '@types/uuid':
+        specifier: ^9.0.8
+        version: 9.0.8
       eslint:
         specifier: 8.57.0
         version: 8.57.0
@@ -9863,8 +9869,7 @@ snapshots:
 
   '@types/use-sync-external-store@0.0.3': {}
 
-  '@types/uuid@9.0.8':
-    optional: true
+  '@types/uuid@9.0.8': {}
 
   '@types/validator@13.11.10': {}
 

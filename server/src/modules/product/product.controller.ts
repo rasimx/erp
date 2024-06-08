@@ -17,7 +17,11 @@ export class ProductController implements ProductServiceController {
 
   async insert({
     items: newItems,
+    inTransaction,
   }: InsertProductListRequest): Promise<InsertProductListResponse> {
+    if (inTransaction) {
+      return this.productService.createInsertTransaction(newItems);
+    }
     const items = await this.productService.insert(newItems);
     return { items };
   }

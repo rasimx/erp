@@ -37,6 +37,7 @@ message InsertProductListRequest {
 message InsertProductListResponse {
     repeated Product items = 1;
     optional string transaction_id = 2;
+    optional string error = 3;
 }
 
 message ProductInsert {
