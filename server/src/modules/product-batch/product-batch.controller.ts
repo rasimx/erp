@@ -2,17 +2,11 @@ import { Controller } from '@nestjs/common';
 
 import type {
   FindLatestRequest,
-  ProductBatchListByIdRequest,
-  ProductBatchListByProductIdRequest,
-  ProductBatchListFromIdRequest,
   ProductBatchListResponse,
   ProductBatchServiceController,
-  UpdatedProductBatchListRequest,
 } from '@/microservices/proto/erp.pb.js';
 import { ProductBatchServiceControllerMethods } from '@/microservices/proto/erp.pb.js';
-import { ProductService } from '@/product/product.service.js';
 import { ProductBatchService } from '@/product-batch/product-batch.service.js';
-import { Observable } from 'rxjs';
 
 @Controller()
 @ProductBatchServiceControllerMethods()

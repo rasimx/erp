@@ -1,5 +1,7 @@
+import { UseInterceptors } from '@nestjs/common';
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 
+import { UserInterceptor } from '@/auth/user.interceptor.js';
 import type {
   CreateOperationInput,
   CreateOperationResponse,
@@ -9,6 +11,7 @@ import type {
 import { ProductBatchOperationService } from './product-batch-operation.service.js';
 
 @Resolver()
+@UseInterceptors(UserInterceptor)
 export class ProductBatchOperationResolver
   implements Pick<IMutation, 'createOperation'>
 {

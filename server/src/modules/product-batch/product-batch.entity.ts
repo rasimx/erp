@@ -15,8 +15,8 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-import { ProductBatchOperationEntity } from '@/product-batch-operation/product-batch-operation.entity.js';
 import { ProductEntity } from '@/product/product.entity.js';
+import { ProductBatchOperationEntity } from '@/product-batch-operation/product-batch-operation.entity.js';
 import { StatusEntity } from '@/status/status.entity.js';
 
 @Entity({ name: 'product_batch' })
@@ -24,6 +24,12 @@ import { StatusEntity } from '@/status/status.entity.js';
 export class ProductBatchEntity {
   @PrimaryGeneratedColumn()
   id: number;
+
+  @Column({
+    type: 'int',
+    default: () => "current_setting('rls.user_id')::int",
+  })
+  userId: number;
 
   @ManyToOne(() => ProductEntity, { cascade: ['insert'] })
   @JoinColumn()

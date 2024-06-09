@@ -12,13 +12,19 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-import { ProductBatchOperationEntity } from '@/product-batch-operation/product-batch-operation.entity.js';
 import { ProportionType } from '@/graphql.schema.js';
+import { ProductBatchOperationEntity } from '@/product-batch-operation/product-batch-operation.entity.js';
 
 @Entity({ name: 'operation' })
 export class OperationEntity {
   @PrimaryGeneratedColumn()
   id: number;
+
+  @Column({
+    type: 'int',
+    default: () => "current_setting('rls.user_id')::int",
+  })
+  userId: number;
 
   @Column()
   name: string;

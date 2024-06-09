@@ -1,14 +1,10 @@
 import {
   Column,
-  CreateDateColumn,
-  DeleteDateColumn,
   Entity,
-  JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
   type Relation,
   RelationId,
-  UpdateDateColumn,
 } from 'typeorm';
 
 import { OperationEntity } from '@/operation/operation.entity.js';
@@ -18,6 +14,12 @@ import { ProductBatchEntity } from '@/product-batch/product-batch.entity.js';
 export class ProductBatchOperationEntity {
   @PrimaryGeneratedColumn()
   id: number;
+
+  @Column({
+    type: 'int',
+    default: () => "current_setting('rls.user_id')::int",
+  })
+  userId: number;
 
   @Column('float')
   proportion: number;

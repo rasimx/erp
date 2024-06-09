@@ -1,5 +1,7 @@
+import { UseInterceptors } from '@nestjs/common';
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 
+import { UserInterceptor } from '@/auth/user.interceptor.js';
 import type {
   CreateProductInput,
   CreateProductResponse,
@@ -9,6 +11,7 @@ import type {
 import { ProductService } from './product.service.js';
 
 @Resolver('productList')
+@UseInterceptors(UserInterceptor)
 export class ProductResolver {
   constructor(private readonly service: ProductService) {}
 

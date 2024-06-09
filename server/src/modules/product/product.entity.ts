@@ -14,6 +14,12 @@ export class ProductEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @Column({
+    type: 'int',
+    default: () => "current_setting('rls.user_id')::int",
+  })
+  userId: number;
+
   @Column()
   name: string;
 

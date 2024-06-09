@@ -1,16 +1,13 @@
-import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
+import { UseInterceptors } from '@nestjs/common';
+import { Args, Query, Resolver } from '@nestjs/graphql';
 
-import type {
-  CreateOperationInput,
-  CreateOperationResponse,
-  IMutation,
-  IQuery,
-  OperationList,
-} from '@/graphql.schema.js';
+import { UserInterceptor } from '@/auth/user.interceptor.js';
+import type { IQuery, OperationList } from '@/graphql.schema.js';
 
 import { OperationService } from './operation.service.js';
 
 @Resolver()
+@UseInterceptors(UserInterceptor)
 export class OperationResolver implements Pick<IQuery, 'operationList'> {
   constructor(private readonly service: OperationService) {}
 

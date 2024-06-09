@@ -1,29 +1,20 @@
 import { Injectable } from '@nestjs/common';
 import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
-import { DataSource, In, Not, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 
+import { CustomDataSource } from '@/database/custom.data-source.js';
 import type {
   CreateProductBatchInput,
-  // MergeProductBatchResponse,
   ProductBatch,
-  UpdateProductBatchInput,
-} from '@/graphql.schema.js';
-import type {
   SplitProductBatchInput,
   SplitProductBatchResponse,
+  UpdateProductBatchInput,
 } from '@/graphql.schema.js';
-import {
-  ProductBatchEntity,
-  type ProductBatchEntityForInsert,
-} from '@/product-batch/product-batch.entity.js';
 // import type { MergeProductBatchInput } from '@/graphql.schema.js';
 import { OzonStateMicroservice } from '@/microservices/erp_ozon/ozon-state-microservice.service.js';
-import { ProductService } from '@/product/product.service.js';
-import { CustomDataSource } from '@/database/custom.data-source.js';
-import { ProductEntity } from '@/product/product.entity.js';
 import type { FindLatestRequest } from '@/microservices/proto/erp.pb.js';
-import { OperationEntity } from '@/operation/operation.entity.js';
-import { ProductBatchOperationEntity } from '@/product-batch-operation/product-batch-operation.entity.js';
+import { ProductService } from '@/product/product.service.js';
+import { ProductBatchEntity } from '@/product-batch/product-batch.entity.js';
 
 @Injectable()
 export class ProductBatchService {

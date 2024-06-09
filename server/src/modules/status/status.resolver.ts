@@ -1,9 +1,12 @@
+import { UseInterceptors } from '@nestjs/common';
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 
+import { UserInterceptor } from '@/auth/user.interceptor.js';
 import type { Status } from '@/graphql.schema.js';
 import { StatusService } from '@/status/status.service.js';
 
 @Resolver()
+@UseInterceptors(UserInterceptor)
 export class StatusResolver {
   constructor(private readonly service: StatusService) {}
 

@@ -67,6 +67,7 @@ service ProductBatchService {
     //    rpc ProductBatchListFromId (ProductBatchListFromIdRequest) returns (ProductBatchListResponse);
     //    rpc ProductBatchListForLinkPostings (FindLatestRequest) returns (ProductBatchListResponse);
     rpc FindLatest (FindLatestRequest) returns (ProductBatchListResponse);
+    rpc createStatus (FindLatestRequest) returns (ProductBatchListResponse);
     //    rpc UpdatedProductBatchList (UpdatedProductBatchListRequest) returns (ProductBatchListResponse);
 }
 

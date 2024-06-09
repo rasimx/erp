@@ -5,6 +5,7 @@ import {
   RequestMethod,
 } from '@nestjs/common';
 import { ServeStaticModule } from '@nestjs/serve-static';
+import { ClsModule } from 'nestjs-cls';
 
 import { ExcludeAssetsMiddleware } from '@/assets.middleware.js';
 import { getPathRelativeToRoot } from '@/common/helpers/paths.js';
@@ -38,6 +39,11 @@ import { AppService } from './app.service.js';
       serveStaticOptions: {
         index: false,
       },
+    }),
+
+    ClsModule.forRoot({
+      global: true,
+      middleware: { mount: true },
     }),
   ],
   controllers: [],
