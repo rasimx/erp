@@ -5,6 +5,7 @@
 // source: erp_ozon.proto
 
 /* eslint-disable */
+import { Metadata } from "@grpc/grpc-js";
 import { GrpcMethod, GrpcStreamMethod } from "@nestjs/microservices";
 import { Observable } from "rxjs";
 
@@ -70,30 +71,34 @@ export interface RelinkPostingsResponse {
 export const ERP_OZON_PACKAGE_NAME = "erp_ozon";
 
 export interface StateServiceClient {
-  setBaseProductIds(request: FullStateItemRequest): Observable<FullStateItemResponse>;
+  setBaseProductIds(request: FullStateItemRequest, metadata?: Metadata): Observable<FullStateItemResponse>;
 
-  currentFullState(request: FullStateItemRequest): Observable<FullStateItemResponse>;
+  currentFullState(request: FullStateItemRequest, metadata?: Metadata): Observable<FullStateItemResponse>;
 
-  productList(request: ProductListRequest): Observable<ProductListResponse>;
+  productList(request: ProductListRequest, metadata?: Metadata): Observable<ProductListResponse>;
 
-  relinkPostings(request: RelinkPostingsRequest): Observable<RelinkPostingsResponse>;
+  relinkPostings(request: RelinkPostingsRequest, metadata?: Metadata): Observable<RelinkPostingsResponse>;
 }
 
 export interface StateServiceController {
   setBaseProductIds(
     request: FullStateItemRequest,
+    metadata?: Metadata,
   ): Promise<FullStateItemResponse> | Observable<FullStateItemResponse> | FullStateItemResponse;
 
   currentFullState(
     request: FullStateItemRequest,
+    metadata?: Metadata,
   ): Promise<FullStateItemResponse> | Observable<FullStateItemResponse> | FullStateItemResponse;
 
   productList(
     request: ProductListRequest,
+    metadata?: Metadata,
   ): Promise<ProductListResponse> | Observable<ProductListResponse> | ProductListResponse;
 
   relinkPostings(
     request: RelinkPostingsRequest,
+    metadata?: Metadata,
   ): Promise<RelinkPostingsResponse> | Observable<RelinkPostingsResponse> | RelinkPostingsResponse;
 }
 

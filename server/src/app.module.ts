@@ -8,8 +8,10 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 import { ClsModule } from 'nestjs-cls';
 
 import { ExcludeAssetsMiddleware } from '@/assets.middleware.js';
+import { AuthModule } from '@/auth/auth.module.js';
 import { getPathRelativeToRoot } from '@/common/helpers/paths.js';
 import { AppConfigModule } from '@/config/app/config.module.js';
+import { AuthConfigModule } from '@/config/auth/config.module.js';
 import { GraphqlConfigModule } from '@/config/graphql/config.module.js';
 import { DatabaseModule } from '@/database/database.module.js';
 import { Microservices } from '@/microservices/microservices.js';
@@ -40,9 +42,12 @@ import { AppService } from './app.service.js';
         index: false,
       },
     }),
-
+    AuthModule,
+    AuthConfigModule,
     ClsModule.forRoot({
       global: true,
+      guard: { mount: true },
+      interceptor: { mount: true },
       middleware: { mount: true },
     }),
   ],

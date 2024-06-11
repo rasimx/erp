@@ -1,5 +1,7 @@
+import type { Metadata } from '@grpc/grpc-js';
 import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
+import * as express from 'express';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 
 import type { JwtPayload, User } from '@/auth/interfaces.js';

@@ -1,11 +1,12 @@
+import type { Metadata } from '@grpc/grpc-js';
 import { Controller } from '@nestjs/common';
 
-import type {
-  FindLatestRequest,
-  ProductBatchListResponse,
-  ProductBatchServiceController,
+import {
+  type FindLatestRequest,
+  type ProductBatchListResponse,
+  type ProductBatchServiceController,
+  ProductBatchServiceControllerMethods,
 } from '@/microservices/proto/erp.pb.js';
-import { ProductBatchServiceControllerMethods } from '@/microservices/proto/erp.pb.js';
 import { ProductBatchService } from '@/product-batch/product-batch.service.js';
 
 @Controller()
@@ -18,6 +19,13 @@ export class ProductBatchController implements ProductBatchServiceController {
   ): Promise<ProductBatchListResponse> {
     const items = await this.productBatchService.findLatest(request);
     return { items };
+  }
+
+  createStatus(
+    request: FindLatestRequest,
+    metadata?: Metadata,
+  ): Promise<ProductBatchListResponse> {
+    return undefined;
   }
 
   // async productBatchListByProductId({

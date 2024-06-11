@@ -5,6 +5,7 @@
 // source: erp.proto
 
 /* eslint-disable */
+import { Metadata } from "@grpc/grpc-js";
 import { GrpcMethod, GrpcStreamMethod } from "@nestjs/microservices";
 import { Observable } from "rxjs";
 
@@ -104,18 +105,20 @@ export interface ProductBatchListResponse {
 export const ERP_PACKAGE_NAME = "erp";
 
 export interface TransactionServiceClient {
-  commitPreparedTransaction(request: PreparedTransaction): Observable<TransactionResponse>;
+  commitPreparedTransaction(request: PreparedTransaction, metadata?: Metadata): Observable<TransactionResponse>;
 
-  rollbackPreparedTransaction(request: PreparedTransaction): Observable<TransactionResponse>;
+  rollbackPreparedTransaction(request: PreparedTransaction, metadata?: Metadata): Observable<TransactionResponse>;
 }
 
 export interface TransactionServiceController {
   commitPreparedTransaction(
     request: PreparedTransaction,
+    metadata?: Metadata,
   ): Promise<TransactionResponse> | Observable<TransactionResponse> | TransactionResponse;
 
   rollbackPreparedTransaction(
     request: PreparedTransaction,
+    metadata?: Metadata,
   ): Promise<TransactionResponse> | Observable<TransactionResponse> | TransactionResponse;
 }
 
@@ -137,18 +140,20 @@ export function TransactionServiceControllerMethods() {
 export const TRANSACTION_SERVICE_NAME = "TransactionService";
 
 export interface ProductServiceClient {
-  insert(request: InsertProductListRequest): Observable<InsertProductListResponse>;
+  insert(request: InsertProductListRequest, metadata?: Metadata): Observable<InsertProductListResponse>;
 
-  findManyBySku(request: FindManyBySkuRequest): Observable<FindManyBySkuResponse>;
+  findManyBySku(request: FindManyBySkuRequest, metadata?: Metadata): Observable<FindManyBySkuResponse>;
 }
 
 export interface ProductServiceController {
   insert(
     request: InsertProductListRequest,
+    metadata?: Metadata,
   ): Promise<InsertProductListResponse> | Observable<InsertProductListResponse> | InsertProductListResponse;
 
   findManyBySku(
     request: FindManyBySkuRequest,
+    metadata?: Metadata,
   ): Promise<FindManyBySkuResponse> | Observable<FindManyBySkuResponse> | FindManyBySkuResponse;
 }
 
@@ -177,7 +182,11 @@ export interface ProductBatchServiceClient {
    *    rpc ProductBatchListForLinkPostings (FindLatestRequest) returns (ProductBatchListResponse);
    */
 
-  findLatest(request: FindLatestRequest): Observable<ProductBatchListResponse>;
+  findLatest(request: FindLatestRequest, metadata?: Metadata): Observable<ProductBatchListResponse>;
+
+  /** rpc UpdatedProductBatchList (UpdatedProductBatchListRequest) returns (ProductBatchListResponse); */
+
+  createStatus(request: FindLatestRequest, metadata?: Metadata): Observable<ProductBatchListResponse>;
 }
 
 export interface ProductBatchServiceController {
@@ -190,12 +199,20 @@ export interface ProductBatchServiceController {
 
   findLatest(
     request: FindLatestRequest,
+    metadata?: Metadata,
+  ): Promise<ProductBatchListResponse> | Observable<ProductBatchListResponse> | ProductBatchListResponse;
+
+  /** rpc UpdatedProductBatchList (UpdatedProductBatchListRequest) returns (ProductBatchListResponse); */
+
+  createStatus(
+    request: FindLatestRequest,
+    metadata?: Metadata,
   ): Promise<ProductBatchListResponse> | Observable<ProductBatchListResponse> | ProductBatchListResponse;
 }
 
 export function ProductBatchServiceControllerMethods() {
   return function (constructor: Function) {
-    const grpcMethods: string[] = ["findLatest"];
+    const grpcMethods: string[] = ["findLatest", "createStatus"];
     for (const method of grpcMethods) {
       const descriptor: any = Reflect.getOwnPropertyDescriptor(constructor.prototype, method);
       GrpcMethod("ProductBatchService", method)(constructor.prototype[method], method, descriptor);

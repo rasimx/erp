@@ -26,7 +26,7 @@
     "typeorm:migration:run": "pnpm typeorm migration:run",
     "typeorm:migration:revert": "pnpm typeorm migration:revert",
     "typeorm:schema:drop": "pnpm typeorm schema:drop",
-    "proto": "protoc --plugin=node_modules/.bin/protoc-gen-ts_proto -I=../metricsplace_common/proto --ts_proto_out=src/microservices/proto --ts_proto_opt=nestJs=true --ts_proto_opt=fileSuffix=.pb",
+    "proto": "protoc --plugin=node_modules/.bin/protoc-gen-ts_proto -I=../metricsplace_common/proto --ts_proto_out=src/microservices/proto --ts_proto_opt=nestJs=true --ts_proto_opt=fileSuffix=.pb --ts_proto_opt=addGrpcMetadata=true",
     "proto:all": "pnpm proto ../metricsplace_common/proto/erp.proto ../metricsplace_common/proto/erp_ozon.proto"
   },
   "dependencies": {
