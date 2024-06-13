@@ -5,7 +5,7 @@ import { PostgresQueryRunner } from 'typeorm/driver/postgres/PostgresQueryRunner
 import type { IsolationLevel } from 'typeorm/driver/types/IsolationLevel.js';
 import { v4 as uuidv4 } from 'uuid';
 
-import { USER_ID } from '@/auth/auth.constants.js';
+import { USER_ID } from '@/context/context.constants.js';
 
 @Injectable()
 export class CustomPostgresQueryRunner extends PostgresQueryRunner {

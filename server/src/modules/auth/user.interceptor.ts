@@ -6,24 +6,23 @@ import {
   type NestInterceptor,
 } from '@nestjs/common';
 import { GqlExecutionContext } from '@nestjs/graphql';
-import { ClsService } from 'nestjs-cls';
-import { defer, mergeMap, Observable } from 'rxjs';
+import { mergeMap, Observable } from 'rxjs';
 
-import { USER_ID } from '@/auth/auth.constants.js';
+import { ContextService } from '@/context/context.service.js';
 
 @Injectable()
 export class UserInterceptor implements NestInterceptor {
-  constructor(private readonly cls: ClsService) {}
+  constructor(private readonly contextService: ContextService) {}
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     if (context.getType() === 'rpc') {
       const metadata: Metadata = context.switchToRpc().getContext();
 
       return new Observable(subscriber => {
-        this.cls.run(() => {
-          const userId = metadata.get('userId')[0];
-          if (userId) this.cls.set(USER_ID, Number(userId));
+        this.contextService.run(() => {
+          this.contextService.userId = metadata.get('userId')[0].toString();
 
+          // next.handle().pipe().subscribe(subscriber);
           next
             .handle()
             .pipe()
@@ -44,11 +43,10 @@ export class UserInterceptor implements NestInterceptor {
       const ctx = GqlExecutionContext.create(context);
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       const request = ctx.getContext().req;
-      return defer(async () => {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        const userId = request.user?.id;
-        this.cls.set(USER_ID, userId);
-      }).pipe(mergeMap(() => next.handle()));
+
+      this.contextService.userId = request.user?.id;
+
+      return next.handle().pipe(mergeMap(() => next.handle()));
     }
   }
 }

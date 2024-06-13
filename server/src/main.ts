@@ -7,44 +7,13 @@ import compression from 'compression';
 import cookieParser from 'cookie-parser';
 import { urlencoded } from 'express';
 import fs from 'fs';
-import { dirname, join, resolve } from 'path';
 import process from 'process';
-import { fileURLToPath } from 'url';
 
 import { getPathRelativeToRoot } from '@/common/helpers/paths.js';
 
 import { AppModule } from './app.module.js';
 import { registerHbsPartials } from './common/helpers/hbs.helper.js';
 import { AppConfigService } from './config/app/config.service.js';
-
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const ROOT_DIR = resolve(__dirname, join(__dirname, '..'));
-
-// const getClsInterceptor =
-//   (cls: ClsService): ServerInterceptor =>
-//   (methodDescriptor, call) => {
-//     const listener = new grpc.ServerListenerBuilder()
-//       .withOnReceiveMetadata((metadata, next) => {
-//         const userId = metadata.get('userId')[0];
-//         // if (userId) cls.set(USER_ID, Number(userId));
-//         next(metadata);
-//         // if (validateAuthorizationMetadata(metadata)) {
-//         //   next(metadata);
-//         // } else {
-//         //   call.sendStatus({
-//         //     code: grpc.status.UNAUTHENTICATED,
-//         //     details: 'Auth metadata not correct',
-//         //   });
-//         // }
-//       })
-//       .build();
-//     const responder = new grpc.ResponderBuilder()
-//       .withStart(next => {
-//         next(listener);
-//       })
-//       .build();
-//     return new grpc.ServerInterceptingCall(call, responder);
-//   };
 
 async function bootstrap() {
   const ssl = process.env.SSL === 'true';
@@ -64,9 +33,7 @@ async function bootstrap() {
 
   const configService = app.get(ConfigService);
 
-  app.useStaticAssets(join(__dirname, 'public'));
-
-  app.setBaseViewsDir(join(ROOT_DIR, 'app/server/views'));
+  app.setBaseViewsDir(getPathRelativeToRoot('server/views'));
   app.setViewEngine('hbs');
   await registerHbsPartials(configService);
 
@@ -86,9 +53,7 @@ async function bootstrap() {
       url: '127.0.0.1:3018',
       package: 'erp',
       protoPath: getPathRelativeToRoot('metricsplace_common/proto/erp.proto'),
-      channelOptions: {
-        // interceptors: [getClsInterceptor(clsService)],
-      },
+      channelOptions: {},
     },
   });
 

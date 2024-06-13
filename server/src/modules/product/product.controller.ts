@@ -1,7 +1,7 @@
 import { Controller, UseInterceptors } from '@nestjs/common';
-import { ClsService } from 'nestjs-cls';
 
 import { UserInterceptor } from '@/auth/user.interceptor.js';
+import { ContextService } from '@/context/context.service.js';
 import type {
   FindManyBySkuRequest,
   FindManyBySkuResponse,
@@ -18,7 +18,7 @@ import { ProductService } from '@/product/product.service.js';
 export class ProductController implements ProductServiceController {
   constructor(
     private readonly productService: ProductService,
-    private readonly cls: ClsService,
+    private readonly contextService: ContextService,
   ) {}
 
   async insert({
@@ -35,10 +35,8 @@ export class ProductController implements ProductServiceController {
   async findManyBySku(
     request: FindManyBySkuRequest,
   ): Promise<FindManyBySkuResponse> {
+    const { userId } = this.contextService;
     const items = await this.productService.findManyBySku(request.skuList);
     return { items };
-  }
-  private generateId() {
-    return Math.random();
   }
 }
