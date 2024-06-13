@@ -8,6 +8,8 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
+import type { AtLeast } from '@/common/helpers/utils.js';
+
 export enum StatusType {
   custom = 'custom',
   ozon = 'ozon',
@@ -49,4 +51,4 @@ export class StatusEntity {
   deletedDate: Date | null;
 }
 
-export type StateInsertEntity = Pick<StatusEntity, 'title'>;
+export type StatusInsertEntity = AtLeast<StatusEntity, 'title'>;

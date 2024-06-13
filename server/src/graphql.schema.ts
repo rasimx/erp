@@ -32,6 +32,7 @@ export interface CreateProductBatchInput {
     count: number;
     costPrice: number;
     date: string;
+    name: string;
 }
 
 export interface ProductBatchOperationInput {
@@ -72,6 +73,7 @@ export interface Status {
 
 export interface ProductBatch {
     id: number;
+    name: string;
     product: Product;
     statusId: number;
     count: number;

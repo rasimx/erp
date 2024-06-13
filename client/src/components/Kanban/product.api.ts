@@ -7,6 +7,7 @@ export const PRODUCT_LIST_QUERY = gql`
   query productList {
     productList {
       items {
+        sku
         id
         name
       }

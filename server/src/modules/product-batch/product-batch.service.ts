@@ -62,11 +62,12 @@ export class ProductBatchService {
   async findLatest({
     productId,
     starterId,
+    accountId,
   }: FindLatestRequest): Promise<ProductBatchEntity[]> {
     if (starterId !== undefined) return this.findFromId(starterId);
     const last = await this.repository.findOne({
-      where: { productId },
-      relations: ['product'],
+      where: { productId, status: { accountId } },
+      relations: ['product', 'status'],
       order: { date: 'desc' },
     });
     return last ? [last] : [];
@@ -129,7 +130,13 @@ export class ProductBatchService {
       where: { id: input.id },
       relations: ['product', 'status'],
     });
-    return { ...item, pricePerUnit: 0 } as unknown as ProductBatch;
+    return {
+      ...item,
+      volume: 0,
+      weight: item.weight,
+      pricePerUnit: 0,
+      fullPrice: 0,
+    };
   }
 
   async createProductBatch(
@@ -140,7 +147,13 @@ export class ProductBatchService {
       where: { id: newItem.id },
       relations: ['product', 'status'],
     });
-    return { ...item, pricePerUnit: 0 } as unknown as ProductBatch;
+    return {
+      ...item,
+      volume: 0,
+      weight: item.weight,
+      pricePerUnit: 0,
+      fullPrice: 0,
+    };
   }
 
   async deleteProductBatch(id: number): Promise<number> {

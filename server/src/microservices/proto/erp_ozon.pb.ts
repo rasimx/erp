@@ -13,9 +13,7 @@ export const protobufPackage = "erp_ozon";
 
 export interface FullStateItem {
   sku: string;
-  baseProductId?:
-    | number
-    | undefined;
+  baseProductId: number;
   /** на складе (включая резерв) */
   presentQuantity: number;
   /** продано (за исключением отмен/возвратов и awaiting_packaging, может меняться) */
@@ -23,35 +21,11 @@ export interface FullStateItem {
 }
 
 export interface FullStateItemRequest {
+  accountId: number;
 }
 
 export interface FullStateItemResponse {
   items: FullStateItem[];
-}
-
-export interface OzonProduct {
-  sku: string;
-  name: string;
-  baseProductId?:
-    | number
-    | undefined;
-  /** в мм */
-  width: number;
-  /** в мм */
-  height: number;
-  /** в мм */
-  length: number;
-  /** в граммах */
-  weight: number;
-}
-
-export interface ProductListRequest {
-  accountId: number;
-  skuList: string[];
-}
-
-export interface ProductListResponse {
-  items: OzonProduct[];
 }
 
 export interface RelinkPostingsItem {
@@ -61,6 +35,7 @@ export interface RelinkPostingsItem {
 }
 
 export interface RelinkPostingsRequest {
+  accountId: number;
   items: RelinkPostingsItem[];
 }
 
@@ -71,30 +46,16 @@ export interface RelinkPostingsResponse {
 export const ERP_OZON_PACKAGE_NAME = "erp_ozon";
 
 export interface StateServiceClient {
-  setBaseProductIds(request: FullStateItemRequest, metadata?: Metadata): Observable<FullStateItemResponse>;
-
   currentFullState(request: FullStateItemRequest, metadata?: Metadata): Observable<FullStateItemResponse>;
-
-  productList(request: ProductListRequest, metadata?: Metadata): Observable<ProductListResponse>;
 
   relinkPostings(request: RelinkPostingsRequest, metadata?: Metadata): Observable<RelinkPostingsResponse>;
 }
 
 export interface StateServiceController {
-  setBaseProductIds(
-    request: FullStateItemRequest,
-    metadata?: Metadata,
-  ): Promise<FullStateItemResponse> | Observable<FullStateItemResponse> | FullStateItemResponse;
-
   currentFullState(
     request: FullStateItemRequest,
     metadata?: Metadata,
   ): Promise<FullStateItemResponse> | Observable<FullStateItemResponse> | FullStateItemResponse;
-
-  productList(
-    request: ProductListRequest,
-    metadata?: Metadata,
-  ): Promise<ProductListResponse> | Observable<ProductListResponse> | ProductListResponse;
 
   relinkPostings(
     request: RelinkPostingsRequest,
@@ -104,7 +65,7 @@ export interface StateServiceController {
 
 export function StateServiceControllerMethods() {
   return function (constructor: Function) {
-    const grpcMethods: string[] = ["setBaseProductIds", "currentFullState", "productList", "relinkPostings"];
+    const grpcMethods: string[] = ["currentFullState", "relinkPostings"];
     for (const method of grpcMethods) {
       const descriptor: any = Reflect.getOwnPropertyDescriptor(constructor.prototype, method);
       GrpcMethod("StateService", method)(constructor.prototype[method], method, descriptor);

@@ -5,7 +5,6 @@ import { lastValueFrom } from 'rxjs';
 import type {
   FullStateItem,
   FullStateItemRequest,
-  OzonProduct,
   StateServiceClient,
 } from '@/microservices/proto/erp_ozon.pb.js';
 import {
@@ -25,24 +24,11 @@ export class OzonStateMicroservice implements OnModuleInit {
     // this.a();
   }
 
-  async a() {
-    const a = await this.currentFullState({});
-    console.log(a);
-  }
-
   async currentFullState(
-    request: FullStateItemRequest = {},
+    request: FullStateItemRequest,
   ): Promise<FullStateItem[]> {
     const { items } = await lastValueFrom(
       this.stateService.currentFullState(request),
-    );
-    return items;
-  }
-
-  async productList(skuList: string[]): Promise<OzonProduct[]> {
-    throw new Error('AAAA');
-    const { items } = await lastValueFrom(
-      this.stateService.productList({ accountId: 0, skuList }),
     );
     return items;
   }

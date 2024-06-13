@@ -1,12 +1,9 @@
 import DeleteIcon from '@mui/icons-material/Delete';
-import { Button, IconButton } from '@mui/material';
+import { Button, Divider, IconButton, Paper, Stack } from '@mui/material';
+import Box from '@mui/material/Box';
 import TextField from '@mui/material/TextField';
-import React, {
-  type CSSProperties,
-  useCallback,
-  useEffect,
-  useState,
-} from 'react';
+import Typography from '@mui/material/Typography';
+import React, { useCallback, useEffect, useState } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 
@@ -27,36 +24,6 @@ import {
   loadStatusListAsync,
   selectStatusList,
 } from './status-list.slice';
-
-const classes: Record<string, CSSProperties> = {
-  board: {
-    display: 'flex',
-    margin: '0 auto',
-    width: '90vw',
-    fontFamily: 'Arial, "Helvetica Neue", sans-serif',
-  },
-  column: {
-    minWidth: 200,
-    width: '18vw',
-    height: '80vh',
-    margin: '0 auto',
-    backgroundColor: '#FCC8B2',
-  },
-  columnHead: {
-    textAlign: 'center',
-    padding: 10,
-    fontSize: '1.2em',
-    color: '#fff',
-    backgroundColor: '#4da9c5',
-  },
-  item: {
-    padding: 10,
-    margin: 10,
-    fontSize: '0.8em',
-    cursor: 'pointer',
-    backgroundColor: 'white',
-  },
-};
 
 const Kanban = () => {
   const productBatchList = useAppSelector(selectProductBatchList);
@@ -83,7 +50,7 @@ const Kanban = () => {
   );
 
   return (
-    <main>
+    <Box sx={{ p: 2 }}>
       <header> Kanban Board </header>
       <TextField
         id="outlined-basic"
@@ -106,11 +73,16 @@ const Kanban = () => {
       <br />
       <br />
       <DndProvider backend={HTML5Backend}>
-        <section style={classes.board}>
+        <Stack
+          direction="row"
+          spacing={0}
+          alignItems="stretch"
+          justifyContent="flex-start"
+        >
           {statusList.map(status => (
-            <KanbanColumn key={status.id} status={status}>
-              <div style={classes.column}>
-                <div style={classes.columnHead}>
+            <>
+              <KanbanColumn key={status.id} status={status}>
+                <Box sx={{ background: '#FAFAFA', p: 1, textAlign: 'center' }}>
                   {status.title}{' '}
                   <IconButton
                     aria-label="delete"
@@ -118,24 +90,25 @@ const Kanban = () => {
                       onClickDeleteBtn(status.id);
                     }}
                   >
-                    <DeleteIcon />
+                    <DeleteIcon color="warning" />
                   </IconButton>
-                </div>
-                <div>
+                </Box>
+                <Stack spacing={1} sx={{ p: 1 }}>
                   {productBatchList
                     .filter(item => item.statusId === status.id)
                     .map(item => (
                       <KanbanItem item={item} key={item.id} />
                     ))}
-                </div>
-              </div>
-            </KanbanColumn>
+                </Stack>
+              </KanbanColumn>
+              <Divider orientation="vertical" variant="middle" flexItem />
+            </>
           ))}
-        </section>
+        </Stack>
       </DndProvider>
       <KanbanModal />
       <SplitProductBatchModal />
-    </main>
+    </Box>
   );
 };
 

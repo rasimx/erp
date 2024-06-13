@@ -14,6 +14,7 @@ export const PRODUCT_BATCH_LIST_QUERY = gql`
   query productBatchList {
     productBatchList {
       id
+      name
       product {
         sku
         name
@@ -43,6 +44,7 @@ export const UPDATE_PRODUCT_BATCH_MUTATION = gql`
   mutation updateProductBatch($input: UpdateProductBatchInput!) {
     updateProductBatch(input: $input) {
       id
+      name
       product {
         sku
         name
@@ -77,6 +79,7 @@ export const CREATE_PRODUCT_BATCH_MUTATION = gql`
   mutation createProductBatch($input: CreateProductBatchInput!) {
     createProductBatch(input: $input) {
       id
+      name
       product {
         sku
         name
@@ -129,6 +132,7 @@ export const SPLIT_PRODUCT_BATCH_MUTATION = gql`
     splitProductBatch(input: $input) {
       newItems {
         id
+        name
         product {
           sku
           name
@@ -156,7 +160,6 @@ export const splitProductBatch = async (
     variables: { input },
     fetchPolicy: 'network-only',
   });
-  debugger;
   return response.data?.splitProductBatch;
 };
 

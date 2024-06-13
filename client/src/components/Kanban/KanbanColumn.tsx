@@ -1,3 +1,5 @@
+import { Paper } from '@mui/material';
+import Box from '@mui/material/Box';
 import React, { useRef } from 'react';
 import { useDrop } from 'react-dnd';
 
@@ -28,7 +30,11 @@ const KanbanColumn = ({
     },
   });
   drop(ref);
-  return <div ref={ref}> {children}</div>;
+  return (
+    <Box ref={ref} sx={{ width: 300 }}>
+      {children}
+    </Box>
+  );
 };
 
 export default KanbanColumn;

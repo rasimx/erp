@@ -5,8 +5,9 @@ import { Repository } from 'typeorm';
 
 import type { Status } from '@/graphql.schema.js';
 import {
-  type StateInsertEntity,
   StatusEntity,
+  type StatusInsertEntity,
+  StatusType,
 } from '@/status/status.entity.js';
 
 @Injectable()
@@ -16,7 +17,7 @@ export class StatusService {
     private readonly repository: Repository<StatusEntity>,
   ) {}
 
-  async insert(data: StateInsertEntity) {
+  async insert(data: StatusInsertEntity) {
     return this.repository.insert(data);
   }
 
@@ -24,13 +25,14 @@ export class StatusService {
     return this.repository.find();
   }
 
-  async createStatus(title: string): Promise<Status[]> {
-    const newStatus = new StatusEntity();
-    newStatus.title = title;
-    await this.repository.save(newStatus);
+  async createStatus(input: StatusInsertEntity): Promise<Status[]> {
+    await this.repository.save(input);
     return this.statusList();
   }
+
   async deleteStatus(id: number): Promise<Status[]> {
+    throw new Error('Not implemented');
+    // todo: как быть при удалении не custom
     await this.repository.delete({ id });
     return this.statusList();
   }

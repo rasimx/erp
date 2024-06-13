@@ -31,6 +31,9 @@ export class ProductBatchEntity {
   })
   userId: number;
 
+  @Column()
+  name: string;
+
   @ManyToOne(() => ProductEntity, { cascade: ['insert'] })
   @JoinColumn()
   product: Relation<ProductEntity>;

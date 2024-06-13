@@ -1,7 +1,19 @@
 import styled from '@emotion/styled';
 import DeleteIcon from '@mui/icons-material/Delete';
-import { IconButton } from '@mui/material';
+import {
+  Button,
+  Card,
+  CardActions,
+  CardContent,
+  CardHeader,
+  Divider,
+  IconButton,
+  List,
+  ListItem,
+  ListItemText,
+} from '@mui/material';
 import Checkbox from '@mui/material/Checkbox';
+import Typography from '@mui/material/Typography';
 import React, { type FC, useCallback, useRef, useState } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
 
@@ -28,6 +40,10 @@ const Row = styled.div`
   display: flex;
   justify-content: space-between;
 `;
+
+function CommentIcon() {
+  return null;
+}
 
 const KanbanItem: FC<Props> = ({ item }) => {
   const ref = useRef(null);
@@ -74,41 +90,63 @@ const KanbanItem: FC<Props> = ({ item }) => {
   drop(ref);
 
   return (
-    <Container ref={ref}>
-      <Checkbox
-        checked={item.checked}
-        onChange={handleCheckbox}
-        inputProps={{ 'aria-label': 'controlled' }}
-      />
+    <Card ref={ref} elevation={3}>
+      <CardContent>
+        <strong>{item.name}</strong>
 
-      <strong>{item.id}</strong>
-      {!item.parentId && (
-        <IconButton aria-label="delete" onClick={onClickDeleteBtn}>
-          <DeleteIcon />
-        </IconButton>
-      )}
-      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-        <strong>{item.product.sku}</strong> {item.product.name}
-      </div>
-
-      <br />
-      <Row>
-        <div>кол-во</div>
-        <div>{item.count} шт</div>
-      </Row>
-      <Row>
-        <div>цена закупки</div>
-        <div>{(item.costPrice / 100).toFixed(2)} &#8381;</div>
-      </Row>
-      <Row>
-        <div>с/с единицы</div>
-        <div>{(item.pricePerUnit / 100).toFixed(2)} &#8381;</div>
-      </Row>
-      <Row>
-        <div>с/с партии</div>
-        <div>{(item.fullPrice / 100).toFixed(2)} &#8381;</div>
-      </Row>
-    </Container>
+        <List dense>
+          <ListItem disableGutters>
+            <ListItemText
+              primary={item.product.sku}
+              secondary={item.product.name}
+            />
+          </ListItem>
+          <ListItem
+            disableGutters
+            secondaryAction={<Typography>{item.count}</Typography>}
+          >
+            <ListItemText primary="количество" />
+          </ListItem>
+          <ListItem
+            disableGutters
+            secondaryAction={
+              <Typography>{(item.costPrice / 100).toFixed(2)}</Typography>
+            }
+          >
+            <ListItemText primary="цена закупки" />
+          </ListItem>
+          <ListItem
+            disableGutters
+            secondaryAction={
+              <Typography>{(item.pricePerUnit / 100).toFixed(2)}</Typography>
+            }
+          >
+            <ListItemText primary="с/с единицы" />
+          </ListItem>
+          <ListItem
+            disableGutters
+            secondaryAction={
+              <Typography>{(item.fullPrice / 100).toFixed(2)}</Typography>
+            }
+          >
+            <ListItemText primary="с/с партии" />
+          </ListItem>
+        </List>
+      </CardContent>
+      <Divider />
+      <CardActions>
+        <Checkbox
+          checked={item.checked}
+          onChange={handleCheckbox}
+          inputProps={{ 'aria-label': 'controlled' }}
+        />
+        {!item.parentId && (
+          <IconButton aria-label="delete" onClick={onClickDeleteBtn}>
+            <DeleteIcon />
+          </IconButton>
+        )}
+      </CardActions>
+    </Card>
   );
 };
 

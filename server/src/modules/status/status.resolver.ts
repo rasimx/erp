@@ -16,7 +16,7 @@ export class StatusResolver {
   }
   @Mutation('createStatus')
   async createStatus(@Args('title') title: string): Promise<Status[]> {
-    return this.service.createStatus(title);
+    return this.service.createStatus({ title });
   }
   @Mutation('deleteStatus')
   async deleteStatus(@Args('id') id: number): Promise<Status[]> {

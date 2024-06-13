@@ -80,9 +80,8 @@ export interface ProductBatchListFromIdRequest {
 }
 
 export interface FindLatestRequest {
-  productId?:
-    | number
-    | undefined;
+  accountId: number;
+  productId: number;
   /** возвращает все id позже этого, если указано, иначе последнюю партию */
   starterId?: number | undefined;
 }
@@ -100,6 +99,16 @@ export interface ProductBatchListItem {
 
 export interface ProductBatchListResponse {
   items: ProductBatchListItem[];
+}
+
+export interface CreateStatusRequest {
+  accountId: number;
+  title: string;
+  type: string;
+}
+
+export interface CreateStatusResponse {
+  error?: string | undefined;
 }
 
 export const ERP_PACKAGE_NAME = "erp";
@@ -186,7 +195,7 @@ export interface ProductBatchServiceClient {
 
   /** rpc UpdatedProductBatchList (UpdatedProductBatchListRequest) returns (ProductBatchListResponse); */
 
-  createStatus(request: FindLatestRequest, metadata?: Metadata): Observable<ProductBatchListResponse>;
+  createStatus(request: CreateStatusRequest, metadata?: Metadata): Observable<CreateStatusResponse>;
 }
 
 export interface ProductBatchServiceController {
@@ -205,9 +214,9 @@ export interface ProductBatchServiceController {
   /** rpc UpdatedProductBatchList (UpdatedProductBatchListRequest) returns (ProductBatchListResponse); */
 
   createStatus(
-    request: FindLatestRequest,
+    request: CreateStatusRequest,
     metadata?: Metadata,
-  ): Promise<ProductBatchListResponse> | Observable<ProductBatchListResponse> | ProductBatchListResponse;
+  ): Promise<CreateStatusResponse> | Observable<CreateStatusResponse> | CreateStatusResponse;
 }
 
 export function ProductBatchServiceControllerMethods() {

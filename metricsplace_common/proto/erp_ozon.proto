@@ -3,41 +3,23 @@ syntax = "proto3";
 package erp_ozon;
 
 service StateService {
-    rpc SetBaseProductIds (FullStateItemRequest) returns (FullStateItemResponse);
     rpc CurrentFullState (FullStateItemRequest) returns (FullStateItemResponse);
-    rpc ProductList (ProductListRequest) returns (ProductListResponse);
     rpc RelinkPostings (RelinkPostingsRequest) returns (RelinkPostingsResponse);
 }
 
 message FullStateItem {
     string sku = 1;
-    optional uint32 base_product_id = 2;
+    uint32 base_product_id = 2;
     uint32 present_quantity = 3; // на складе (включая резерв)
     uint32 sold_quantity = 4; // продано (за исключением отмен/возвратов и awaiting_packaging, может меняться)
 }
 
 message FullStateItemRequest {
+    uint32 account_id = 1;
 }
+
 message FullStateItemResponse {
     repeated FullStateItem items = 1;
-}
-
-message OzonProduct {
-    string sku = 1;
-    string name = 2;
-    optional uint32 base_product_id = 3;
-    uint32 width = 4; // в мм
-    uint32 height = 5; // в мм
-    uint32 length = 6; // в мм
-    uint32 weight = 7; // в граммах
-}
-
-message ProductListRequest {
-    uint32 account_id = 1;
-    repeated string sku_list = 2;
-}
-message ProductListResponse {
-    repeated OzonProduct items = 1;
 }
 
 message RelinkPostingsItem {
@@ -47,7 +29,8 @@ message RelinkPostingsItem {
 }
 
 message RelinkPostingsRequest {
-    repeated RelinkPostingsItem items = 1;
+    uint32 account_id = 1;
+    repeated RelinkPostingsItem items = 2;
 }
 message RelinkPostingsResponse {
     bool success = 1;

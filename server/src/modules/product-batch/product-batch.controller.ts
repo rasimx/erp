@@ -1,18 +1,25 @@
-import type { Metadata } from '@grpc/grpc-js';
-import { Controller } from '@nestjs/common';
+import { Controller, UseInterceptors } from '@nestjs/common';
 
+import { UserInterceptor } from '@/auth/user.interceptor.js';
 import {
+  type CreateStatusRequest,
+  type CreateStatusResponse,
   type FindLatestRequest,
   type ProductBatchListResponse,
   type ProductBatchServiceController,
   ProductBatchServiceControllerMethods,
 } from '@/microservices/proto/erp.pb.js';
 import { ProductBatchService } from '@/product-batch/product-batch.service.js';
+import { StatusService } from '@/status/status.service.js';
 
 @Controller()
+@UseInterceptors(UserInterceptor)
 @ProductBatchServiceControllerMethods()
 export class ProductBatchController implements ProductBatchServiceController {
-  constructor(private readonly productBatchService: ProductBatchService) {}
+  constructor(
+    private readonly productBatchService: ProductBatchService,
+    private readonly statusService: StatusService,
+  ) {}
 
   async findLatest(
     request: FindLatestRequest,
@@ -21,11 +28,17 @@ export class ProductBatchController implements ProductBatchServiceController {
     return { items };
   }
 
-  createStatus(
-    request: FindLatestRequest,
-    metadata?: Metadata,
-  ): Promise<ProductBatchListResponse> {
-    return undefined;
+  async createStatus(
+    request: CreateStatusRequest,
+  ): Promise<CreateStatusResponse> {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+    try {
+      // @ts-expect-error statusType is string, proto не поддежривает строковые enum
+      await this.statusService.createStatus(request);
+    } catch (e: unknown) {
+      return { error: (e as Error).message };
+    }
+    return {};
   }
 
   // async productBatchListByProductId({

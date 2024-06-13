@@ -44,7 +44,9 @@ export class UserInterceptor implements NestInterceptor {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       const request = ctx.getContext().req;
 
-      this.contextService.userId = request.user?.id;
+      // this.contextService.userId = request.user?.id;
+      // todo: userId
+      this.contextService.userId = 1;
 
       return next.handle().pipe(mergeMap(() => next.handle()));
     }
