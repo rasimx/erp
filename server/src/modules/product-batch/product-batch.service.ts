@@ -1,7 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
+import jss from 'json-case-convertor';
 import { Repository } from 'typeorm';
 
+import { ContextService } from '@/context/context.service.js';
 import { CustomDataSource } from '@/database/custom.data-source.js';
 import type {
   CreateProductBatchInput,
@@ -15,6 +17,8 @@ import { OzonStateMicroservice } from '@/microservices/erp_ozon/ozon-state-micro
 import type { FindLatestRequest } from '@/microservices/proto/erp.pb.js';
 import { ProductService } from '@/product/product.service.js';
 import { ProductBatchEntity } from '@/product-batch/product-batch.entity.js';
+import { StatusType } from '@/status/status.entity.js';
+import { StatusService } from '@/status/status.service.js';
 
 @Injectable()
 export class ProductBatchService {
@@ -23,27 +27,55 @@ export class ProductBatchService {
     private readonly repository: Repository<ProductBatchEntity>,
     private readonly productService: ProductService,
     private readonly ozonStateMicroservice: OzonStateMicroservice,
+    private readonly contextService: ContextService,
+    private readonly statusService: StatusService,
     @InjectDataSource()
     private dataSource: CustomDataSource,
-  ) {
-    // setTimeout(() => this.aaa(), 6000);
-    // this.a();
+  ) {}
+
+  async getProductBatchesMap(
+    statusId: number,
+    productBatches: { productId: number; productBatchId?: number }[],
+  ): Promise<Map<number, ProductBatchEntity[]>> {
+    const entityManager = this.repository;
+
+    // Преобразуем массив объектов в массив строк для SQL-запроса
+    const productBatchConditions = productBatches
+      .map(pb => {
+        if (pb.productBatchId) {
+          return `(
+        pb.product_id = ${pb.productId.toString()} AND 
+        pb.date >= (SELECT date FROM product_batch WHERE id = ${pb.productBatchId.toString()})
+      )`;
+        } else {
+          return `(pb.product_id = ${pb.productId.toString()})`;
+        }
+      })
+      .join(' OR ');
+
+    const query = `
+    SELECT pb.*
+    FROM product_batch pb
+    WHERE pb.status_id = ${statusId.toString()}
+      AND (${productBatchConditions})
+    ORDER BY pb.product_id, pb.date;
+  `;
+
+    const rows: ProductBatchEntity[] = await entityManager
+      .query(query)
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      .then(row => jss.camelCaseKeys(row));
+    const pbMapByProductId = new Map<number, ProductBatchEntity[]>();
+    rows.forEach(row => {
+      let mapItem = pbMapByProductId.get(row.productId);
+      if (!mapItem) mapItem = [];
+      mapItem.push(row);
+      pbMapByProductId.set(row.productId, mapItem);
+    });
+    return pbMapByProductId;
   }
 
-  async a() {
-    const parent = await this.repository.findOneOrFail({
-      where: { id: 174 },
-      relations: ['children'],
-    });
-    const child = await this.repository.findOneOrFail({
-      where: { id: 143 },
-      relations: ['parents'],
-    });
-    parent.children = [child];
-    await this.repository.save(parent);
-  }
-
-  async findFromId(id: number) {
+  async findFromId({ statusId, id }: { statusId: number; id: number }) {
     return this.repository
       .createQueryBuilder('pb')
       .leftJoinAndSelect('pb.product', 'product')
@@ -54,6 +86,7 @@ export class ProductBatchService {
       )
       .where('pb2.id = :id', { id })
       .andWhere('pb.date::date >= pb2.date::date')
+      .andWhere('pb.status_id = :statusId', { statusId })
       .orderBy('pb.date')
       .addOrderBy('pb.created_at')
       .getMany();
@@ -64,10 +97,15 @@ export class ProductBatchService {
     starterId,
     accountId,
   }: FindLatestRequest): Promise<ProductBatchEntity[]> {
-    if (starterId !== undefined) return this.findFromId(starterId);
+    const status = await this.statusService.findByAccountId(
+      accountId,
+      StatusType.ozon,
+    );
+    if (starterId !== undefined)
+      return this.findFromId({ statusId: status.id, id: starterId });
     const last = await this.repository.findOne({
-      where: { productId, status: { accountId } },
-      relations: ['product', 'status'],
+      where: { productId, statusId: status.id },
+      relations: ['product'],
       order: { date: 'desc' },
     });
     return last ? [last] : [];

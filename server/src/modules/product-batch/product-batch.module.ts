@@ -19,5 +19,6 @@ import { ProductBatchService } from './product-batch.service.js';
   ],
   providers: [ProductBatchService, ProductBatchResolver],
   controllers: [ProductBatchController],
+  exports: [ProductBatchService],
 })
 export class ProductBatchModule {}

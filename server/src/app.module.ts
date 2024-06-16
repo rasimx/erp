@@ -16,6 +16,7 @@ import { ContextModule } from '@/context/context.module.js';
 import { DatabaseModule } from '@/database/database.module.js';
 import { Microservices } from '@/microservices/microservices.js';
 import { OperationModule } from '@/operation/operation.module.js';
+import { OzonModule } from '@/ozon/ozon.module.js';
 import { ProductModule } from '@/product/product.module.js';
 import { ProductBatchModule } from '@/product-batch/product-batch.module.js';
 import { ProductBatchOperationModule } from '@/product-batch-operation/product-batch-operation.module.js';
@@ -45,6 +46,7 @@ import { AppService } from './app.service.js';
     AuthModule,
     AuthConfigModule,
     ContextModule,
+    OzonModule,
   ],
   controllers: [],
   providers: [

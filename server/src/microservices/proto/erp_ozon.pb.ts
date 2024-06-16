@@ -12,12 +12,10 @@ import { Observable } from "rxjs";
 export const protobufPackage = "erp_ozon";
 
 export interface FullStateItem {
-  sku: string;
   baseProductId: number;
-  /** на складе (включая резерв) */
-  presentQuantity: number;
-  /** продано (за исключением отмен/возвратов и awaiting_packaging, может меняться) */
-  soldQuantity: number;
+  /** на складе (включая резерв) + продано (за исключением отмен/возвратов и awaiting_packaging, может меняться) */
+  count: number;
+  lastProductBatchId?: number | undefined;
 }
 
 export interface FullStateItemRequest {

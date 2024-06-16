@@ -8,10 +8,9 @@ service StateService {
 }
 
 message FullStateItem {
-    string sku = 1;
     uint32 base_product_id = 2;
-    uint32 present_quantity = 3; // на складе (включая резерв)
-    uint32 sold_quantity = 4; // продано (за исключением отмен/возвратов и awaiting_packaging, может меняться)
+    uint32 count = 3; // на складе (включая резерв) + продано (за исключением отмен/возвратов и awaiting_packaging, может меняться)
+    optional uint32 last_product_batch_id = 4;
 }
 
 message FullStateItemRequest {
