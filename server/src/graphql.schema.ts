@@ -16,6 +16,16 @@ export enum ProportionType {
     costPrice = "costPrice"
 }
 
+export enum StoreType {
+    ozon = "ozon",
+    wb = "wb"
+}
+
+export interface StoreInput {
+    storeId: number;
+    storeType: StoreType;
+}
+
 export interface CreateProductInput {
     sku: string;
     name: string;
@@ -98,11 +108,24 @@ export interface OperationList {
     totalCount: number;
 }
 
+export interface StoreByProduct {
+    product?: Nullable<Product>;
+    productBatches: ProductBatch[];
+    salesCount: number;
+    inStoreCount: number;
+}
+
+export interface Store {
+    id: number;
+    items: StoreByProduct[];
+}
+
 export interface IQuery {
     productList(): ProductList | Promise<ProductList>;
     statusList(): Status[] | Promise<Status[]>;
     productBatchList(): ProductBatch[] | Promise<ProductBatch[]>;
     operationList(productBatchId: number): OperationList | Promise<OperationList>;
+    storeState(productId?: Nullable<number>, storeInput?: Nullable<StoreInput>): Store[] | Promise<Store[]>;
 }
 
 export interface CreateProductResponse {

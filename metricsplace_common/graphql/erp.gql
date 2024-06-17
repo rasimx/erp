@@ -42,21 +42,31 @@ type OperationList {
   totalCount: Int!
 }
 
-type StoreState {
+type StoreByProduct {
   product: Product
   productBatches: [ProductBatch!]!
   salesCount: Int!
   inStoreCount: Int!
 }
 
+type Store {
+  id: Int!
+  items: [StoreByProduct!]!
+}
+
+input StoreInput {
+  storeId: Int!
+  storeType: StoreType!
+}
 
 type Query {
   productList: ProductList!
   statusList: [Status!]!
   productBatchList: [ProductBatch!]!
   operationList(productBatchId: Int!): OperationList!
-  invalidList(statusId: Int!): InvalidList!
+  storeState(productId: Int, storeInput: StoreInput): [Store!]!
 }
+
 
 input CreateProductInput {
   sku: String!
@@ -92,6 +102,11 @@ enum ProportionType {
   weight
   volume
   costPrice
+}
+
+enum StoreType {
+  ozon
+  wb
 }
 
 input CreateOperationInput {

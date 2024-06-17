@@ -3,21 +3,29 @@ syntax = "proto3";
 package erp_ozon;
 
 service StateService {
-    rpc CurrentFullState (FullStateItemRequest) returns (FullStateItemResponse);
+    rpc CurrentFullState (FullStateItemRequest) returns (FullStateResponse);
     rpc RelinkPostings (RelinkPostingsRequest) returns (RelinkPostingsResponse);
 }
 
-message FullStateItem {
-    uint32 base_product_id = 2;
-    uint32 count = 3; // на складе (включая резерв) + продано (за исключением отмен/возвратов и awaiting_packaging, может меняться)
-    optional uint32 last_product_batch_id = 4;
-}
 
 message FullStateItemRequest {
-    uint32 store_id = 1;
+    optional uint32 store_id = 1;
+    optional uint32 base_product_id = 2;
 }
 
-message FullStateItemResponse {
+message FullStateData {
+    uint32 base_product_id = 1;
+    uint32 sales_count = 2; // продано (за исключением отмен/возвратов и awaiting_packaging, может меняться)
+    uint32 in_store_count = 3; // на складе (включая резерв)
+    optional uint32 last_product_batch_id = 4;
+}
+message FullStateItem {
+    uint32 store_id = 1;
+    repeated FullStateData items = 2;
+}
+
+
+message FullStateResponse {
     repeated FullStateItem items = 1;
 }
 

@@ -7,7 +7,6 @@ import type { Status } from '@/graphql.schema.js';
 import {
   StatusEntity,
   type StatusInsertEntity,
-  StatusType,
 } from '@/status/status.entity.js';
 
 @Injectable()
@@ -35,9 +34,5 @@ export class StatusService {
     // todo: как быть при удалении не custom
     await this.repository.delete({ id });
     return this.statusList();
-  }
-
-  async findByStoreId(storeId: number, type: StatusType): Promise<Status> {
-    return this.repository.findOneOrFail({ where: { storeId, type } });
   }
 }

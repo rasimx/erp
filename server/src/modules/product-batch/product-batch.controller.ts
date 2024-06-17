@@ -31,9 +31,7 @@ export class ProductBatchController implements ProductBatchServiceController {
   async createStatus(
     request: CreateStatusRequest,
   ): Promise<CreateStatusResponse> {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     try {
-      // @ts-expect-error statusType is string, proto не поддежривает строковые enum
       await this.statusService.createStatus(request);
     } catch (e: unknown) {
       return { error: (e as Error).message };

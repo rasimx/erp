@@ -11,18 +11,26 @@ import { Observable } from "rxjs";
 
 export const protobufPackage = "erp_ozon";
 
-export interface FullStateItem {
+export interface FullStateItemRequest {
+  storeId?: number | undefined;
+  baseProductId?: number | undefined;
+}
+
+export interface FullStateData {
   baseProductId: number;
-  /** на складе (включая резерв) + продано (за исключением отмен/возвратов и awaiting_packaging, может меняться) */
-  count: number;
+  /** продано (за исключением отмен/возвратов и awaiting_packaging, может меняться) */
+  salesCount: number;
+  /** на складе (включая резерв) */
+  inStoreCount: number;
   lastProductBatchId?: number | undefined;
 }
 
-export interface FullStateItemRequest {
+export interface FullStateItem {
   storeId: number;
+  items: FullStateData[];
 }
 
-export interface FullStateItemResponse {
+export interface FullStateResponse {
   items: FullStateItem[];
 }
 
@@ -44,7 +52,7 @@ export interface RelinkPostingsResponse {
 export const ERP_OZON_PACKAGE_NAME = "erp_ozon";
 
 export interface StateServiceClient {
-  currentFullState(request: FullStateItemRequest, metadata?: Metadata): Observable<FullStateItemResponse>;
+  currentFullState(request: FullStateItemRequest, metadata?: Metadata): Observable<FullStateResponse>;
 
   relinkPostings(request: RelinkPostingsRequest, metadata?: Metadata): Observable<RelinkPostingsResponse>;
 }
@@ -53,7 +61,7 @@ export interface StateServiceController {
   currentFullState(
     request: FullStateItemRequest,
     metadata?: Metadata,
-  ): Promise<FullStateItemResponse> | Observable<FullStateItemResponse> | FullStateItemResponse;
+  ): Promise<FullStateResponse> | Observable<FullStateResponse> | FullStateResponse;
 
   relinkPostings(
     request: RelinkPostingsRequest,

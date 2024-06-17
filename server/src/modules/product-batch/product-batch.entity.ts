@@ -15,6 +15,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
+import { StoreType } from '@/graphql.schema.js';
 import { ProductEntity } from '@/product/product.entity.js';
 import { ProductBatchOperationEntity } from '@/product-batch-operation/product-batch-operation.entity.js';
 import { StatusEntity } from '@/status/status.entity.js';
@@ -47,8 +48,18 @@ export class ProductBatchEntity {
   status: Relation<StatusEntity>;
 
   @RelationId((entity: ProductBatchEntity) => entity.status)
-  @Column()
+  @Column('int', { nullable: true })
   statusId: number;
+
+  @Column('int', { nullable: true })
+  storeId: number | null;
+
+  @Column({
+    type: 'enum',
+    enum: StoreType,
+    nullable: true,
+  })
+  storeType: number | null;
 
   @TreeChildren()
   children: ProductBatchEntity[];

@@ -5,19 +5,19 @@ import { Repository } from 'typeorm';
 
 import { ContextService } from '@/context/context.service.js';
 import { CustomDataSource } from '@/database/custom.data-source.js';
-import type {
-  CreateProductBatchInput,
-  ProductBatch,
-  SplitProductBatchInput,
-  SplitProductBatchResponse,
-  UpdateProductBatchInput,
+import {
+  type CreateProductBatchInput,
+  type ProductBatch,
+  type SplitProductBatchInput,
+  type SplitProductBatchResponse,
+  StoreType,
+  type UpdateProductBatchInput,
 } from '@/graphql.schema.js';
 // import type { MergeProductBatchInput } from '@/graphql.schema.js';
 import { OzonStateMicroservice } from '@/microservices/erp_ozon/ozon-state-microservice.service.js';
 import type { FindLatestRequest } from '@/microservices/proto/erp.pb.js';
 import { ProductService } from '@/product/product.service.js';
 import { ProductBatchEntity } from '@/product-batch/product-batch.entity.js';
-import { StatusType } from '@/status/status.entity.js';
 import { StatusService } from '@/status/status.service.js';
 
 @Injectable()
@@ -33,22 +33,31 @@ export class ProductBatchService {
     private dataSource: CustomDataSource,
   ) {}
 
-  async getProductBatchesMap(
-    statusId: number,
-    productBatches: { productId: number; productBatchId?: number }[],
-  ): Promise<Map<number, ProductBatchEntity[]>> {
+  async getProductBatchesMapByStoreId(
+    productBatches: {
+      productId: number;
+      storeId: number;
+      storeType: StoreType;
+      productBatchId?: number;
+    }[],
+  ): Promise<Map<number, ProductBatch[]>> {
     const entityManager = this.repository;
 
     // Преобразуем массив объектов в массив строк для SQL-запроса
     const productBatchConditions = productBatches
       .map(pb => {
+        const common = `
+        pb.product_id = ${pb.productId.toString()}
+        AND pb.store_id = ${pb.storeId.toString()}
+        AND pb.store_type = '${pb.storeType}'
+        `;
         if (pb.productBatchId) {
           return `(
-        pb.product_id = ${pb.productId.toString()} AND 
-        pb.date >= (SELECT date FROM product_batch WHERE id = ${pb.productBatchId.toString()})
-      )`;
+            ${common}
+            AND pb.date >= (SELECT date FROM product_batch WHERE id = ${pb.productBatchId.toString()})
+            )`;
         } else {
-          return `(pb.product_id = ${pb.productId.toString()})`;
+          return `(${common})`;
         }
       })
       .join(' OR ');
@@ -56,26 +65,26 @@ export class ProductBatchService {
     const query = `
     SELECT pb.*
     FROM product_batch pb
-    WHERE pb.status_id = ${statusId.toString()}
-      AND (${productBatchConditions})
+    WHERE (${productBatchConditions})
     ORDER BY pb.product_id, pb.date;
   `;
 
-    const rows: ProductBatchEntity[] = await entityManager
+    const rows: (ProductBatchEntity & ProductBatch)[] = await entityManager
       .query(query)
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       .then(row => jss.camelCaseKeys(row));
-    const pbMapByProductId = new Map<number, ProductBatchEntity[]>();
+    const pbMapByProductId = new Map<number, ProductBatch[]>();
     rows.forEach(row => {
-      let mapItem = pbMapByProductId.get(row.productId);
+      if (!row.storeId) throw new Error('storeId must be defined');
+      let mapItem = pbMapByProductId.get(row.storeId);
       if (!mapItem) mapItem = [];
-      mapItem.push(row);
-      pbMapByProductId.set(row.productId, mapItem);
+      mapItem.push({ ...row, pricePerUnit: 0, fullPrice: 0 });
+      pbMapByProductId.set(row.storeId, mapItem);
     });
     return pbMapByProductId;
   }
 
-  async findFromId({ statusId, id }: { statusId: number; id: number }) {
+  async findFromId({ storeId, id }: { storeId: number; id: number }) {
     return this.repository
       .createQueryBuilder('pb')
       .leftJoinAndSelect('pb.product', 'product')
@@ -86,7 +95,7 @@ export class ProductBatchService {
       )
       .where('pb2.id = :id', { id })
       .andWhere('pb.date::date >= pb2.date::date')
-      .andWhere('pb.status_id = :statusId', { statusId })
+      .andWhere('pb.store_id = :storeId', { storeId })
       .orderBy('pb.date')
       .addOrderBy('pb.created_at')
       .getMany();
@@ -97,14 +106,10 @@ export class ProductBatchService {
     starterId,
     storeId,
   }: FindLatestRequest): Promise<ProductBatchEntity[]> {
-    const status = await this.statusService.findByStoreId(
-      storeId,
-      StatusType.ozon,
-    );
     if (starterId !== undefined)
-      return this.findFromId({ statusId: status.id, id: starterId });
+      return this.findFromId({ storeId, id: starterId });
     const last = await this.repository.findOne({
-      where: { productId, statusId: status.id },
+      where: { productId, storeId },
       relations: ['product'],
       order: { date: 'desc' },
     });

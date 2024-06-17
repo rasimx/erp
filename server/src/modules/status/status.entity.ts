@@ -4,36 +4,18 @@ import {
   DeleteDateColumn,
   Entity,
   PrimaryGeneratedColumn,
-  Unique,
   UpdateDateColumn,
 } from 'typeorm';
 
 import type { AtLeast } from '@/common/helpers/utils.js';
 
-export enum StatusType {
-  custom = 'custom',
-  ozon = 'ozon',
-  wb = 'wb',
-}
-
 @Entity({ name: 'status' })
-@Unique(['storeId', 'type'])
 export class StatusEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
   @Column()
   title: string;
-
-  @Column({
-    type: 'enum',
-    enum: StatusType,
-    default: StatusType.custom,
-  })
-  type: StatusType;
-
-  @Column('int', { nullable: true })
-  storeId: number | null;
 
   @Column({
     type: 'int',
