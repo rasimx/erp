@@ -95,10 +95,10 @@ export class ProductBatchService {
   async findLatest({
     productId,
     starterId,
-    accountId,
+    storeId,
   }: FindLatestRequest): Promise<ProductBatchEntity[]> {
-    const status = await this.statusService.findByAccountId(
-      accountId,
+    const status = await this.statusService.findByStoreId(
+      storeId,
       StatusType.ozon,
     );
     if (starterId !== undefined)

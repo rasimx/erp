@@ -17,7 +17,7 @@ export enum StatusType {
 }
 
 @Entity({ name: 'status' })
-@Unique(['accountId', 'type'])
+@Unique(['storeId', 'type'])
 export class StatusEntity {
   @PrimaryGeneratedColumn()
   id: number;
@@ -33,11 +33,11 @@ export class StatusEntity {
   type: StatusType;
 
   @Column('int', { nullable: true })
-  accountId: number | null;
+  storeId: number | null;
 
   @Column({
     type: 'int',
-    default: () => "current_setting('rls.user_id')::int",
+    default: () => "(current_setting('rls.user_id'))",
   })
   userId: number;
 

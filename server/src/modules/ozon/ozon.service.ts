@@ -26,13 +26,13 @@ export class OzonService {
   }
 
   async getInvalidProducts(): Promise<void> {
-    const accountId = 1114008;
-    const status = await this.statusService.findByAccountId(
-      accountId,
+    const storeId = 1114008;
+    const status = await this.statusService.findByStoreId(
+      storeId,
       StatusType.ozon,
     );
     const res = await this.ozonStateMicroservice.currentFullState({
-      accountId: 1114008,
+      storeId,
     });
 
     console.log(res);

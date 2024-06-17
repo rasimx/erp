@@ -19,7 +19,7 @@ export interface FullStateItem {
 }
 
 export interface FullStateItemRequest {
-  accountId: number;
+  storeId: number;
 }
 
 export interface FullStateItemResponse {
@@ -33,7 +33,7 @@ export interface RelinkPostingsItem {
 }
 
 export interface RelinkPostingsRequest {
-  accountId: number;
+  storeId: number;
   items: RelinkPostingsItem[];
 }
 

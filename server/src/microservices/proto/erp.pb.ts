@@ -80,7 +80,7 @@ export interface ProductBatchListFromIdRequest {
 }
 
 export interface FindLatestRequest {
-  accountId: number;
+  storeId: number;
   productId: number;
   /** возвращает все id позже этого, если указано, иначе последнюю партию */
   starterId?: number | undefined;
@@ -102,7 +102,7 @@ export interface ProductBatchListResponse {
 }
 
 export interface CreateStatusRequest {
-  accountId: number;
+  storeId: number;
   title: string;
   type: string;
 }

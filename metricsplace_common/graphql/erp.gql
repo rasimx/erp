@@ -42,12 +42,20 @@ type OperationList {
   totalCount: Int!
 }
 
+type StoreState {
+  product: Product
+  productBatches: [ProductBatch!]!
+  salesCount: Int!
+  inStoreCount: Int!
+}
+
 
 type Query {
   productList: ProductList!
   statusList: [Status!]!
   productBatchList: [ProductBatch!]!
   operationList(productBatchId: Int!): OperationList!
+  invalidList(statusId: Int!): InvalidList!
 }
 
 input CreateProductInput {

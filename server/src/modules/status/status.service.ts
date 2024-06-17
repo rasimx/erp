@@ -37,7 +37,7 @@ export class StatusService {
     return this.statusList();
   }
 
-  async findByAccountId(accountId: number, type: StatusType): Promise<Status> {
-    return this.repository.findOneOrFail({ where: { accountId, type } });
+  async findByStoreId(storeId: number, type: StatusType): Promise<Status> {
+    return this.repository.findOneOrFail({ where: { storeId, type } });
   }
 }

@@ -27,7 +27,7 @@ export class ProductBatchEntity {
 
   @Column({
     type: 'int',
-    default: () => "current_setting('rls.user_id')::int",
+    default: () => "(current_setting('rls.user_id'))",
   })
   userId: number;
 
