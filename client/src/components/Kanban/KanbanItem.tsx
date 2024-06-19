@@ -1,11 +1,9 @@
 import styled from '@emotion/styled';
 import DeleteIcon from '@mui/icons-material/Delete';
 import {
-  Button,
   Card,
   CardActions,
   CardContent,
-  CardHeader,
   Divider,
   IconButton,
   List,
@@ -17,16 +15,17 @@ import Typography from '@mui/material/Typography';
 import React, { type FC, useCallback, useRef, useState } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
 
-import { type ProductBatch } from '../../gql-types/graphql';
-import { useAppDispatch } from '../../hooks';
+import { type ProductBatch } from '@/gql-types/graphql';
+import { useAppDispatch } from '@/hooks';
+
 import {
   deleteProductBatchAsync,
-  ProductBatchItemState,
+  ProductBatchStateItem,
   toggleCheck,
 } from './product-batch.slice';
 
 export interface Props {
-  item: ProductBatchItemState;
+  item: ProductBatchStateItem;
 }
 
 const Container = styled.div`

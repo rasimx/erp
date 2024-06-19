@@ -18,7 +18,13 @@
     "composite": true,
     "paths": {
       "@/*": ["./src/*"],
-    }
+    },
+    "plugins": [
+      {
+        "name": "@0no-co/graphqlsp",
+        "schema": "../metricsplace_common/graphql/erp.gql"
+      }
+    ]
   },
   "include": ["src/**/*"],
   "exclude": [""],

@@ -1,7 +1,8 @@
 import { Box, Modal, Typography } from '@mui/material';
 import React, { type FC, useCallback } from 'react';
 
-import { useAppDispatch, useAppSelector } from '../../../hooks';
+import { useAppDispatch, useAppSelector } from '@/hooks';
+
 import {
   closeSplitProductBatchModal,
   selectSplitProductBatchForm,

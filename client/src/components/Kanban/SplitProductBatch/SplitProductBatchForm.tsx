@@ -2,8 +2,9 @@ import { Box, Button } from '@mui/material';
 import TextField from '@mui/material/TextField';
 import React, { type FC, useCallback } from 'react';
 
-import { ProductBatch } from '../../../gql-types/graphql';
-import { useAppDispatch } from '../../../hooks';
+import { ProductBatch } from '@/gql-types/graphql';
+import { useAppDispatch } from '@/hooks';
+
 import {
   splitProductBatchAsync,
   updateProductBatchAsync,

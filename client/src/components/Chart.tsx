@@ -8,7 +8,7 @@ import {
 } from '@mui/x-charts';
 import React, { type FC } from 'react';
 
-// import { ShadowWrapperContext } from '../../components/shadowDom.js';
+// import { ShadowWrapperContext } from '@/components/shadowDom.js';
 
 export interface StatsByDate {
   count: number;

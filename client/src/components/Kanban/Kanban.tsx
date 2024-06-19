@@ -1,18 +1,17 @@
 import DeleteIcon from '@mui/icons-material/Delete';
-import { Button, Divider, IconButton, Paper, Stack } from '@mui/material';
+import { Button, Divider, IconButton, Stack } from '@mui/material';
 import Box from '@mui/material/Box';
 import TextField from '@mui/material/TextField';
-import Typography from '@mui/material/Typography';
 import React, { useCallback, useEffect, useState } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 
-import { useAppDispatch, useAppSelector } from '../../hooks';
+import { useAppDispatch, useAppSelector } from '@/hooks';
+
 import AddOperation from './AddOperation/AddOperation';
 import AddProductBatch from './AddProductBatch/AddProductBatch';
 import KanbanColumn from './KanbanColumn';
 import KanbanItem from './KanbanItem';
-import KanbanModal from './KanbanModal';
 import {
   loadProductBatchListAsync,
   selectProductBatchList,
@@ -106,7 +105,6 @@ const Kanban = () => {
           ))}
         </Stack>
       </DndProvider>
-      <KanbanModal />
       <SplitProductBatchModal />
     </Box>
   );

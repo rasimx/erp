@@ -1,6 +1,7 @@
 import { useQuery } from '@apollo/client';
 
-import { type Query } from '../../gql-types/graphql';
+import { type Query } from '@/gql-types/graphql';
+
 import { OPERATION_LIST_QUERY } from './operation.api';
 
 export const useOperationList = () => {

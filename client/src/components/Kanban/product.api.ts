@@ -1,9 +1,8 @@
-import { gql } from '@apollo/client';
+import apolloClient from '@/apollo-client';
+import { graphql } from '@/gql-types';
+import { type Product } from '@/gql-types/graphql';
 
-import apolloClient from '../../apollo-client';
-import { type Product, type Query } from '../../gql-types/graphql';
-
-export const PRODUCT_LIST_QUERY = gql`
+export const PRODUCT_LIST_QUERY = graphql(`
   query productList {
     productList {
       items {
@@ -13,9 +12,9 @@ export const PRODUCT_LIST_QUERY = gql`
       }
     }
   }
-`;
+`);
 export const fetchProductList = async (): Promise<Product[]> => {
-  const response = await apolloClient.query<Pick<Query, 'productList'>>({
+  const response = await apolloClient.query({
     query: PRODUCT_LIST_QUERY,
     fetchPolicy: 'network-only',
   });

@@ -2,30 +2,29 @@ import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import update from 'immutability-helper';
 
 import {
-  type MutationCreateProductBatchArgs,
-  // MutationMergeProductBatchArgs,
-  MutationSplitProductBatchArgs,
-  type MutationUpdateProductBatchArgs,
-  type ProductBatch,
-} from '../../gql-types/graphql';
-import { type AppThunk, type RootState } from '../../redux-store';
+  CreateProductBatchInput,
+  ProductBatchInStatusFragment,
+  SplitProductBatchInput,
+  UpdateProductBatchInput,
+} from '@/gql-types/graphql';
+import { type AppThunk, type RootState } from '@/redux-store';
+
 import {
   createProductBatch,
   deleteProductBatch,
   fetchProductBatchList,
-  // mergeProductBatch,
   splitProductBatch,
   updateProductBatch,
 } from './product-batch.api';
 
-export type ProductBatchItemState<T = ProductBatch> = T & {
+export interface ProductBatchStateItem extends ProductBatchInStatusFragment {
   checked: boolean;
-};
+}
 
 export interface ProductBatchState {
-  items: ProductBatchItemState[];
+  items: ProductBatchStateItem[];
   splitProductBatchForm: {
-    item: ProductBatch;
+    item: ProductBatchInStatusFragment;
     statusId: number;
   } | null;
   showModal: boolean;
@@ -37,15 +36,9 @@ const initialState: ProductBatchState = {
   showModal: false,
 };
 
-function buildProductBatchItemState(data: ProductBatch): ProductBatchItemState;
-function buildProductBatchItemState(
-  data: ProductBatch[],
-): ProductBatchItemState[];
-function buildProductBatchItemState(data: ProductBatch | ProductBatch[]) {
-  return Array.isArray(data)
-    ? data.map(item => ({ ...item, checked: false }))
-    : { ...data, checked: false };
-}
+const buildProductBatchItemState = (
+  data: ProductBatchInStatusFragment[],
+): ProductBatchStateItem[] => data.map(item => ({ ...item, checked: false }));
 
 export const loadProductBatchListAsync = createAsyncThunk(
   'productBatch/load',
@@ -55,19 +48,19 @@ export const loadProductBatchListAsync = createAsyncThunk(
 );
 export const updateProductBatchAsync = createAsyncThunk(
   'productBatch/update',
-  async (input: MutationUpdateProductBatchArgs['input']) => {
+  async (input: UpdateProductBatchInput) => {
     return await updateProductBatch(input);
   },
 );
 export const createProductBatchAsync = createAsyncThunk(
   'productBatch/create',
-  async (input: MutationCreateProductBatchArgs['input']) => {
+  async (input: CreateProductBatchInput) => {
     return await createProductBatch(input);
   },
 );
 export const splitProductBatchAsync = createAsyncThunk(
   'productBatch/split',
-  async (input: MutationSplitProductBatchArgs['input']) => {
+  async (input: SplitProductBatchInput) => {
     return await splitProductBatch(input);
   },
 );
@@ -91,7 +84,10 @@ export const productBatchSlice = createSlice({
   reducers: {
     openSplitProductBatchModal: (
       state,
-      action: PayloadAction<{ item: ProductBatch; statusId: number }>,
+      action: PayloadAction<{
+        item: ProductBatchInStatusFragment;
+        statusId: number;
+      }>,
     ) => {
       state.splitProductBatchForm = action.payload;
     },
@@ -117,7 +113,7 @@ export const productBatchSlice = createSlice({
   extraReducers: builder => {
     builder
       .addCase(loadProductBatchListAsync.fulfilled, (state, action) => {
-        state.items = buildProductBatchItemState(action.payload);
+        state.items = buildProductBatchItemState([...action.payload]);
       })
       .addCase(updateProductBatchAsync.fulfilled, (state, action) => {
         if (!action.payload) throw new Error('error 1');
@@ -133,18 +129,18 @@ export const productBatchSlice = createSlice({
       .addCase(createProductBatchAsync.fulfilled, (state, action) => {
         if (!action.payload) throw new Error('error 1');
 
-        state.items.push(buildProductBatchItemState(action.payload));
+        state.items.push(...buildProductBatchItemState([action.payload]));
       })
       .addCase(splitProductBatchAsync.fulfilled, (state, action) => {
         if (!action.payload) throw new Error('error 1');
-        const index = state.items.findIndex(
-          item => item.id === action.meta.arg.id,
-        );
+        const index = state.items.findIndex(item => {
+          return item.id === action.meta.arg.id;
+        });
         if (index == -1) throw new Error('error 1');
         state.items.splice(
           index,
           1,
-          ...buildProductBatchItemState(action.payload.newItems),
+          ...buildProductBatchItemState([...action.payload]),
         );
       })
       // .addCase(mergeProductBatchAsync.fulfilled, (state, action) => {

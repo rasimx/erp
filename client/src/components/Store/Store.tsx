@@ -4,7 +4,8 @@ import Box from '@mui/material/Box';
 import React, { type FC, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 
-import { StoreType } from '../../gql-types/graphql';
+import { StoreType } from '@/gql-types/graphql';
+
 import { STORE_STATE_QUERY } from './store.gql';
 import StoreItem from './StoreItem';
 
@@ -32,7 +33,7 @@ const StoreComponent: FC<Props> = ({}) => {
       >
         {items?.map(item => (
           <StoreItem
-            data={item}
+            storeItem={item}
             storeId={Number(storeId)}
             storeType={StoreType.ozon}
           />

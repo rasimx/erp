@@ -1,6 +1,7 @@
 import { useQuery } from '@apollo/client';
 
-import { type Query } from '../../gql-types/graphql';
+import { type Query } from '@/gql-types/graphql';
+
 import { PRODUCT_LIST_QUERY } from './product.api';
 
 export const useProductList = () => {

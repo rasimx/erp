@@ -153,3 +153,4 @@ type Mutation {
   deleteStatus(id: Int!): [Status!]!
 }
 
+

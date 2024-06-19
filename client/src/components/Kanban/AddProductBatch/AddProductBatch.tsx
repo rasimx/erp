@@ -1,8 +1,9 @@
 import { Box, Button, Modal, Typography } from '@mui/material';
 import React, { type FC, useCallback, useState } from 'react';
 
-import { StoreType } from '../../../gql-types/graphql';
-import { useAppDispatch } from '../../../hooks';
+import { StoreType } from '@/gql-types/graphql';
+import { useAppDispatch } from '@/hooks';
+
 import AddProductBatchForm from './AddProductBatchForm';
 
 const style = {

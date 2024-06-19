@@ -1,10 +1,10 @@
-import { Paper } from '@mui/material';
 import Box from '@mui/material/Box';
 import React, { useRef } from 'react';
 import { useDrop } from 'react-dnd';
 
-import { type ProductBatch, type Status } from '../../gql-types/graphql';
-import { useAppDispatch } from '../../hooks';
+import { type ProductBatch, type Status } from '@/gql-types/graphql';
+import { useAppDispatch } from '@/hooks';
+
 import { openSplitProductBatchModal } from './product-batch.slice';
 
 const KanbanColumn = ({

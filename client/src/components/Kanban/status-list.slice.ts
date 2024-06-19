@@ -4,8 +4,9 @@ import {
   type PayloadAction,
 } from '@reduxjs/toolkit';
 
-import { Status } from '../../gql-types/graphql';
-import { type AppThunk, type RootState } from '../../redux-store';
+import { Status } from '@/gql-types/graphql';
+import { type AppThunk, type RootState } from '@/redux-store';
+
 import { createStatus, deleteStatus, fetchStatusList } from './status-list.api';
 
 export interface StatusListState {

@@ -16,8 +16,9 @@ import { useFormik } from 'formik';
 import React, { type FC, useMemo } from 'react';
 import * as Yup from 'yup';
 
-import { StoreType } from '../../../gql-types/graphql';
-import { useAppDispatch, useAppSelector } from '../../../hooks';
+import { StoreType } from '@/gql-types/graphql';
+import { useAppDispatch, useAppSelector } from '@/hooks';
+
 import { useProductList } from '../product.hooks';
 import { createProductBatchAsync } from '../product-batch.slice';
 import { selectStatusList } from '../status-list.slice';

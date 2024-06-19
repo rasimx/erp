@@ -3,7 +3,6 @@ import React from 'react';
 import { createBrowserRouter, RouteObject } from 'react-router-dom';
 
 import Kanban from './components/Kanban/Kanban';
-import ProductBatch from './components/Kanban/ProductBatch';
 import StoreComponent from './components/Store/Store';
 import Root from './Root';
 
@@ -19,10 +18,6 @@ export const routeObject: RouteObject[] = [
       {
         path: 'ozon-store/:storeId',
         element: <StoreComponent />,
-      },
-      {
-        path: 'product-batch/:productBatchId',
-        element: <ProductBatch />,
       },
     ],
   },

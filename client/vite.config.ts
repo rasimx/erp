@@ -1,3 +1,5 @@
+import * as path from 'node:path';
+
 import federation from '@originjs/vite-plugin-federation';
 import react from '@vitejs/plugin-react-swc';
 import { defineConfig } from 'vite';
@@ -5,6 +7,11 @@ import mkcert from 'vite-plugin-mkcert';
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src'),
+    },
+  },
   plugins: [
     react(),
     federation({

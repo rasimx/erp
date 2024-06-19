@@ -20,10 +20,14 @@ import { format } from 'date-fns';
 import _ from 'lodash';
 import React, { type FC, useCallback, useMemo, useState } from 'react';
 
-import { ProductBatch, ProportionType } from '../../../gql-types/graphql';
-import { useAppSelector } from '../../../hooks';
-import { createOperation } from '../operation.api';
-import { selectCheckedProductBatchList } from '../product-batch.slice';
+import { ProportionType } from '@/gql-types/graphql';
+import { useAppSelector } from '@/hooks';
+
+import {
+  ProductBatchStateItem,
+  selectCheckedProductBatchList,
+} from '../product-batch.slice';
+import { createOperation } from './operation.api';
 
 const Value = styled('div')`
   display: flex;
@@ -102,7 +106,7 @@ type B = {
 
 type DataCellProps = {
   type: ProportionType;
-  row: ProductBatch;
+  row: ProductBatchStateItem;
   items: B;
   label: string;
   getValue?: (value: number) => number;
@@ -146,8 +150,13 @@ const AddOperationForm: FC<Props> = ({ onSubmit }) => {
   );
 
   const percentages = useCallback(
-    (field: keyof Pick<ProductBatch, 'volume' | 'weight' | 'costPrice'>) => {
-      const getValue = (item: ProductBatch) =>
+    (
+      field: keyof Pick<
+        ProductBatchStateItem,
+        'volume' | 'weight' | 'costPrice'
+      >,
+    ) => {
+      const getValue = (item: ProductBatchStateItem) =>
         field == 'costPrice' ? item.costPrice * item.count : item[field];
       const totalSum = selectedProductBatches.reduce(
         (acc, item) => acc + getValue(item),

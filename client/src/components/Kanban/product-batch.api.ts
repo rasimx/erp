@@ -1,125 +1,96 @@
-import { gql } from '@apollo/client';
-
-import apolloClient from '../../apollo-client';
+import apolloClient from '@/apollo-client';
+import { getFragmentData, graphql } from '@/gql-types';
 import {
-  type Mutation,
-  type MutationCreateProductBatchArgs,
-  MutationSplitProductBatchArgs,
-  type MutationUpdateProductBatchArgs,
-  type ProductBatch,
-  type Query,
-} from '../../gql-types/graphql';
+  CreateProductBatchInput,
+  ProductBatchInStatusFragment,
+  SplitProductBatchInput,
+  UpdateProductBatchInput,
+} from '@/gql-types/graphql';
 
-export const PRODUCT_BATCH_LIST_QUERY = gql`
+export const PRODUCT_BATCH_LIST_QUERY = graphql(`
   query productBatchList {
     productBatchList {
-      id
-      name
-      product {
-        sku
-        name
-      }
-      parentId
-      statusId
-      count
-      pricePerUnit
-      costPrice
-      fullPrice
-      date
-      weight
-      volume
+      ...ProductBatchInStatus
     }
   }
-`;
+`);
 
-export const fetchProductBatchList = async (): Promise<ProductBatch[]> => {
-  const response = await apolloClient.query<Pick<Query, 'productBatchList'>>({
+export const ProductBatchInStatus = graphql(`
+  fragment ProductBatchInStatus on ProductBatch {
+    id
+    name
+    product {
+      sku
+      name
+    }
+    parentId
+    statusId
+    count
+    pricePerUnit
+    costPrice
+    fullPrice
+    date
+    weight
+    volume
+  }
+`);
+
+export const fetchProductBatchList = async () => {
+  const response = await apolloClient.query({
     query: PRODUCT_BATCH_LIST_QUERY,
     fetchPolicy: 'network-only',
   });
-  return response.data.productBatchList;
+  return getFragmentData(ProductBatchInStatus, response.data.productBatchList);
 };
 
-export const UPDATE_PRODUCT_BATCH_MUTATION = gql`
+export const UPDATE_PRODUCT_BATCH_MUTATION = graphql(`
   mutation updateProductBatch($input: UpdateProductBatchInput!) {
     updateProductBatch(input: $input) {
-      id
-      name
-      product {
-        sku
-        name
-      }
-      parentId
-      statusId
-      count
-      pricePerUnit
-      costPrice
-      fullPrice
-      date
-      weight
-      volume
+      ...ProductBatchInStatus
     }
   }
-`;
+`);
 
-export const updateProductBatch = async (
-  input: MutationUpdateProductBatchArgs['input'],
-) => {
-  const response = await apolloClient.mutate<
-    Pick<Mutation, 'updateProductBatch'>
-  >({
+export const updateProductBatch = async (input: UpdateProductBatchInput) => {
+  const response = await apolloClient.mutate({
     mutation: UPDATE_PRODUCT_BATCH_MUTATION,
     variables: { input },
     fetchPolicy: 'network-only',
   });
-  return response.data?.updateProductBatch;
+  return getFragmentData(
+    ProductBatchInStatus,
+    response.data?.updateProductBatch,
+  );
 };
 
-export const CREATE_PRODUCT_BATCH_MUTATION = gql`
+export const CREATE_PRODUCT_BATCH_MUTATION = graphql(`
   mutation createProductBatch($input: CreateProductBatchInput!) {
     createProductBatch(input: $input) {
-      id
-      name
-      product {
-        sku
-        name
-      }
-      parentId
-      statusId
-      count
-      pricePerUnit
-      costPrice
-      fullPrice
-      date
-      weight
-      volume
+      ...ProductBatchInStatus
     }
   }
-`;
+`);
 
-export const createProductBatch = async (
-  input: MutationCreateProductBatchArgs['input'],
-) => {
-  const response = await apolloClient.mutate<
-    Pick<Mutation, 'createProductBatch'>
-  >({
+export const createProductBatch = async (input: CreateProductBatchInput) => {
+  const response = await apolloClient.mutate({
     mutation: CREATE_PRODUCT_BATCH_MUTATION,
     variables: { input },
     fetchPolicy: 'network-only',
   });
-  return response.data?.createProductBatch;
+  return getFragmentData(
+    ProductBatchInStatus,
+    response.data?.createProductBatch,
+  );
 };
 
-export const DELETE_PRODUCT_BATCH_MUTATION = gql`
+export const DELETE_PRODUCT_BATCH_MUTATION = graphql(`
   mutation deleteProductBatch($id: Int!) {
     deleteProductBatch(id: $id)
   }
-`;
+`);
 
 export const deleteProductBatch = async (id: number) => {
-  const response = await apolloClient.mutate<
-    Pick<Mutation, 'deleteProductBatch'>
-  >({
+  const response = await apolloClient.mutate({
     mutation: DELETE_PRODUCT_BATCH_MUTATION,
     variables: { id },
     fetchPolicy: 'network-only',
@@ -127,40 +98,26 @@ export const deleteProductBatch = async (id: number) => {
   return response.data?.deleteProductBatch;
 };
 
-export const SPLIT_PRODUCT_BATCH_MUTATION = gql`
+export const SPLIT_PRODUCT_BATCH_MUTATION = graphql(`
   mutation splitProductBatch($input: SplitProductBatchInput!) {
     splitProductBatch(input: $input) {
       newItems {
-        id
-        name
-        product {
-          sku
-          name
-        }
-        statusId
-        count
-        pricePerUnit
-        costPrice
-        fullPrice
-        date
-        weight
-        volume
+        ...ProductBatchInStatus
       }
     }
   }
-`;
+`);
 
-export const splitProductBatch = async (
-  input: MutationSplitProductBatchArgs['input'],
-) => {
-  const response = await apolloClient.mutate<
-    Pick<Mutation, 'splitProductBatch'>
-  >({
+export const splitProductBatch = async (input: SplitProductBatchInput) => {
+  const response = await apolloClient.mutate({
     mutation: SPLIT_PRODUCT_BATCH_MUTATION,
     variables: { input },
     fetchPolicy: 'network-only',
   });
-  return response.data?.splitProductBatch;
+  return getFragmentData(
+    ProductBatchInStatus,
+    response.data?.splitProductBatch.newItems,
+  );
 };
 
 // export const MERGE_PRODUCT_BATCH_MUTATION = gql`

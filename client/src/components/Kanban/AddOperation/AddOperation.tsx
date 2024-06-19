@@ -1,7 +1,8 @@
 import { Box, Button, Modal, Typography } from '@mui/material';
 import React, { type FC, useCallback, useState } from 'react';
 
-import { useAppSelector } from '../../../hooks';
+import { useAppSelector } from '@/hooks';
+
 import { selectCheckedProductBatchList } from '../product-batch.slice';
 import AddOperationForm from './AddOperationForm';
 
