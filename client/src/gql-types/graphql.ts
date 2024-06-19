@@ -35,7 +35,9 @@ export type CreateProductBatchInput = {
   date: Scalars['String']['input'];
   name: Scalars['String']['input'];
   productId: Scalars['Int']['input'];
-  statusId: Scalars['Int']['input'];
+  statusId?: InputMaybe<Scalars['Int']['input']>;
+  storeId?: InputMaybe<Scalars['Int']['input']>;
+  storeType?: InputMaybe<StoreType>;
 };
 
 export type CreateProductInput = {
@@ -132,7 +134,9 @@ export type ProductBatch = {
   parentId?: Maybe<Scalars['Int']['output']>;
   pricePerUnit: Scalars['Float']['output'];
   product: Product;
-  statusId: Scalars['Int']['output'];
+  productId: Scalars['Int']['output'];
+  statusId?: Maybe<Scalars['Int']['output']>;
+  storeId?: Maybe<Scalars['Int']['output']>;
   volume: Scalars['Float']['output'];
   weight: Scalars['Int']['output'];
 };
@@ -163,11 +167,18 @@ export type Query = {
   productBatchList: Array<ProductBatch>;
   productList: ProductList;
   statusList: Array<Status>;
+  storeState: Array<Store>;
 };
 
 
 export type QueryOperationListArgs = {
   productBatchId: Scalars['Int']['input'];
+};
+
+
+export type QueryStoreStateArgs = {
+  productId?: InputMaybe<Scalars['Int']['input']>;
+  storeInput?: InputMaybe<StoreInput>;
 };
 
 export type SplitProductBatchInput = {
@@ -186,6 +197,30 @@ export type Status = {
   id: Scalars['Int']['output'];
   title: Scalars['String']['output'];
 };
+
+export type Store = {
+  __typename?: 'Store';
+  id: Scalars['Int']['output'];
+  items: Array<StoreByProduct>;
+};
+
+export type StoreByProduct = {
+  __typename?: 'StoreByProduct';
+  inStoreCount: Scalars['Int']['output'];
+  product: Product;
+  productBatches: Array<ProductBatch>;
+  salesCount: Scalars['Int']['output'];
+};
+
+export type StoreInput = {
+  storeId: Scalars['Int']['input'];
+  storeType: StoreType;
+};
+
+export enum StoreType {
+  ozon = 'ozon',
+  wb = 'wb'
+}
 
 export type UpdateProductBatchInput = {
   id: Scalars['Int']['input'];
@@ -209,21 +244,21 @@ export type OperationListQuery = { __typename?: 'Query', operationList: { __type
 export type ProductBatchListQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type ProductBatchListQuery = { __typename?: 'Query', productBatchList: Array<{ __typename?: 'ProductBatch', id: number, name: string, parentId?: number | null, statusId: number, count: number, pricePerUnit: number, costPrice: number, fullPrice: number, date: string, weight: number, volume: number, product: { __typename?: 'Product', sku: string, name: string } }> };
+export type ProductBatchListQuery = { __typename?: 'Query', productBatchList: Array<{ __typename?: 'ProductBatch', id: number, name: string, parentId?: number | null, statusId?: number | null, count: number, pricePerUnit: number, costPrice: number, fullPrice: number, date: string, weight: number, volume: number, product: { __typename?: 'Product', sku: string, name: string } }> };
 
 export type UpdateProductBatchMutationVariables = Exact<{
   input: UpdateProductBatchInput;
 }>;
 
 
-export type UpdateProductBatchMutation = { __typename?: 'Mutation', updateProductBatch: { __typename?: 'ProductBatch', id: number, name: string, parentId?: number | null, statusId: number, count: number, pricePerUnit: number, costPrice: number, fullPrice: number, date: string, weight: number, volume: number, product: { __typename?: 'Product', sku: string, name: string } } };
+export type UpdateProductBatchMutation = { __typename?: 'Mutation', updateProductBatch: { __typename?: 'ProductBatch', id: number, name: string, parentId?: number | null, statusId?: number | null, count: number, pricePerUnit: number, costPrice: number, fullPrice: number, date: string, weight: number, volume: number, product: { __typename?: 'Product', sku: string, name: string } } };
 
 export type CreateProductBatchMutationVariables = Exact<{
   input: CreateProductBatchInput;
 }>;
 
 
-export type CreateProductBatchMutation = { __typename?: 'Mutation', createProductBatch: { __typename?: 'ProductBatch', id: number, name: string, parentId?: number | null, statusId: number, count: number, pricePerUnit: number, costPrice: number, fullPrice: number, date: string, weight: number, volume: number, product: { __typename?: 'Product', sku: string, name: string } } };
+export type CreateProductBatchMutation = { __typename?: 'Mutation', createProductBatch: { __typename?: 'ProductBatch', id: number, name: string, parentId?: number | null, statusId?: number | null, count: number, pricePerUnit: number, costPrice: number, fullPrice: number, date: string, weight: number, volume: number, product: { __typename?: 'Product', sku: string, name: string } } };
 
 export type DeleteProductBatchMutationVariables = Exact<{
   id: Scalars['Int']['input'];
@@ -237,12 +272,12 @@ export type SplitProductBatchMutationVariables = Exact<{
 }>;
 
 
-export type SplitProductBatchMutation = { __typename?: 'Mutation', splitProductBatch: { __typename?: 'SplitProductBatchResponse', newItems: Array<{ __typename?: 'ProductBatch', id: number, name: string, statusId: number, count: number, pricePerUnit: number, costPrice: number, fullPrice: number, date: string, weight: number, volume: number, product: { __typename?: 'Product', sku: string, name: string } }> } };
+export type SplitProductBatchMutation = { __typename?: 'Mutation', splitProductBatch: { __typename?: 'SplitProductBatchResponse', newItems: Array<{ __typename?: 'ProductBatch', id: number, name: string, statusId?: number | null, count: number, pricePerUnit: number, costPrice: number, fullPrice: number, date: string, weight: number, volume: number, product: { __typename?: 'Product', sku: string, name: string } }> } };
 
 export type ProductListQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type ProductListQuery = { __typename?: 'Query', productList: { __typename?: 'ProductList', items: Array<{ __typename?: 'Product', id: number, name: string }> } };
+export type ProductListQuery = { __typename?: 'Query', productList: { __typename?: 'ProductList', items: Array<{ __typename?: 'Product', sku: string, id: number, name: string }> } };
 
 export type StatusListQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -263,6 +298,14 @@ export type DeleteStatusMutationVariables = Exact<{
 
 export type DeleteStatusMutation = { __typename?: 'Mutation', deleteStatus: Array<{ __typename?: 'Status', id: number, title: string }> };
 
+export type StoreStateQueryVariables = Exact<{
+  productId?: InputMaybe<Scalars['Int']['input']>;
+  storeInput?: InputMaybe<StoreInput>;
+}>;
+
+
+export type StoreStateQuery = { __typename?: 'Query', storeState: Array<{ __typename?: 'Store', id: number, items: Array<{ __typename?: 'StoreByProduct', salesCount: number, inStoreCount: number, productBatches: Array<{ __typename?: 'ProductBatch', id: number, name: string, parentId?: number | null, statusId?: number | null, count: number, pricePerUnit: number, costPrice: number, fullPrice: number, date: string, weight: number, volume: number, productId: number, product: { __typename?: 'Product', id: number } }>, product: { __typename?: 'Product', id: number, sku: string, name: string } }> }> };
+
 
 export const CreateOperationDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"createOperation"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"CreateOperationInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"createOperation"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"success"}}]}}]}}]} as unknown as DocumentNode<CreateOperationMutation, CreateOperationMutationVariables>;
 export const OperationListDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"operationList"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"productBatchId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"operationList"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"productBatchId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"productBatchId"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"items"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}}]}}]}}]}}]} as unknown as DocumentNode<OperationListQuery, OperationListQueryVariables>;
@@ -271,7 +314,8 @@ export const UpdateProductBatchDocument = {"kind":"Document","definitions":[{"ki
 export const CreateProductBatchDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"createProductBatch"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"CreateProductBatchInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"createProductBatch"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"product"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"sku"}},{"kind":"Field","name":{"kind":"Name","value":"name"}}]}},{"kind":"Field","name":{"kind":"Name","value":"parentId"}},{"kind":"Field","name":{"kind":"Name","value":"statusId"}},{"kind":"Field","name":{"kind":"Name","value":"count"}},{"kind":"Field","name":{"kind":"Name","value":"pricePerUnit"}},{"kind":"Field","name":{"kind":"Name","value":"costPrice"}},{"kind":"Field","name":{"kind":"Name","value":"fullPrice"}},{"kind":"Field","name":{"kind":"Name","value":"date"}},{"kind":"Field","name":{"kind":"Name","value":"weight"}},{"kind":"Field","name":{"kind":"Name","value":"volume"}}]}}]}}]} as unknown as DocumentNode<CreateProductBatchMutation, CreateProductBatchMutationVariables>;
 export const DeleteProductBatchDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"deleteProductBatch"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"deleteProductBatch"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}]}]}}]} as unknown as DocumentNode<DeleteProductBatchMutation, DeleteProductBatchMutationVariables>;
 export const SplitProductBatchDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"splitProductBatch"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"SplitProductBatchInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"splitProductBatch"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"newItems"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"product"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"sku"}},{"kind":"Field","name":{"kind":"Name","value":"name"}}]}},{"kind":"Field","name":{"kind":"Name","value":"statusId"}},{"kind":"Field","name":{"kind":"Name","value":"count"}},{"kind":"Field","name":{"kind":"Name","value":"pricePerUnit"}},{"kind":"Field","name":{"kind":"Name","value":"costPrice"}},{"kind":"Field","name":{"kind":"Name","value":"fullPrice"}},{"kind":"Field","name":{"kind":"Name","value":"date"}},{"kind":"Field","name":{"kind":"Name","value":"weight"}},{"kind":"Field","name":{"kind":"Name","value":"volume"}}]}}]}}]}}]} as unknown as DocumentNode<SplitProductBatchMutation, SplitProductBatchMutationVariables>;
-export const ProductListDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"productList"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"productList"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"items"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}}]}}]}}]}}]} as unknown as DocumentNode<ProductListQuery, ProductListQueryVariables>;
+export const ProductListDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"productList"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"productList"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"items"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"sku"}},{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}}]}}]}}]}}]} as unknown as DocumentNode<ProductListQuery, ProductListQueryVariables>;
 export const StatusListDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"statusList"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"statusList"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"title"}}]}}]}}]} as unknown as DocumentNode<StatusListQuery, StatusListQueryVariables>;
 export const CreateStatusDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"createStatus"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"title"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"createStatus"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"title"},"value":{"kind":"Variable","name":{"kind":"Name","value":"title"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"title"}}]}}]}}]} as unknown as DocumentNode<CreateStatusMutation, CreateStatusMutationVariables>;
 export const DeleteStatusDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"deleteStatus"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"deleteStatus"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"title"}}]}}]}}]} as unknown as DocumentNode<DeleteStatusMutation, DeleteStatusMutationVariables>;
+export const StoreStateDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"storeState"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"productId"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"storeInput"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"StoreInput"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"storeState"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"productId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"productId"}}},{"kind":"Argument","name":{"kind":"Name","value":"storeInput"},"value":{"kind":"Variable","name":{"kind":"Name","value":"storeInput"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"items"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"salesCount"}},{"kind":"Field","name":{"kind":"Name","value":"inStoreCount"}},{"kind":"Field","name":{"kind":"Name","value":"productBatches"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"parentId"}},{"kind":"Field","name":{"kind":"Name","value":"statusId"}},{"kind":"Field","name":{"kind":"Name","value":"count"}},{"kind":"Field","name":{"kind":"Name","value":"pricePerUnit"}},{"kind":"Field","name":{"kind":"Name","value":"costPrice"}},{"kind":"Field","name":{"kind":"Name","value":"fullPrice"}},{"kind":"Field","name":{"kind":"Name","value":"date"}},{"kind":"Field","name":{"kind":"Name","value":"weight"}},{"kind":"Field","name":{"kind":"Name","value":"volume"}},{"kind":"Field","name":{"kind":"Name","value":"productId"}},{"kind":"Field","name":{"kind":"Name","value":"product"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"product"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"sku"}},{"kind":"Field","name":{"kind":"Name","value":"name"}}]}}]}}]}}]}}]} as unknown as DocumentNode<StoreStateQuery, StoreStateQueryVariables>;

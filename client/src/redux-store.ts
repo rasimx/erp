@@ -7,7 +7,7 @@ import {
 import kanbanReducer from './components/Kanban/product-batch.slice';
 import statusListReducer from './components/Kanban/status-list.slice';
 
-const store = configureStore({
+const reduxStore = configureStore({
   reducer: {
     productBatch: kanbanReducer,
     statusList: statusListReducer,
@@ -16,8 +16,8 @@ const store = configureStore({
 
 // export const persistor = persistStore(store);
 
-export type RootState = ReturnType<typeof store.getState>;
-export type AppDispatch = typeof store.dispatch;
+export type RootState = ReturnType<typeof reduxStore.getState>;
+export type AppDispatch = typeof reduxStore.dispatch;
 export type AppThunk<ReturnType = void> = ThunkAction<
   ReturnType,
   RootState,
@@ -25,4 +25,4 @@ export type AppThunk<ReturnType = void> = ThunkAction<
   Action<string>
 >;
 
-export default store;
+export default reduxStore;

@@ -15,7 +15,7 @@ export class StoreService {
     private readonly productBatchService: ProductBatchService,
     private readonly productService: ProductService,
   ) {
-    setTimeout(() => this.a(), 3000);
+    // setTimeout(() => this.a(), 3000);
   }
 
   async a() {
@@ -33,6 +33,7 @@ export class StoreService {
     productId?: number;
     storeId?: number;
   }): Promise<Store[]> {
+    const a = this.contextService.userId;
     const res = await this.ozonStateMicroservice.currentFullState({
       baseProductId: productId,
       storeId,
@@ -65,7 +66,7 @@ export class StoreService {
           salesCount: item.salesCount,
           inStoreCount: item.inStoreCount,
           product,
-          productBatches: pbMap.get(store.storeId) ?? [],
+          productBatches: pbMap.get(store.storeId)?.get(product.id) ?? [],
         };
       }),
     }));

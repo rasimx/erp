@@ -20,10 +20,11 @@ const documents = {
     "\n  mutation createProductBatch($input: CreateProductBatchInput!) {\n    createProductBatch(input: $input) {\n      id\n      name\n      product {\n        sku\n        name\n      }\n      parentId\n      statusId\n      count\n      pricePerUnit\n      costPrice\n      fullPrice\n      date\n      weight\n      volume\n    }\n  }\n": types.CreateProductBatchDocument,
     "\n  mutation deleteProductBatch($id: Int!) {\n    deleteProductBatch(id: $id)\n  }\n": types.DeleteProductBatchDocument,
     "\n  mutation splitProductBatch($input: SplitProductBatchInput!) {\n    splitProductBatch(input: $input) {\n      newItems {\n        id\n        name\n        product {\n          sku\n          name\n        }\n        statusId\n        count\n        pricePerUnit\n        costPrice\n        fullPrice\n        date\n        weight\n        volume\n      }\n    }\n  }\n": types.SplitProductBatchDocument,
-    "\n  query productList {\n    productList {\n      items {\n        id\n        name\n      }\n    }\n  }\n": types.ProductListDocument,
+    "\n  query productList {\n    productList {\n      items {\n        sku\n        id\n        name\n      }\n    }\n  }\n": types.ProductListDocument,
     "\n  query statusList {\n    statusList {\n      id\n      title\n    }\n  }\n": types.StatusListDocument,
     "\n  mutation createStatus($title: String!) {\n    createStatus(title: $title) {\n      id\n      title\n    }\n  }\n": types.CreateStatusDocument,
     "\n  mutation deleteStatus($id: Int!) {\n    deleteStatus(id: $id) {\n      id\n      title\n    }\n  }\n": types.DeleteStatusDocument,
+    "\n  query storeState($productId: Int, $storeInput: StoreInput) {\n    storeState(productId: $productId, storeInput: $storeInput) {\n      id\n      items {\n        salesCount\n        inStoreCount\n        productBatches {\n          id\n          name\n          parentId\n          statusId\n          count\n          pricePerUnit\n          costPrice\n          fullPrice\n          date\n          weight\n          volume\n          productId\n          product {\n            id\n          }\n        }\n        product {\n          id\n          sku\n          name\n        }\n      }\n    }\n  }\n": types.StoreStateDocument,
 };
 
 /**
@@ -71,7 +72,7 @@ export function graphql(source: "\n  mutation splitProductBatch($input: SplitPro
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  query productList {\n    productList {\n      items {\n        id\n        name\n      }\n    }\n  }\n"): (typeof documents)["\n  query productList {\n    productList {\n      items {\n        id\n        name\n      }\n    }\n  }\n"];
+export function graphql(source: "\n  query productList {\n    productList {\n      items {\n        sku\n        id\n        name\n      }\n    }\n  }\n"): (typeof documents)["\n  query productList {\n    productList {\n      items {\n        sku\n        id\n        name\n      }\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
@@ -84,6 +85,10 @@ export function graphql(source: "\n  mutation createStatus($title: String!) {\n 
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n  mutation deleteStatus($id: Int!) {\n    deleteStatus(id: $id) {\n      id\n      title\n    }\n  }\n"): (typeof documents)["\n  mutation deleteStatus($id: Int!) {\n    deleteStatus(id: $id) {\n      id\n      title\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  query storeState($productId: Int, $storeInput: StoreInput) {\n    storeState(productId: $productId, storeInput: $storeInput) {\n      id\n      items {\n        salesCount\n        inStoreCount\n        productBatches {\n          id\n          name\n          parentId\n          statusId\n          count\n          pricePerUnit\n          costPrice\n          fullPrice\n          date\n          weight\n          volume\n          productId\n          product {\n            id\n          }\n        }\n        product {\n          id\n          sku\n          name\n        }\n      }\n    }\n  }\n"): (typeof documents)["\n  query storeState($productId: Int, $storeInput: StoreInput) {\n    storeState(productId: $productId, storeInput: $storeInput) {\n      id\n      items {\n        salesCount\n        inStoreCount\n        productBatches {\n          id\n          name\n          parentId\n          statusId\n          count\n          pricePerUnit\n          costPrice\n          fullPrice\n          date\n          weight\n          volume\n          productId\n          product {\n            id\n          }\n        }\n        product {\n          id\n          sku\n          name\n        }\n      }\n    }\n  }\n"];
 
 export function graphql(source: string) {
   return (documents as any)[source] ?? {};

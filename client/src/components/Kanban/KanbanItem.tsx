@@ -96,6 +96,9 @@ const KanbanItem: FC<Props> = ({ item }) => {
 
         <List dense>
           <ListItem disableGutters>
+            <ListItemText primary={item.id} />
+          </ListItem>
+          <ListItem disableGutters>
             <ListItemText
               primary={item.product.sku}
               secondary={item.product.name}

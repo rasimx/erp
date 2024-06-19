@@ -4,7 +4,7 @@ import { createBrowserRouter, RouteObject } from 'react-router-dom';
 
 import Kanban from './components/Kanban/Kanban';
 import ProductBatch from './components/Kanban/ProductBatch';
-import Graph from './Graph';
+import StoreComponent from './components/Store/Store';
 import Root from './Root';
 
 export const routeObject: RouteObject[] = [
@@ -17,8 +17,8 @@ export const routeObject: RouteObject[] = [
         element: <Kanban />,
       },
       {
-        path: 'graph',
-        element: <Graph />,
+        path: 'ozon-store/:storeId',
+        element: <StoreComponent />,
       },
       {
         path: 'product-batch/:productBatchId',

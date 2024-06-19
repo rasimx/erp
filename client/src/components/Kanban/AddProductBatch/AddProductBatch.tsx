@@ -1,6 +1,7 @@
 import { Box, Button, Modal, Typography } from '@mui/material';
 import React, { type FC, useCallback, useState } from 'react';
 
+import { StoreType } from '../../../gql-types/graphql';
 import { useAppDispatch } from '../../../hooks';
 import AddProductBatchForm from './AddProductBatchForm';
 
@@ -16,9 +17,19 @@ const style = {
   p: 2,
 };
 
-export interface Props {}
+export interface Props {
+  storeId?: number;
+  storeType?: StoreType;
+  productId?: number;
+  maxCount?: number;
+}
 
-const AddProductBatch: FC<Props> = () => {
+const AddProductBatch: FC<Props> = ({
+  storeId,
+  storeType,
+  productId,
+  maxCount,
+}) => {
   const dispatch = useAppDispatch();
 
   const [isOpenModal, setIsOpenModal] = useState(false);
@@ -47,7 +58,13 @@ const AddProductBatch: FC<Props> = () => {
           <Typography id="modal-modal-title" variant="h6" component="h2">
             Добавить партию
           </Typography>
-          <AddProductBatchForm onSubmit={handleClose} />
+          <AddProductBatchForm
+            onSubmit={handleClose}
+            storeId={storeId}
+            storeType={storeType}
+            productId={productId}
+            maxCount={maxCount}
+          />
         </Box>
       </Modal>
     </>

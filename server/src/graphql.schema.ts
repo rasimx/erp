@@ -37,12 +37,14 @@ export interface UpdateProductBatchInput {
 }
 
 export interface CreateProductBatchInput {
-    statusId: number;
     productId: number;
     count: number;
     costPrice: number;
     date: string;
     name: string;
+    statusId?: Nullable<number>;
+    storeId?: Nullable<number>;
+    storeType?: Nullable<StoreType>;
 }
 
 export interface ProductBatchOperationInput {
@@ -84,16 +86,18 @@ export interface Status {
 export interface ProductBatch {
     id: number;
     name: string;
+    productId: number;
     product: Product;
-    statusId: number;
     count: number;
     costPrice: number;
     pricePerUnit: number;
     fullPrice: number;
     date: string;
-    parentId?: Nullable<number>;
     weight: number;
     volume: number;
+    statusId?: Nullable<number>;
+    parentId?: Nullable<number>;
+    storeId?: Nullable<number>;
 }
 
 export interface Operation {
@@ -109,7 +113,7 @@ export interface OperationList {
 }
 
 export interface StoreByProduct {
-    product?: Nullable<Product>;
+    product: Product;
     productBatches: ProductBatch[];
     salesCount: number;
     inStoreCount: number;

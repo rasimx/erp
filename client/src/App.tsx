@@ -8,8 +8,8 @@ import { Provider as ReduxProvider } from 'react-redux';
 import { RouterProvider } from 'react-router-dom';
 
 import apolloClient from './apollo-client';
+import reduxStore from './redux-store';
 import { createRouter } from './router';
-import store from './store';
 
 type Props = {
   basename?: string;
@@ -35,7 +35,7 @@ const App: FC<Props> = ({ basename }) => {
     <ApolloProvider client={apolloClient}>
       <CookiesProvider defaultSetOptions={{ path: '/graphql' }}>
         <SnackbarProvider maxSnack={3}>
-          <ReduxProvider store={store}>
+          <ReduxProvider store={reduxStore}>
             <ThemeProvider theme={theme}>
               <CssBaseline />
               <RouterProvider router={createRouter(basename)} />

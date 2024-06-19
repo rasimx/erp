@@ -17,16 +17,18 @@ type Status {
 type ProductBatch {
   id: Int!
   name: String!
+  productId: Int!
   product: Product!
-  statusId: Int!
   count: Int!
   costPrice: Int!
   pricePerUnit: Float!
   fullPrice: Float!
   date: String!
-  parentId: Int
   weight: Int!
   volume: Float!
+  statusId: Int
+  parentId: Int
+  storeId: Int
 }
 
 type Operation {
@@ -43,7 +45,7 @@ type OperationList {
 }
 
 type StoreByProduct {
-  product: Product
+  product: Product!
   productBatches: [ProductBatch!]!
   salesCount: Int!
   inStoreCount: Int!
@@ -82,12 +84,14 @@ input UpdateProductBatchInput {
   statusId: Int!
 }
 input CreateProductBatchInput {
-  statusId: Int!
   productId: Int!
   count: Int!
   costPrice: Int!
   date: String!
   name: String!
+  statusId: Int
+  storeId: Int
+  storeType: StoreType
 }
 
 input ProductBatchOperationInput {

@@ -13,9 +13,10 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { format } from 'date-fns';
 import { useFormik } from 'formik';
-import React, { type FC } from 'react';
+import React, { type FC, useMemo } from 'react';
 import * as Yup from 'yup';
 
+import { StoreType } from '../../../gql-types/graphql';
 import { useAppDispatch, useAppSelector } from '../../../hooks';
 import { useProductList } from '../product.hooks';
 import { createProductBatchAsync } from '../product-batch.slice';
@@ -23,16 +24,11 @@ import { selectStatusList } from '../status-list.slice';
 
 export interface Props {
   onSubmit: () => void;
+  storeId?: number;
+  storeType?: StoreType;
+  productId?: number;
+  maxCount?: number;
 }
-
-const AddProductBatchSchema = Yup.object().shape({
-  name: Yup.string().required('Required'),
-  productId: Yup.number().required('Required'),
-  costPrice: Yup.number().required('Required'),
-  count: Yup.number().required('Required'),
-  date: Yup.string().required('Required'),
-  statusId: Yup.number().required('Required'),
-});
 
 type FormData = {
   productId: number;
@@ -43,26 +39,48 @@ type FormData = {
   statusId: number;
 };
 
-const AddProductBatchForm: FC<Props> = ({ onSubmit }) => {
+const AddProductBatchForm: FC<Props> = ({
+  onSubmit,
+  storeId,
+  storeType,
+  productId,
+  maxCount,
+}) => {
   const dispatch = useAppDispatch();
+
+  const AddProductBatchSchema = useMemo(() => {
+    let count = Yup.number().required('Required');
+    if (maxCount) count = count.max(maxCount);
+    return Yup.object().shape({
+      name: Yup.string().required('Required'),
+      productId: Yup.number().required('Required'),
+      costPrice: Yup.number().required('Required'),
+      count,
+      date: Yup.string().required('Required'),
+      // statusId: Yup.number().required('Required'),
+      statusId: Yup.number(),
+    });
+  }, [maxCount]);
 
   const { items: productList } = useProductList();
   const statusList = useAppSelector(selectStatusList);
 
   const formik = useFormik<FormData>({
     initialValues: {
-      productId: '',
+      productId: productId || '',
       name: '',
       costPrice: '',
-      count: '',
+      count: maxCount,
       date: new Date(),
-      statusId: '',
+      statusId: undefined,
     } as unknown as FormData,
     validationSchema: AddProductBatchSchema,
     onSubmit: async values => {
       await dispatch(
         createProductBatchAsync({
           ...values,
+          storeId,
+          storeType,
           costPrice: values.costPrice * 100,
           date: format(values.date, 'yyyy-MM-dd'),
         }),
@@ -90,51 +108,56 @@ const AddProductBatchForm: FC<Props> = ({ onSubmit }) => {
         onBlur={formik.handleBlur}
         onChange={formik.handleChange}
       />
-      <Autocomplete
-        sx={{ mt: 2 }}
-        fullWidth
-        options={productList}
-        getOptionLabel={option => `${option.sku}: ${option.name}`}
-        value={
-          productList.filter(item => item.id == formik.values.productId)[0] ??
-          null
-        }
-        onChange={(e, obj) => {
-          formik.handleChange('productId');
-          formik.setFieldValue('productId', obj ? obj.id : '');
-        }}
-        onBlur={formik.handleBlur}
-        renderInput={params => (
-          <TextField
-            {...params}
-            name="name"
-            label="Товар"
-            inputProps={{
-              ...params.inputProps,
-            }}
-            error={formik.touched.productId && Boolean(formik.errors.productId)}
-            helperText={formik.touched.productId && formik.errors.productId}
-          />
-        )}
-      />
-
-      <FormControl fullWidth sx={{ mt: 2 }}>
-        <InputLabel id="demo-simple-select-label">Status</InputLabel>
-        <Select
-          id="statusId"
-          label="Status"
-          name="statusId"
-          value={formik.values.statusId}
+      {!productId && (
+        <Autocomplete
+          sx={{ mt: 2 }}
+          fullWidth
+          options={productList}
+          getOptionLabel={option => `${option.sku}: ${option.name}`}
+          value={
+            productList.filter(item => item.id == formik.values.productId)[0] ??
+            null
+          }
+          onChange={(e, obj) => {
+            formik.handleChange('productId');
+            formik.setFieldValue('productId', obj ? obj.id : '');
+          }}
           onBlur={formik.handleBlur}
-          onChange={formik.handleChange}
-        >
-          {statusList.map(item => (
-            <MenuItem value={item.id} key={item.id}>
-              {item.title}
-            </MenuItem>
-          ))}
-        </Select>
-      </FormControl>
+          renderInput={params => (
+            <TextField
+              {...params}
+              name="name"
+              label="Товар"
+              inputProps={{
+                ...params.inputProps,
+              }}
+              error={
+                formik.touched.productId && Boolean(formik.errors.productId)
+              }
+              helperText={formik.touched.productId && formik.errors.productId}
+            />
+          )}
+        />
+      )}
+      {!storeId && (
+        <FormControl fullWidth sx={{ mt: 2 }}>
+          <InputLabel id="demo-simple-select-label">Status</InputLabel>
+          <Select
+            id="statusId"
+            label="Status"
+            name="statusId"
+            value={formik.values.statusId}
+            onBlur={formik.handleBlur}
+            onChange={formik.handleChange}
+          >
+            {statusList.map(item => (
+              <MenuItem value={item.id} key={item.id}>
+                {item.title}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+      )}
 
       <TextField
         sx={{ mt: 2 }}
@@ -142,7 +165,7 @@ const AddProductBatchForm: FC<Props> = ({ onSubmit }) => {
         required
         id="outlined-required"
         type="number"
-        label="Цена"
+        label="Закупочная цена"
         name="costPrice"
         value={formik.values.costPrice}
         onBlur={formik.handleBlur}
@@ -159,6 +182,7 @@ const AddProductBatchForm: FC<Props> = ({ onSubmit }) => {
         value={formik.values.count}
         onBlur={formik.handleBlur}
         onChange={formik.handleChange}
+        error={formik.touched.count && Boolean(formik.errors.count)}
       />
       <LocalizationProvider dateAdapter={AdapterDateFns}>
         <DatePicker

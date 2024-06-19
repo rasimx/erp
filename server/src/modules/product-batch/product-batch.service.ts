@@ -3,6 +3,7 @@ import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
 import jss from 'json-case-convertor';
 import { Repository } from 'typeorm';
 
+import StrictMap from '@/common/helpers/map.js';
 import { ContextService } from '@/context/context.service.js';
 import { CustomDataSource } from '@/database/custom.data-source.js';
 import {
@@ -13,12 +14,45 @@ import {
   StoreType,
   type UpdateProductBatchInput,
 } from '@/graphql.schema.js';
-// import type { MergeProductBatchInput } from '@/graphql.schema.js';
 import { OzonStateMicroservice } from '@/microservices/erp_ozon/ozon-state-microservice.service.js';
 import type { FindLatestRequest } from '@/microservices/proto/erp.pb.js';
+import { OperationEntity } from '@/operation/operation.entity.js';
 import { ProductService } from '@/product/product.service.js';
 import { ProductBatchEntity } from '@/product-batch/product-batch.entity.js';
 import { StatusService } from '@/status/status.service.js';
+
+function buildAncestorTree(
+  ids: number[],
+  allBatches: ProductBatchEntity[],
+): ProductBatchEntity[] {
+  const ancestorTrees: ProductBatchEntity[] = [];
+  const batchMap = new Map<number, ProductBatchEntity>();
+  allBatches.forEach(batch => batchMap.set(batch.id, batch));
+
+  ids.forEach(id => {
+    const batch = batchMap.get(id);
+    if (batch) {
+      buildTreeWithParent(batch, batchMap);
+      ancestorTrees.push(batch);
+    }
+  });
+
+  return ancestorTrees;
+}
+
+function buildTreeWithParent(
+  batch: ProductBatchEntity,
+  batchMap: Map<number, ProductBatchEntity>,
+): void {
+  const parentId = batch.parent?.id;
+  if (parentId) {
+    const parentBatch = batchMap.get(parentId);
+    if (parentBatch) {
+      batch.parent = parentBatch;
+      buildTreeWithParent(parentBatch, batchMap);
+    }
+  }
+}
 
 @Injectable()
 export class ProductBatchService {
@@ -31,7 +65,9 @@ export class ProductBatchService {
     private readonly statusService: StatusService,
     @InjectDataSource()
     private dataSource: CustomDataSource,
-  ) {}
+  ) {
+    // this.a();
+  }
 
   async getProductBatchesMapByStoreId(
     productBatches: {
@@ -40,7 +76,7 @@ export class ProductBatchService {
       storeType: StoreType;
       productBatchId?: number;
     }[],
-  ): Promise<Map<number, ProductBatch[]>> {
+  ): Promise<Map<number, Map<number, ProductBatch[]>>> {
     const entityManager = this.repository;
 
     // Преобразуем массив объектов в массив строк для SQL-запроса
@@ -63,24 +99,29 @@ export class ProductBatchService {
       .join(' OR ');
 
     const query = `
-    SELECT pb.*
+    SELECT pb.id
     FROM product_batch pb
     WHERE (${productBatchConditions})
     ORDER BY pb.product_id, pb.date;
   `;
 
-    const rows: (ProductBatchEntity & ProductBatch)[] = await entityManager
-      .query(query)
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      .then(row => jss.camelCaseKeys(row));
-    const pbMapByProductId = new Map<number, ProductBatch[]>();
-    rows.forEach(row => {
+    const rows: { id: number }[] = await entityManager.query(query);
+
+    const pbMapByProductId = new Map<number, Map<number, ProductBatch[]>>();
+
+    const items = await this.findProductBatchByIds(rows.map(row => row.id));
+
+    items.forEach(row => {
       if (!row.storeId) throw new Error('storeId must be defined');
       let mapItem = pbMapByProductId.get(row.storeId);
-      if (!mapItem) mapItem = [];
-      mapItem.push({ ...row, pricePerUnit: 0, fullPrice: 0 });
+      if (!mapItem) mapItem = new Map<number, ProductBatch[]>();
+      let subMapItem = mapItem.get(row.productId);
+      if (!subMapItem) subMapItem = [];
+      subMapItem.push(row);
+      mapItem.set(row.productId, subMapItem);
       pbMapByProductId.set(row.storeId, mapItem);
     });
+
     return pbMapByProductId;
   }
 
@@ -116,87 +157,113 @@ export class ProductBatchService {
     return last ? [last] : [];
   }
 
-  async productBatchList(): Promise<ProductBatch[]> {
-    // const items = await this.getFinalItems();
-    // const items = await this.repository.find({
-    //   relations: ['product', 'status', 'children', 'operations'],
-    // });
+  async getWithoutChildrenIds(product_id?: number) {
+    const query = `
+WITH without_self_link as (SELECT *
+                           FROM product_batch_closure where ancestor_id != descendant_id)
+SELECT DISTINCT pbc.descendant_id as id
+FROM product_batch_closure pbc
+         LEFT JOIN without_self_link pbc2 ON pbc.descendant_id = pbc2.ancestor_id
+         LEFT JOIN product_batch pb ON pb.id = pbc.descendant_id
+         LEFT JOIN product p ON p.id = pb.product_id
+WHERE pbc2.ancestor_id IS NULL
+${product_id ? 'AND product_id = 41' : ''}
+ORDER BY pbc.descendant_id
+  `;
+    const rows = await this.repository.manager.query<{ id: number }[]>(query);
+    return rows.map(row => row.id);
+  }
 
-    const treeItems = await this.repository.manager
-      .getTreeRepository(ProductBatchEntity)
-      .findTrees({
-        relations: [
-          'product',
-          'status',
-          'productBatchOperations',
-          'productBatchOperations.operation',
-        ],
-      });
-
-    const result: ProductBatch[] = [];
-
-    const handle = (items: ProductBatchEntity[], prevPricePerUnit: number) => {
-      for (const item of items) {
-        const pricePerUnit = Number(
-          item.productBatchOperations.reduce(
-            (prev, cur) => prev + cur.cost,
-            0,
-          ) / item.count,
-        );
-
-        if (item.children.length) {
-          handle(item.children, pricePerUnit + prevPricePerUnit);
-        } else {
-          result.push({
-            ...item,
-            volume: item.volume,
-            weight: item.weight,
-            pricePerUnit: parseInt(
-              (pricePerUnit + prevPricePerUnit + item.costPrice).toFixed(0),
-            ),
-            fullPrice:
-              (pricePerUnit + prevPricePerUnit + item.costPrice) * item.count,
-          });
-        }
-      }
-    };
-    handle(treeItems, 0);
-
-    return result;
+  async productBatchList(product_id?: number): Promise<ProductBatch[]> {
+    const ids = await this.getWithoutChildrenIds(product_id);
+    const map = await this.findProductBatchByIds(ids);
+    return [...map.values()];
   }
 
   async updateProductBatch(
     input: UpdateProductBatchInput,
   ): Promise<ProductBatch> {
     await this.repository.update({ id: input.id }, { ...input });
-    const item = await this.repository.findOneOrFail({
-      where: { id: input.id },
-      relations: ['product', 'status'],
-    });
-    return {
-      ...item,
-      volume: 0,
-      weight: item.weight,
-      pricePerUnit: 0,
-      fullPrice: 0,
+
+    return (await this.findProductBatchByIds([input.id])).get(input.id);
+  }
+
+  async findAncestorsTrees(ids: number[]): Promise<ProductBatchEntity[]> {
+    const subQuery = this.repository
+      .createQueryBuilder()
+      .select('pbc.ancestor_id')
+      .from('product_batch_closure', 'pbc')
+      .where('pbc.descendant_id IN (:...ids)', { ids });
+
+    // Основной запрос для получения всех предков
+    const ancestors = await this.repository
+      .createQueryBuilder()
+      .select('pb')
+      .from(ProductBatchEntity, 'pb')
+      .leftJoinAndSelect('pb.parent', 'parent')
+      .leftJoinAndSelect('pb.product', 'product')
+      .leftJoinAndSelect('pb.productBatchOperations', 'pbo')
+      .leftJoinAndMapOne(
+        'pbo.operation',
+        OperationEntity,
+        'op',
+        'op.id = pbo.operationId',
+      )
+      .where(`pb.id IN (${subQuery.getQuery()})`)
+      .setParameters(subQuery.getParameters())
+      .getMany();
+
+    // Строим дерево предков с вложенными родительскими элементами
+    return buildAncestorTree(ids, ancestors);
+  }
+
+  async findProductBatchByIds(
+    ids: number[],
+  ): Promise<StrictMap<number, ProductBatch>> {
+    if (!ids.length) return new StrictMap();
+    const entities = await this.findAncestorsTrees(ids);
+    const calculatePricePerUnit = (
+      entity: ProductBatchEntity,
+      prevOperationsCostPerUnit = 0,
+    ): number => {
+      const operationsCostPerUnit =
+        prevOperationsCostPerUnit +
+        Number(
+          entity.productBatchOperations.reduce(
+            (prev, cur) => prev + cur.cost,
+            0,
+          ) / entity.count,
+        );
+
+      if (entity.parent)
+        return calculatePricePerUnit(entity.parent, operationsCostPerUnit);
+      return operationsCostPerUnit + entity.costPrice;
     };
+    return new StrictMap(
+      entities.map(entity => {
+        const pricePerUnit = calculatePricePerUnit(entity);
+        return [
+          entity.id,
+          {
+            ...entity,
+            pricePerUnit,
+            fullPrice: pricePerUnit * entity.count,
+            weight: entity.weight,
+            volume: entity.volume,
+          },
+        ];
+      }),
+    );
   }
 
   async createProductBatch(
     input: CreateProductBatchInput,
   ): Promise<ProductBatch> {
-    const newItem = await this.repository.save(input);
-    const item = await this.repository.findOneOrFail({
-      where: { id: newItem.id },
-      relations: ['product', 'status'],
-    });
-    return {
-      ...item,
-      volume: 0,
-      weight: item.weight,
-      pricePerUnit: 0,
-      fullPrice: 0,
-    };
+    let newEntity = new ProductBatchEntity();
+    Object.assign(newEntity, input);
+    newEntity = await this.repository.save(newEntity);
+    const items = await this.findProductBatchByIds([newEntity.id]);
+    return items.get(newEntity.id);
   }
 
   async deleteProductBatch(id: number): Promise<number> {
@@ -225,6 +292,7 @@ export class ProductBatchService {
       let firstProductBatch = new ProductBatchEntity();
       firstProductBatch.date = parentProductBatch.date;
       firstProductBatch.costPrice = parentProductBatch.costPrice;
+      firstProductBatch.name = parentProductBatch.name;
       firstProductBatch.product = parentProductBatch.product;
       firstProductBatch.statusId = parentProductBatch.statusId;
       firstProductBatch.statusId = parentProductBatch.statusId;
@@ -233,6 +301,7 @@ export class ProductBatchService {
 
       let secondProductBatch = new ProductBatchEntity();
       secondProductBatch.date = parentProductBatch.date;
+      secondProductBatch.name = parentProductBatch.name;
       secondProductBatch.costPrice = parentProductBatch.costPrice;
       secondProductBatch.product = parentProductBatch.product;
       secondProductBatch.statusId =
@@ -245,24 +314,14 @@ export class ProductBatchService {
 
       await queryRunner.commitTransaction();
 
+      const newBatches = await this.findProductBatchByIds([
+        firstProductBatch.id,
+        secondProductBatch.id,
+      ]);
       return {
         newItems: [
-          {
-            ...firstProductBatch,
-            pricePerUnit: 0,
-            fullPrice: 0,
-            weight: 0,
-            volume: 0,
-            parentId: parentProductBatch.id,
-          },
-          {
-            ...secondProductBatch,
-            pricePerUnit: 0,
-            fullPrice: 0,
-            weight: 0,
-            volume: 0,
-            parentId: parentProductBatch.id,
-          },
+          newBatches.get(firstProductBatch.id),
+          newBatches.get(secondProductBatch.id),
         ],
       };
     } catch (err) {

@@ -48,7 +48,7 @@ export class UserInterceptor implements NestInterceptor {
       // todo: userId
       this.contextService.userId = 1;
 
-      return next.handle().pipe(mergeMap(() => next.handle()));
+      return next.handle();
     }
   }
 }

@@ -5,7 +5,7 @@ import {
 } from '@reduxjs/toolkit';
 
 import { Status } from '../../gql-types/graphql';
-import { type AppThunk, type RootState } from '../../store';
+import { type AppThunk, type RootState } from '../../redux-store';
 import { createStatus, deleteStatus, fetchStatusList } from './status-list.api';
 
 export interface StatusListState {

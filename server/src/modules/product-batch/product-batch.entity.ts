@@ -15,13 +15,17 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-import { StoreType } from '@/graphql.schema.js';
+import { type ProductBatch, StoreType } from '@/graphql.schema.js';
 import { ProductEntity } from '@/product/product.entity.js';
 import { ProductBatchOperationEntity } from '@/product-batch-operation/product-batch-operation.entity.js';
 import { StatusEntity } from '@/status/status.entity.js';
 
 @Entity({ name: 'product_batch' })
-@Tree('closure-table')
+@Tree('closure-table', {
+  closureTableName: 'product_batch',
+  ancestorColumnName: column => 'ancestor_' + column.propertyName,
+  descendantColumnName: column => 'descendant_' + column.propertyName,
+})
 export class ProductBatchEntity {
   @PrimaryGeneratedColumn()
   id: number;
@@ -49,7 +53,7 @@ export class ProductBatchEntity {
 
   @RelationId((entity: ProductBatchEntity) => entity.status)
   @Column('int', { nullable: true })
-  statusId: number;
+  statusId: number | null;
 
   @Column('int', { nullable: true })
   storeId: number | null;

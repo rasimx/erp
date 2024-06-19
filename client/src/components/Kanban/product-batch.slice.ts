@@ -8,7 +8,7 @@ import {
   type MutationUpdateProductBatchArgs,
   type ProductBatch,
 } from '../../gql-types/graphql';
-import { type AppThunk, type RootState } from '../../store';
+import { type AppThunk, type RootState } from '../../redux-store';
 import {
   createProductBatch,
   deleteProductBatch,
