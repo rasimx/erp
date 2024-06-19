@@ -16,7 +16,6 @@ import {
   loadProductBatchListAsync,
   selectProductBatchList,
 } from './product-batch.slice';
-import SplitProductBatchModal from './SplitProductBatch/SplitProductBatchModal';
 import {
   createStatusAsync,
   deleteStatusAsync,
@@ -105,7 +104,6 @@ const Kanban = () => {
           ))}
         </Stack>
       </DndProvider>
-      <SplitProductBatchModal />
     </Box>
   );
 };

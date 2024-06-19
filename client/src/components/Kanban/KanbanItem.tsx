@@ -18,6 +18,7 @@ import { useDrag, useDrop } from 'react-dnd';
 import { type ProductBatch } from '@/gql-types/graphql';
 import { useAppDispatch } from '@/hooks';
 
+import AddProductBatch from './AddProductBatch/AddProductBatch';
 import {
   deleteProductBatchAsync,
   ProductBatchStateItem,
@@ -147,6 +148,7 @@ const KanbanItem: FC<Props> = ({ item }) => {
             <DeleteIcon />
           </IconButton>
         )}
+        <AddProductBatch parent={item} />
       </CardActions>
     </Card>
   );

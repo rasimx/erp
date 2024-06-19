@@ -26,6 +26,7 @@ type ProductBatch {
   date: String!
   weight: Int!
   volume: Float!
+  order: Int!
   statusId: Int
   parentId: Int
   storeId: Int
@@ -82,13 +83,16 @@ type CreateProductResponse {
 input UpdateProductBatchInput {
   id: Int!
   statusId: Int!
+  order: Int
 }
 input CreateProductBatchInput {
-  productId: Int!
   count: Int!
-  costPrice: Int!
-  date: String!
-  name: String!
+  parentId: Int
+  productId: Int
+  date: String
+  name: String
+  costPrice: Int
+  order: Int
   statusId: Int
   storeId: Int
   storeType: StoreType
@@ -125,14 +129,6 @@ type CreateOperationResponse {
   success: Boolean!
 }
 
-input SplitProductBatchInput {
-  id: Int!
-  count: Int!
-  statusId: Int
-}
-type SplitProductBatchResponse {
-  newItems: [ProductBatch!]!
-}
 #input MergeProductBatchInput {
 #  sourceProductBatchId: Int!
 #  targetProductBatchId: Int!
@@ -144,10 +140,8 @@ type SplitProductBatchResponse {
 type Mutation {
   createOperation(input: CreateOperationInput!): CreateOperationResponse!
   createProduct(input: CreateProductInput!): CreateProductResponse!
-  createProductBatch(input: CreateProductBatchInput!): ProductBatch!
-  updateProductBatch(input: UpdateProductBatchInput!): ProductBatch!
-  splitProductBatch(input: SplitProductBatchInput!): SplitProductBatchResponse!
-  #  mergeProductBatch(input: MergeProductBatchInput!): MergeProductBatchResponse!
+  createProductBatch(input: CreateProductBatchInput!): [ProductBatch!]
+  updateProductBatch(input: UpdateProductBatchInput!): [ProductBatch!]!
   deleteProductBatch(id: Int!): Int!
   createStatus(title: String!): [Status!]!
   deleteStatus(id: Int!): [Status!]!

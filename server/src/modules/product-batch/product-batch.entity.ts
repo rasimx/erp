@@ -12,15 +12,18 @@ import {
   Tree,
   TreeChildren,
   TreeParent,
+  Unique,
   UpdateDateColumn,
 } from 'typeorm';
 
-import { type ProductBatch, StoreType } from '@/graphql.schema.js';
+import { StoreType } from '@/graphql.schema.js';
 import { ProductEntity } from '@/product/product.entity.js';
 import { ProductBatchOperationEntity } from '@/product-batch-operation/product-batch-operation.entity.js';
 import { StatusEntity } from '@/status/status.entity.js';
 
 @Entity({ name: 'product_batch' })
+@Unique(['statusId', 'order'])
+@Unique(['storeId', 'order'])
 @Tree('closure-table', {
   closureTableName: 'product_batch',
   ancestorColumnName: column => 'ancestor_' + column.propertyName,
@@ -31,7 +34,7 @@ export class ProductBatchEntity {
   id: number;
 
   @Column({
-    type: 'int',
+    type: 'integer',
     default: () => "(current_setting('rls.user_id'))",
   })
   userId: number;
@@ -52,10 +55,13 @@ export class ProductBatchEntity {
   status: Relation<StatusEntity>;
 
   @RelationId((entity: ProductBatchEntity) => entity.status)
-  @Column('int', { nullable: true })
+  @Column('integer', { nullable: true })
   statusId: number | null;
 
-  @Column('int', { nullable: true })
+  @Column()
+  order: number;
+
+  @Column('integer', { nullable: true })
   storeId: number | null;
 
   @Column({
@@ -63,7 +69,7 @@ export class ProductBatchEntity {
     enum: StoreType,
     nullable: true,
   })
-  storeType: number | null;
+  storeType: string | null;
 
   @TreeChildren()
   children: ProductBatchEntity[];

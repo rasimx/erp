@@ -5,7 +5,7 @@ import { useDrop } from 'react-dnd';
 import { type ProductBatch, type Status } from '@/gql-types/graphql';
 import { useAppDispatch } from '@/hooks';
 
-import { openSplitProductBatchModal } from './product-batch.slice';
+import { updateProductBatchAsync } from './product-batch.slice';
 
 const KanbanColumn = ({
   status,
@@ -24,8 +24,7 @@ const KanbanColumn = ({
     },
     drop(item: ProductBatch, monitor) {
       if (monitor.isOver()) {
-        console.log('BBB');
-        dispatch(openSplitProductBatchModal({ item, statusId: status.id }));
+        dispatch(updateProductBatchAsync({ id: item.id, statusId: status.id }));
       }
     },
   });

@@ -2,8 +2,6 @@ import apolloClient from '@/apollo-client';
 import { getFragmentData, graphql } from '@/gql-types';
 import {
   CreateProductBatchInput,
-  ProductBatchInStatusFragment,
-  SplitProductBatchInput,
   UpdateProductBatchInput,
 } from '@/gql-types/graphql';
 
@@ -32,6 +30,7 @@ export const ProductBatchInStatus = graphql(`
     date
     weight
     volume
+    order
   }
 `);
 
@@ -96,28 +95,6 @@ export const deleteProductBatch = async (id: number) => {
     fetchPolicy: 'network-only',
   });
   return response.data?.deleteProductBatch;
-};
-
-export const SPLIT_PRODUCT_BATCH_MUTATION = graphql(`
-  mutation splitProductBatch($input: SplitProductBatchInput!) {
-    splitProductBatch(input: $input) {
-      newItems {
-        ...ProductBatchInStatus
-      }
-    }
-  }
-`);
-
-export const splitProductBatch = async (input: SplitProductBatchInput) => {
-  const response = await apolloClient.mutate({
-    mutation: SPLIT_PRODUCT_BATCH_MUTATION,
-    variables: { input },
-    fetchPolicy: 'network-only',
-  });
-  return getFragmentData(
-    ProductBatchInStatus,
-    response.data?.splitProductBatch.newItems,
-  );
 };
 
 // export const MERGE_PRODUCT_BATCH_MUTATION = gql`

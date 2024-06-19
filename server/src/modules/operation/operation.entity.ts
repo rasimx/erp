@@ -21,7 +21,7 @@ export class OperationEntity {
   id: number;
 
   @Column({
-    type: 'int',
+    type: 'integer',
     default: () => "(current_setting('rls.user_id'))",
   })
   userId: number;

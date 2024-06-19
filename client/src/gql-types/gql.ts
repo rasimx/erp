@@ -16,11 +16,10 @@ const documents = {
     "\n  mutation createOperation($input: CreateOperationInput!) {\n    createOperation(input: $input) {\n      success\n    }\n  }\n": types.CreateOperationDocument,
     "\n  query operationList($productBatchId: Int!) {\n    operationList(productBatchId: $productBatchId) {\n      items {\n        id\n        name\n      }\n    }\n  }\n": types.OperationListDocument,
     "\n  query productBatchList {\n    productBatchList {\n      ...ProductBatchInStatus\n    }\n  }\n": types.ProductBatchListDocument,
-    "\n  fragment ProductBatchInStatus on ProductBatch {\n    id\n    name\n    product {\n      sku\n      name\n    }\n    parentId\n    statusId\n    count\n    pricePerUnit\n    costPrice\n    fullPrice\n    date\n    weight\n    volume\n  }\n": types.ProductBatchInStatusFragmentDoc,
+    "\n  fragment ProductBatchInStatus on ProductBatch {\n    id\n    name\n    product {\n      sku\n      name\n    }\n    parentId\n    statusId\n    count\n    pricePerUnit\n    costPrice\n    fullPrice\n    date\n    weight\n    volume\n    order\n  }\n": types.ProductBatchInStatusFragmentDoc,
     "\n  mutation updateProductBatch($input: UpdateProductBatchInput!) {\n    updateProductBatch(input: $input) {\n      ...ProductBatchInStatus\n    }\n  }\n": types.UpdateProductBatchDocument,
     "\n  mutation createProductBatch($input: CreateProductBatchInput!) {\n    createProductBatch(input: $input) {\n      ...ProductBatchInStatus\n    }\n  }\n": types.CreateProductBatchDocument,
     "\n  mutation deleteProductBatch($id: Int!) {\n    deleteProductBatch(id: $id)\n  }\n": types.DeleteProductBatchDocument,
-    "\n  mutation splitProductBatch($input: SplitProductBatchInput!) {\n    splitProductBatch(input: $input) {\n      newItems {\n        ...ProductBatchInStatus\n      }\n    }\n  }\n": types.SplitProductBatchDocument,
     "\n  query productList {\n    productList {\n      items {\n        sku\n        id\n        name\n      }\n    }\n  }\n": types.ProductListDocument,
     "\n  query statusList {\n    statusList {\n      id\n      title\n    }\n  }\n": types.StatusListDocument,
     "\n  mutation createStatus($title: String!) {\n    createStatus(title: $title) {\n      id\n      title\n    }\n  }\n": types.CreateStatusDocument,
@@ -58,7 +57,7 @@ export function graphql(source: "\n  query productBatchList {\n    productBatchL
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  fragment ProductBatchInStatus on ProductBatch {\n    id\n    name\n    product {\n      sku\n      name\n    }\n    parentId\n    statusId\n    count\n    pricePerUnit\n    costPrice\n    fullPrice\n    date\n    weight\n    volume\n  }\n"): (typeof documents)["\n  fragment ProductBatchInStatus on ProductBatch {\n    id\n    name\n    product {\n      sku\n      name\n    }\n    parentId\n    statusId\n    count\n    pricePerUnit\n    costPrice\n    fullPrice\n    date\n    weight\n    volume\n  }\n"];
+export function graphql(source: "\n  fragment ProductBatchInStatus on ProductBatch {\n    id\n    name\n    product {\n      sku\n      name\n    }\n    parentId\n    statusId\n    count\n    pricePerUnit\n    costPrice\n    fullPrice\n    date\n    weight\n    volume\n    order\n  }\n"): (typeof documents)["\n  fragment ProductBatchInStatus on ProductBatch {\n    id\n    name\n    product {\n      sku\n      name\n    }\n    parentId\n    statusId\n    count\n    pricePerUnit\n    costPrice\n    fullPrice\n    date\n    weight\n    volume\n    order\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
@@ -71,10 +70,6 @@ export function graphql(source: "\n  mutation createProductBatch($input: CreateP
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n  mutation deleteProductBatch($id: Int!) {\n    deleteProductBatch(id: $id)\n  }\n"): (typeof documents)["\n  mutation deleteProductBatch($id: Int!) {\n    deleteProductBatch(id: $id)\n  }\n"];
-/**
- * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
- */
-export function graphql(source: "\n  mutation splitProductBatch($input: SplitProductBatchInput!) {\n    splitProductBatch(input: $input) {\n      newItems {\n        ...ProductBatchInStatus\n      }\n    }\n  }\n"): (typeof documents)["\n  mutation splitProductBatch($input: SplitProductBatchInput!) {\n    splitProductBatch(input: $input) {\n      newItems {\n        ...ProductBatchInStatus\n      }\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

@@ -34,14 +34,17 @@ export interface CreateProductInput {
 export interface UpdateProductBatchInput {
     id: number;
     statusId: number;
+    order?: Nullable<number>;
 }
 
 export interface CreateProductBatchInput {
-    productId: number;
     count: number;
-    costPrice: number;
-    date: string;
-    name: string;
+    parentId?: Nullable<number>;
+    productId?: Nullable<number>;
+    date?: Nullable<string>;
+    name?: Nullable<string>;
+    costPrice?: Nullable<number>;
+    order?: Nullable<number>;
     statusId?: Nullable<number>;
     storeId?: Nullable<number>;
     storeType?: Nullable<StoreType>;
@@ -59,12 +62,6 @@ export interface CreateOperationInput {
     proportionType: ProportionType;
     productBatchProportions: ProductBatchOperationInput[];
     date: string;
-}
-
-export interface SplitProductBatchInput {
-    id: number;
-    count: number;
-    statusId?: Nullable<number>;
 }
 
 export interface Product {
@@ -95,6 +92,7 @@ export interface ProductBatch {
     date: string;
     weight: number;
     volume: number;
+    order: number;
     statusId?: Nullable<number>;
     parentId?: Nullable<number>;
     storeId?: Nullable<number>;
@@ -140,16 +138,11 @@ export interface CreateOperationResponse {
     success: boolean;
 }
 
-export interface SplitProductBatchResponse {
-    newItems: ProductBatch[];
-}
-
 export interface IMutation {
     createOperation(input: CreateOperationInput): CreateOperationResponse | Promise<CreateOperationResponse>;
     createProduct(input: CreateProductInput): CreateProductResponse | Promise<CreateProductResponse>;
-    createProductBatch(input: CreateProductBatchInput): ProductBatch | Promise<ProductBatch>;
-    updateProductBatch(input: UpdateProductBatchInput): ProductBatch | Promise<ProductBatch>;
-    splitProductBatch(input: SplitProductBatchInput): SplitProductBatchResponse | Promise<SplitProductBatchResponse>;
+    createProductBatch(input: CreateProductBatchInput): Nullable<ProductBatch[]> | Promise<Nullable<ProductBatch[]>>;
+    updateProductBatch(input: UpdateProductBatchInput): Nullable<ProductBatch[]> | Promise<Nullable<ProductBatch[]>>;
     deleteProductBatch(id: number): number | Promise<number>;
     createStatus(title: string): Status[] | Promise<Status[]>;
     deleteStatus(id: number): Status[] | Promise<Status[]>;

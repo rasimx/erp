@@ -4,6 +4,7 @@ import React, { type FC, useCallback, useState } from 'react';
 import { StoreType } from '@/gql-types/graphql';
 import { useAppDispatch } from '@/hooks';
 
+import { ProductBatchStateItem } from '../product-batch.slice';
 import AddProductBatchForm from './AddProductBatchForm';
 
 const style = {
@@ -23,6 +24,7 @@ export interface Props {
   storeType?: StoreType;
   productId?: number;
   maxCount?: number;
+  parent?: ProductBatchStateItem;
 }
 
 const AddProductBatch: FC<Props> = ({
@@ -30,6 +32,7 @@ const AddProductBatch: FC<Props> = ({
   storeType,
   productId,
   maxCount,
+  parent,
 }) => {
   const dispatch = useAppDispatch();
 
@@ -60,6 +63,7 @@ const AddProductBatch: FC<Props> = ({
             Добавить партию
           </Typography>
           <AddProductBatchForm
+            parent={parent}
             onSubmit={handleClose}
             storeId={storeId}
             storeType={storeType}
