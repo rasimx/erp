@@ -1,11 +1,12 @@
 import { Injectable } from '@nestjs/common';
 
 import { ContextService } from '@/context/context.service.js';
-import { type Store, type StoreInput, StoreType } from '@/graphql.schema.js';
+import { StatusType, type Store } from '@/graphql.schema.js';
 import { OzonStateMicroservice } from '@/microservices/erp_ozon/ozon-state-microservice.service.js';
-import type { FullStateItem } from '@/microservices/proto/erp_ozon.pb.js';
 import { ProductService } from '@/product/product.service.js';
 import { ProductBatchService } from '@/product-batch/product-batch.service.js';
+import type { StatusByStoreEntity } from '@/status/status.entity.js';
+import { StatusService } from '@/status/status.service.js';
 
 @Injectable()
 export class StoreService {
@@ -14,6 +15,7 @@ export class StoreService {
     private readonly contextService: ContextService,
     private readonly productBatchService: ProductBatchService,
     private readonly productService: ProductService,
+    private readonly statusService: StatusService,
   ) {
     // setTimeout(() => this.a(), 3000);
   }
@@ -27,26 +29,36 @@ export class StoreService {
   }
 
   async getOzonStoreState({
+    statusList,
     productId,
-    storeId,
   }: {
+    statusList: StatusByStoreEntity[];
     productId?: number;
-    storeId?: number;
   }): Promise<Store[]> {
-    const a = this.contextService.userId;
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    if (statusList.find(item => item.storeId === null))
+      throw new Error('storeId is null');
+
+    const storeId = statusList.length == 1 ? statusList[0].storeId : undefined;
+
     const res = await this.ozonStateMicroservice.currentFullState({
       baseProductId: productId,
       storeId,
     });
 
-    const pbMap = await this.productBatchService.getProductBatchesMapByStoreId(
+    const statusMap = new Map(statusList.map(item => [item.storeId, item]));
+
+    const pbMap = await this.productBatchService.getProductBatchesMapByStatusId(
       res.flatMap(store =>
-        store.items.map(item => ({
-          productId: item.baseProductId,
-          storeId: store.storeId,
-          storeType: StoreType.ozon,
-          productBatchId: item.lastProductBatchId,
-        })),
+        store.items.map(item => {
+          const statusId = statusMap.get(store.storeId)?.id;
+          if (!statusId) throw new Error('statusId was not found');
+          return {
+            productId: item.baseProductId,
+            statusId,
+            productBatchId: item.lastProductBatchId,
+          };
+        }),
       ),
     );
 
@@ -74,19 +86,35 @@ export class StoreService {
 
   async storeState({
     productId,
-    storeInput,
+    statusId,
   }: {
     productId?: number;
-    storeInput?: StoreInput;
+    statusId?: number;
   }): Promise<Store[]> {
-    if (storeInput?.storeType == StoreType.ozon) {
-      return this.getOzonStoreState({ productId, storeId: storeInput.storeId });
-    } else if (storeInput?.storeType == StoreType.wb) {
+    let statusList: StatusByStoreEntity[] = [];
+    if (statusId) {
+      const status = await this.statusService.findById(statusId);
+      statusList.push(status as StatusByStoreEntity);
+    } else {
+      statusList = (await this.statusService.find({
+        id: statusId,
+      })) as StatusByStoreEntity[];
+    }
+    if (statusList.length == 0) return [];
+
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    if (statusId && statusList[0].type == StatusType.ozon) {
       return this.getOzonStoreState({
         productId,
-        storeId: storeInput.storeId,
+        statusList,
+      });
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    } else if (statusId && statusList[0].type == StatusType.wb) {
+      return this.getOzonStoreState({
+        productId,
+        statusList,
       });
     }
-    return this.getOzonStoreState({ productId });
+    return [];
   }
 }

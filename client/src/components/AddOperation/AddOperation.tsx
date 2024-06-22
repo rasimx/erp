@@ -3,7 +3,7 @@ import React, { type FC, useCallback, useState } from 'react';
 
 import { useAppSelector } from '@/hooks';
 
-import { selectCheckedProductBatchList } from '../product-batch.slice';
+import { selectCheckedProductBatchList } from '../../api/product-batch/product-batch.slice';
 import AddOperationForm from './AddOperationForm';
 
 const style = {

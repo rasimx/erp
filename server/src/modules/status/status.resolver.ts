@@ -22,4 +22,11 @@ export class StatusResolver {
   async deleteStatus(@Args('id') id: number): Promise<Status[]> {
     return this.service.deleteStatus(id);
   }
+  @Mutation('moveStatus')
+  async moveStatus(
+    @Args('id') id: number,
+    @Args('order') order: number,
+  ): Promise<Status[]> {
+    return this.service.moveStatus(id, order);
+  }
 }

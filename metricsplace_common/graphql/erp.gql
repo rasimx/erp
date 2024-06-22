@@ -12,6 +12,9 @@ type ProductList {
 type Status {
   id: Int!
   title: String!
+  order: Int!
+  type: StatusType!
+  storeId: Int
 }
 
 type ProductBatch {
@@ -27,9 +30,9 @@ type ProductBatch {
   weight: Int!
   volume: Float!
   order: Int!
-  statusId: Int
+  statusId: Int!
+  status: Status!
   parentId: Int
-  storeId: Int
 }
 
 type Operation {
@@ -57,17 +60,14 @@ type Store {
   items: [StoreByProduct!]!
 }
 
-input StoreInput {
-  storeId: Int!
-  storeType: StoreType!
-}
+
 
 type Query {
   productList: ProductList!
   statusList: [Status!]!
   productBatchList: [ProductBatch!]!
   operationList(productBatchId: Int!): OperationList!
-  storeState(productId: Int, storeInput: StoreInput): [Store!]!
+  storeState(productId: Int, statusId: Int): [Store!]!
 }
 
 
@@ -87,15 +87,13 @@ input UpdateProductBatchInput {
 }
 input CreateProductBatchInput {
   count: Int!
+  statusId: Int!
   parentId: Int
   productId: Int
   date: String
   name: String
   costPrice: Int
   order: Int
-  statusId: Int
-  storeId: Int
-  storeType: StoreType
 }
 
 input ProductBatchOperationInput {
@@ -112,7 +110,8 @@ enum ProportionType {
   costPrice
 }
 
-enum StoreType {
+enum StatusType {
+  custom
   ozon
   wb
 }
@@ -145,6 +144,7 @@ type Mutation {
   deleteProductBatch(id: Int!): Int!
   createStatus(title: String!): [Status!]!
   deleteStatus(id: Int!): [Status!]!
+  moveStatus(id: Int!, order: Int!): [Status!]!
 }
 
 

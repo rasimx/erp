@@ -22,8 +22,8 @@ export const StoreItemFragment = graphql(`
 `);
 
 export const STORE_STATE_QUERY = graphql(`
-  query storeState($productId: Int, $storeInput: StoreInput) {
-    storeState(productId: $productId, storeInput: $storeInput) {
+  query storeState($productId: Int, $statusId: Int) {
+    storeState(productId: $productId, statusId: $statusId) {
       id
       items {
         ...StoreItem

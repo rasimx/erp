@@ -4,13 +4,13 @@ import {
   type ThunkAction,
 } from '@reduxjs/toolkit';
 
-import kanbanReducer from './components/Kanban/product-batch.slice';
-import statusListReducer from './components/Kanban/status-list.slice';
+import kanbanReducer from './api/product-batch/product-batch.slice';
+import statusReducer from './api/status/status.slice';
 
 const reduxStore = configureStore({
   reducer: {
     productBatch: kanbanReducer,
-    statusList: statusListReducer,
+    status: statusReducer,
   },
 });
 

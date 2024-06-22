@@ -16,20 +16,18 @@ import { useFormik } from 'formik';
 import React, { type FC, useMemo } from 'react';
 import * as Yup from 'yup';
 
-import { StoreType } from '@/gql-types/graphql';
 import { useAppDispatch, useAppSelector } from '@/hooks';
 
-import { useProductList } from '../product.hooks';
+import { useProductList } from '../../api/product/product.hooks';
 import {
   createProductBatchAsync,
   ProductBatchStateItem,
-} from '../product-batch.slice';
-import { selectStatusList } from '../status-list.slice';
+} from '../../api/product-batch/product-batch.slice';
+import { selectStatusList } from '../../api/status/status.slice';
 
 export interface Props {
   onSubmit: () => void;
-  storeId?: number;
-  storeType?: StoreType;
+  statusId?: number;
   productId?: number;
   maxCount?: number;
   parent?: ProductBatchStateItem;
@@ -46,8 +44,7 @@ type FormData = {
 
 const AddProductBatchForm: FC<Props> = ({
   onSubmit,
-  storeId,
-  storeType,
+  statusId,
   productId,
   maxCount,
   parent,
@@ -78,7 +75,7 @@ const AddProductBatchForm: FC<Props> = ({
       costPrice: '',
       count: maxCount,
       date: new Date(),
-      statusId: undefined,
+      statusId: statusId || undefined,
     } as unknown as FormData,
     validationSchema: AddProductBatchSchema,
     onSubmit: async values => {
@@ -86,8 +83,6 @@ const AddProductBatchForm: FC<Props> = ({
         createProductBatchAsync({
           ...values,
           statusId: parent ? parent.statusId : values.statusId,
-          storeId,
-          storeType,
           parentId: parent ? parent.id : undefined,
           costPrice: values.costPrice * 100,
           date: format(values.date, 'yyyy-MM-dd'),
@@ -152,7 +147,7 @@ const AddProductBatchForm: FC<Props> = ({
               )}
             />
           )}
-          {!storeId && (
+          {!statusId && (
             <FormControl fullWidth sx={{ mt: 2 }}>
               <InputLabel id="demo-simple-select-label">Status</InputLabel>
               <Select

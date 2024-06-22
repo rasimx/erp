@@ -32,6 +32,7 @@ export class ProductBatchController implements ProductBatchServiceController {
     request: CreateStatusRequest,
   ): Promise<CreateStatusResponse> {
     try {
+      // @ts-expect-error StatusType -> string
       await this.statusService.createStatus(request);
     } catch (e: unknown) {
       return { error: (e as Error).message };

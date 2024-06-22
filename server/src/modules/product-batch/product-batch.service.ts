@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
 import omit from 'lodash/omit.js';
-import { type QueryRunner, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 
 import StrictMap from '@/common/helpers/map.js';
 import { ContextService } from '@/context/context.service.js';
@@ -10,7 +10,6 @@ import { CustomPostgresQueryRunner } from '@/database/custom.query-runner.js';
 import {
   type CreateProductBatchInput,
   type ProductBatch,
-  StoreType,
   type UpdateProductBatchInput,
 } from '@/graphql.schema.js';
 import { OzonStateMicroservice } from '@/microservices/erp_ozon/ozon-state-microservice.service.js';
@@ -68,11 +67,10 @@ export class ProductBatchService {
     // this.a();
   }
 
-  async getProductBatchesMapByStoreId(
+  async getProductBatchesMapByStatusId(
     productBatches: {
       productId: number;
-      storeId: number;
-      storeType: StoreType;
+      statusId: number;
       productBatchId?: number;
     }[],
   ): Promise<Map<number, Map<number, ProductBatch[]>>> {
@@ -83,8 +81,7 @@ export class ProductBatchService {
       .map(pb => {
         const common = `
         pb.product_id = ${pb.productId.toString()}
-        AND pb.store_id = ${pb.storeId.toString()}
-        AND pb.store_type = '${pb.storeType}'
+        AND pb.status_id = ${pb.statusId.toString()}
         `;
         if (pb.productBatchId) {
           return `(
@@ -111,14 +108,13 @@ export class ProductBatchService {
     const items = await this.findProductBatchByIds(rows.map(row => row.id));
 
     items.forEach(row => {
-      if (!row.storeId) throw new Error('storeId must be defined');
-      let mapItem = pbMapByProductId.get(row.storeId);
+      let mapItem = pbMapByProductId.get(row.statusId);
       if (!mapItem) mapItem = new Map<number, ProductBatch[]>();
       let subMapItem = mapItem.get(row.productId);
       if (!subMapItem) subMapItem = [];
       subMapItem.push(row);
       mapItem.set(row.productId, subMapItem);
-      pbMapByProductId.set(row.storeId, mapItem);
+      pbMapByProductId.set(row.statusId, mapItem);
     });
 
     return pbMapByProductId;
@@ -128,6 +124,7 @@ export class ProductBatchService {
     return this.repository
       .createQueryBuilder('pb')
       .leftJoinAndSelect('pb.product', 'product')
+      .leftJoinAndSelect('pb.status', 'status')
       .leftJoinAndSelect(
         ProductBatchEntity,
         'pb2',
@@ -135,7 +132,7 @@ export class ProductBatchService {
       )
       .where('pb2.id = :id', { id })
       .andWhere('pb.date::date >= pb2.date::date')
-      .andWhere('pb.store_id = :storeId', { storeId })
+      .andWhere('status.store_id = :storeId', { storeId })
       .orderBy('pb.order', 'DESC')
       .getMany();
   }
@@ -148,8 +145,8 @@ export class ProductBatchService {
     if (starterId !== undefined)
       return this.findFromId({ storeId, id: starterId });
     const last = await this.repository.findOne({
-      where: { productId, storeId },
-      relations: ['product'],
+      where: { productId, status: { storeId } },
+      relations: ['product', 'status'],
       order: { date: 'desc' },
     });
     return last ? [last] : [];
@@ -194,9 +191,8 @@ ORDER BY pb."order"
           where: { id },
         },
       );
+      // await new Promise((resolve, reject) => setTimeout(reject, 2000));
 
-      const oldStatusId = batch.statusId;
-      batch.statusId = newStatusId;
       if (!newOrder) {
         const lastBatch = await queryRunner.manager.findOne(
           ProductBatchEntity,
@@ -206,14 +202,54 @@ ORDER BY pb."order"
           },
         );
 
-        newOrder = lastBatch ? lastBatch.order + 1 : 1;
+        newOrder = lastBatch
+          ? lastBatch.statusId == batch.statusId
+            ? lastBatch.order
+            : lastBatch.order + 1
+          : 1;
       }
+
+      const oldStatusId = batch.statusId;
+      batch.statusId = newStatusId;
+      const oldOrder = batch.order;
       batch.order = newOrder;
       await queryRunner.manager.save(batch);
 
       // Обновите порядок карточек в старом столбце
       if (oldStatusId === newStatusId) {
         // Перемещение внутри одного столбца
+
+        let query = queryRunner.manager
+          .createQueryBuilder()
+          .update(ProductBatchEntity);
+        if (newOrder < oldOrder) {
+          query = query
+            .set({ order: () => '"order" + 1' })
+            .where(
+              'statusId = :newStatusId AND id != :id AND "order" >= :newOrder AND "order" <= :oldOrder',
+              {
+                newStatusId,
+                newOrder,
+                oldOrder,
+                id,
+              },
+            );
+        } else {
+          query = query
+            .set({ order: () => '"order" - 1' })
+            .where(
+              'statusId = :newStatusId AND id != :id AND "order" >= :oldOrder AND "order" <= :newOrder',
+              {
+                newStatusId,
+                newOrder,
+                oldOrder,
+                id,
+              },
+            );
+        }
+        await query.execute();
+      } else {
+        // Перемещение в другой столбец
         await queryRunner.manager
           .createQueryBuilder()
           .update(ProductBatchEntity)
@@ -227,25 +263,15 @@ ORDER BY pb."order"
             },
           )
           .execute();
-      } else {
-        // Перемещение в другой столбец
-        await queryRunner.manager
-          .createQueryBuilder()
-          .update(ProductBatchEntity)
-          .set({ order: () => '"order" + 1' })
-          .where('statusId = :newStatusId AND "order" >= :newOrder', {
-            newStatusId,
-            newOrder,
-          })
-          .execute();
 
         await queryRunner.manager
           .createQueryBuilder()
           .update(ProductBatchEntity)
           .set({ order: () => '"order" - 1' })
-          .where('statusId = :newStatusId AND "order" > :oldOrder', {
-            newStatusId,
-            oldOrder: batch.order,
+          .where('statusId = :oldStatusId AND "order" > :oldOrder', {
+            oldStatusId,
+            oldOrder,
+            id,
           })
           .execute();
         console.log('a');
@@ -339,9 +365,6 @@ ORDER BY pb."order"
   async createProductBatch(
     input: CreateProductBatchInput,
   ): Promise<ProductBatch[]> {
-    if (!(input.statusId ?? (input.storeId && input.storeType)))
-      throw new Error('надо указать либо status, либо магазин');
-
     if (
       !input.parentId &&
       (!input.productId || !input.date || !input.name || !input.costPrice)
@@ -370,29 +393,17 @@ ORDER BY pb."order"
         }
         if (input.count < parent.count) {
           /*
-           * переместим все партии даже в order, освободив одно место для нового остаточного
+           * переместим все партии в order, освободив одно место для нового остаточного
            * */
-          let query = queryRunner.manager
+          await queryRunner.manager
             .createQueryBuilder()
             .update(ProductBatchEntity)
-            .set({ order: () => '"order" + 1' });
-
-          if (input.statusId) {
-            query = query.where('statusId = :statusId AND "order" > :order', {
+            .set({ order: () => '"order" + 1' })
+            .where('statusId = :statusId AND "order" > :order', {
               statusId: parent.statusId,
               order: parent.order,
-            });
-          } else if (input.storeId) {
-            query = query.where(
-              'statusId = :statusId AND storeType = :storeType AND "order" > :order',
-              {
-                storeId: parent.statusId,
-                storeType: parent.storeType,
-                order: parent.order,
-              },
-            );
-          }
-          await query.execute();
+            })
+            .execute();
 
           let restBatch = new ProductBatchEntity();
           Object.assign(restBatch, omit(parent, 'id'), {
@@ -408,44 +419,26 @@ ORDER BY pb."order"
       let order = input.order;
       if (!order) {
         let lastBatch: ProductBatchEntity | null = null;
-        if (input.statusId) {
-          lastBatch = await queryRunner.manager.findOne(ProductBatchEntity, {
-            where: { statusId: input.statusId },
-            order: { order: 'DESC' },
-          });
-        } else if (input.storeId && input.storeType) {
-          lastBatch = await queryRunner.manager.findOne(ProductBatchEntity, {
-            where: { storeId: input.storeId, storeType: input.storeType },
-            order: { order: 'DESC' },
-          });
-        }
+        lastBatch = await queryRunner.manager.findOne(ProductBatchEntity, {
+          where: { statusId: input.statusId },
+          order: { order: 'DESC' },
+        });
+
         order = lastBatch ? lastBatch.order + 1 : 1;
       }
 
       /*
        * переместим все партии даже в order, освободив одно место для нового остаточного
        * */
-      let query = queryRunner.manager
+      await queryRunner.manager
         .createQueryBuilder()
         .update(ProductBatchEntity)
-        .set({ order: () => '"order" + 1' });
-
-      if (input.statusId) {
-        query = query.where('statusId = :statusId AND "order" > :order', {
+        .set({ order: () => '"order" + 1' })
+        .where('statusId = :statusId AND "order" > :order', {
           statusId: input.statusId,
           order,
-        });
-      } else if (input.storeId) {
-        query = query.where(
-          'statusId = :statusId AND storeType = :storeType AND "order" > :order',
-          {
-            storeId: input.storeId,
-            storeType: input.storeType,
-            order,
-          },
-        );
-      }
-      await query.execute();
+        })
+        .execute();
 
       let newEntity = new ProductBatchEntity();
       Object.assign(newEntity, input, { order });

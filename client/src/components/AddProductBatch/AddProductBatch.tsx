@@ -1,10 +1,9 @@
 import { Box, Button, Modal, Typography } from '@mui/material';
 import React, { type FC, useCallback, useState } from 'react';
 
-import { StoreType } from '@/gql-types/graphql';
 import { useAppDispatch } from '@/hooks';
 
-import { ProductBatchStateItem } from '../product-batch.slice';
+import { ProductBatchStateItem } from '../../api/product-batch/product-batch.slice';
 import AddProductBatchForm from './AddProductBatchForm';
 
 const style = {
@@ -20,16 +19,14 @@ const style = {
 };
 
 export interface Props {
-  storeId?: number;
-  storeType?: StoreType;
+  statusId?: number;
   productId?: number;
   maxCount?: number;
   parent?: ProductBatchStateItem;
 }
 
 const AddProductBatch: FC<Props> = ({
-  storeId,
-  storeType,
+  statusId,
   productId,
   maxCount,
   parent,
@@ -65,8 +62,7 @@ const AddProductBatch: FC<Props> = ({
           <AddProductBatchForm
             parent={parent}
             onSubmit={handleClose}
-            storeId={storeId}
-            storeType={storeType}
+            statusId={statusId}
             productId={productId}
             maxCount={maxCount}
           />

@@ -5,8 +5,7 @@ import update from 'immutability-helper';
 
 import {
   CreateProductBatchInput,
-  ProductBatchInStatusFragment,
-  UpdateProductBatchInput,
+  ProductBatchFragment,
 } from '@/gql-types/graphql';
 import { type RootState } from '@/redux-store';
 
@@ -14,24 +13,30 @@ import {
   createProductBatch,
   deleteProductBatch,
   fetchProductBatchList,
-  updateProductBatch,
 } from './product-batch.api';
 
-export interface ProductBatchStateItem extends ProductBatchInStatusFragment {
+export interface ProductBatchStateItem extends ProductBatchFragment {
   checked: boolean;
 }
 
 export interface ProductBatchState {
   items: ProductBatchStateItem[];
+  tempItems: ProductBatchStateItem[] | null;
+  lastActiveId: number | null;
 }
 
 const initialState: ProductBatchState = {
   items: [],
+  tempItems: null,
+  lastActiveId: null,
 };
 
 const buildProductBatchItemState = (
-  data: ProductBatchInStatusFragment[],
-): ProductBatchStateItem[] => data.map(item => ({ ...item, checked: false }));
+  data: ProductBatchFragment[],
+): ProductBatchStateItem[] =>
+  data
+    .map(item => ({ ...item, checked: false }))
+    .toSorted((a, b) => a.order - b.order);
 
 export const loadProductBatchListAsync = createAsyncThunk(
   'productBatch/load',
@@ -39,12 +44,7 @@ export const loadProductBatchListAsync = createAsyncThunk(
     return await fetchProductBatchList();
   },
 );
-export const updateProductBatchAsync = createAsyncThunk(
-  'productBatch/update',
-  async (input: UpdateProductBatchInput) => {
-    return await updateProductBatch(input);
-  },
-);
+
 export const createProductBatchAsync = createAsyncThunk(
   'productBatch/create',
   async (input: CreateProductBatchInput) => {
@@ -82,10 +82,7 @@ export const productBatchSlice = createSlice({
       .addCase(loadProductBatchListAsync.fulfilled, (state, action) => {
         state.items = buildProductBatchItemState([...action.payload]);
       })
-      .addCase(updateProductBatchAsync.fulfilled, (state, action) => {
-        if (!action.payload) throw new Error('not found action.payload');
-        state.items = buildProductBatchItemState([...action.payload]);
-      })
+
       .addCase(createProductBatchAsync.fulfilled, (state, action) => {
         if (!action.payload) throw new Error('error 1');
 
@@ -112,7 +109,7 @@ export const productBatchSlice = createSlice({
 export const { toggleCheck } = productBatchSlice.actions;
 
 export const selectProductBatchList = (state: RootState) =>
-  state.productBatch.items;
+  state.productBatch.tempItems ?? state.productBatch.items;
 export const selectCheckedProductBatchList = (state: RootState) =>
   state.productBatch.items.filter(item => item.checked);
 

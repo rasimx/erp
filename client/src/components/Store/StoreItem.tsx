@@ -3,10 +3,9 @@ import { Card, Stack } from '@mui/material';
 import Box from '@mui/material/Box';
 import React, { type FC, useMemo } from 'react';
 
-import AddProductBatch from '@/components/Kanban/AddProductBatch/AddProductBatch';
 import { getFragmentData } from '@/gql-types';
-import { StoreType } from '@/gql-types/graphql';
 
+import AddProductBatch from '../AddProductBatch/AddProductBatch';
 import { StoreItemFragment, StoreItemType } from './store.gql';
 
 const Item = styled(Card)<StoreItemType>`
@@ -36,8 +35,7 @@ const BatchItem = styled(Card)<{ beforeh: number }>`
 
 interface Props {
   storeItem: StoreItemType;
-  storeId: number;
-  storeType: StoreType;
+  statusId: number;
 }
 
 const StoreItem: FC<Props> = props => {
@@ -82,8 +80,7 @@ const StoreItem: FC<Props> = props => {
         на складе: {storeItem.inStoreCount}
         {maxCount > 0 && (
           <AddProductBatch
-            storeId={Number(props.storeId)}
-            storeType={props.storeType}
+            statusId={props.statusId}
             productId={storeItem.product.id}
             maxCount={maxCount}
           />

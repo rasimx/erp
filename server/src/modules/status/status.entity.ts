@@ -8,6 +8,7 @@ import {
 } from 'typeorm';
 
 import type { AtLeast } from '@/common/helpers/utils.js';
+import { StatusType } from '@/graphql.schema.js';
 
 @Entity({ name: 'status' })
 export class StatusEntity {
@@ -23,6 +24,19 @@ export class StatusEntity {
   })
   userId: number;
 
+  @Column('integer', { nullable: true })
+  storeId: number | null;
+
+  @Column({
+    type: 'enum',
+    enum: StatusType,
+    default: StatusType.custom,
+  })
+  type: StatusType;
+
+  @Column()
+  order: number;
+
   @CreateDateColumn()
   createdAt: Date;
 
@@ -34,3 +48,4 @@ export class StatusEntity {
 }
 
 export type StatusInsertEntity = AtLeast<StatusEntity, 'title'>;
+export type StatusByStoreEntity = StatusEntity & { storeId: number };

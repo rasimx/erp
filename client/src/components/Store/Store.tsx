@@ -4,19 +4,17 @@ import Box from '@mui/material/Box';
 import React, { type FC, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 
-import { StoreType } from '@/gql-types/graphql';
-
 import { STORE_STATE_QUERY } from './store.gql';
 import StoreItem from './StoreItem';
 
 interface Props {}
 
 const StoreComponent: FC<Props> = ({}) => {
-  const { storeId } = useParams();
+  const { statusId } = useParams();
   const { data, loading, error } = useQuery(STORE_STATE_QUERY, {
     fetchPolicy: 'network-only',
     variables: {
-      storeInput: { storeId: Number(storeId), storeType: StoreType.ozon },
+      statusId: Number(statusId),
     },
   });
 
@@ -32,11 +30,7 @@ const StoreComponent: FC<Props> = ({}) => {
         direction="row"
       >
         {items?.map(item => (
-          <StoreItem
-            storeItem={item}
-            storeId={Number(storeId)}
-            storeType={StoreType.ozon}
-          />
+          <StoreItem storeItem={item} statusId={Number(statusId)} />
         ))}
       </Stack>
     </Box>

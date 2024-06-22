@@ -7,8 +7,8 @@ import { Link, Outlet } from 'react-router-dom';
 
 const Root: FC = () => {
   return (
-    <Box sx={{ flexGrow: 1 }}>
-      <AppBar position="static">
+    <Box>
+      <AppBar position="fixed">
         <Toolbar>
           <Typography
             variant="h6"
@@ -22,7 +22,22 @@ const Root: FC = () => {
           <Box sx={{ flexGrow: 1 }} />
         </Toolbar>
       </AppBar>
-      <Outlet />
+      <Box
+        sx={{
+          display: 'flex',
+          height: '100vh',
+          flexDirection: 'column',
+          paddingTop: '64px',
+        }}
+      >
+        <Box
+          sx={{
+            flexGrow: 1,
+          }}
+        >
+          <Outlet />
+        </Box>
+      </Box>
     </Box>
   );
 };

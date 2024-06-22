@@ -16,14 +16,10 @@ export enum ProportionType {
     costPrice = "costPrice"
 }
 
-export enum StoreType {
+export enum StatusType {
+    custom = "custom",
     ozon = "ozon",
     wb = "wb"
-}
-
-export interface StoreInput {
-    storeId: number;
-    storeType: StoreType;
 }
 
 export interface CreateProductInput {
@@ -39,15 +35,13 @@ export interface UpdateProductBatchInput {
 
 export interface CreateProductBatchInput {
     count: number;
+    statusId: number;
     parentId?: Nullable<number>;
     productId?: Nullable<number>;
     date?: Nullable<string>;
     name?: Nullable<string>;
     costPrice?: Nullable<number>;
     order?: Nullable<number>;
-    statusId?: Nullable<number>;
-    storeId?: Nullable<number>;
-    storeType?: Nullable<StoreType>;
 }
 
 export interface ProductBatchOperationInput {
@@ -78,6 +72,9 @@ export interface ProductList {
 export interface Status {
     id: number;
     title: string;
+    order: number;
+    type: StatusType;
+    storeId?: Nullable<number>;
 }
 
 export interface ProductBatch {
@@ -93,9 +90,8 @@ export interface ProductBatch {
     weight: number;
     volume: number;
     order: number;
-    statusId?: Nullable<number>;
+    statusId: number;
     parentId?: Nullable<number>;
-    storeId?: Nullable<number>;
 }
 
 export interface Operation {
@@ -127,7 +123,7 @@ export interface IQuery {
     statusList(): Status[] | Promise<Status[]>;
     productBatchList(): ProductBatch[] | Promise<ProductBatch[]>;
     operationList(productBatchId: number): OperationList | Promise<OperationList>;
-    storeState(productId?: Nullable<number>, storeInput?: Nullable<StoreInput>): Store[] | Promise<Store[]>;
+    storeState(productId?: Nullable<number>, statusId?: Nullable<number>): Store[] | Promise<Store[]>;
 }
 
 export interface CreateProductResponse {
@@ -142,10 +138,11 @@ export interface IMutation {
     createOperation(input: CreateOperationInput): CreateOperationResponse | Promise<CreateOperationResponse>;
     createProduct(input: CreateProductInput): CreateProductResponse | Promise<CreateProductResponse>;
     createProductBatch(input: CreateProductBatchInput): Nullable<ProductBatch[]> | Promise<Nullable<ProductBatch[]>>;
-    updateProductBatch(input: UpdateProductBatchInput): Nullable<ProductBatch[]> | Promise<Nullable<ProductBatch[]>>;
+    updateProductBatch(input: UpdateProductBatchInput): ProductBatch[] | Promise<ProductBatch[]>;
     deleteProductBatch(id: number): number | Promise<number>;
     createStatus(title: string): Status[] | Promise<Status[]>;
     deleteStatus(id: number): Status[] | Promise<Status[]>;
+    moveStatus(id: number, order: number): Status[] | Promise<Status[]>;
 }
 
 type Nullable<T> = T | null;

@@ -2,7 +2,7 @@ import { Router } from '@remix-run/router';
 import React from 'react';
 import { createBrowserRouter, RouteObject } from 'react-router-dom';
 
-import Kanban from './components/Kanban/Kanban';
+import KanbanBoard from './components/KanbanBoard/KanbanBoard';
 import StoreComponent from './components/Store/Store';
 import Root from './Root';
 
@@ -13,10 +13,10 @@ export const routeObject: RouteObject[] = [
     children: [
       {
         path: 'kanban',
-        element: <Kanban />,
+        element: <KanbanBoard />,
       },
       {
-        path: 'ozon-store/:storeId',
+        path: 'ozon-store/:statusId',
         element: <StoreComponent />,
       },
     ],

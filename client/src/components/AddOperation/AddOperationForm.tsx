@@ -26,7 +26,7 @@ import { useAppSelector } from '@/hooks';
 import {
   ProductBatchStateItem,
   selectCheckedProductBatchList,
-} from '../product-batch.slice';
+} from '../../api/product-batch/product-batch.slice';
 import { createOperation } from './operation.api';
 
 const Value = styled('div')`
