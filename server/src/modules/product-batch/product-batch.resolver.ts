@@ -15,8 +15,10 @@ export class ProductBatchResolver {
   constructor(private readonly service: ProductBatchService) {}
 
   @Query('productBatchList')
-  async productBatchList(): Promise<ProductBatch[]> {
-    return this.service.productBatchList();
+  async productBatchList(
+    @Args('productId') productId: number,
+  ): Promise<ProductBatch[]> {
+    return this.service.productBatchList(productId);
   }
 
   @Mutation('updateProductBatch')

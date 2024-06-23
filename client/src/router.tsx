@@ -3,6 +3,7 @@ import React from 'react';
 import { createBrowserRouter, RouteObject } from 'react-router-dom';
 
 import KanbanBoard from './components/KanbanBoard/KanbanBoard';
+import ProductList from './components/ProductList';
 import StoreComponent from './components/Store/Store';
 import Root from './Root';
 
@@ -12,7 +13,11 @@ export const routeObject: RouteObject[] = [
     element: <Root />,
     children: [
       {
-        path: 'kanban',
+        path: 'products',
+        element: <ProductList />,
+      },
+      {
+        path: 'kanban/:productId',
         element: <KanbanBoard />,
       },
       {

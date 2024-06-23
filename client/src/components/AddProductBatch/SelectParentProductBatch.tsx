@@ -50,8 +50,8 @@ export const F = graphql(`
 `);
 
 export const QUERY = graphql(`
-  query productParentBatchList {
-    productBatchList {
+  query productParentBatchList($productId: Int!) {
+    productBatchList(productId: $productId) {
       ...SourceProductBatch
     }
   }
@@ -59,13 +59,14 @@ export const QUERY = graphql(`
 
 export interface Props {
   onChange: (data: SourceProductBatchFragment | undefined) => void;
+  productId: number;
 }
 
-const SelectParentProductBatch: FC<Props> = ({ onChange }) => {
+const SelectParentProductBatch: FC<Props> = ({ onChange, productId }) => {
   const [selected, setSelected] = useState<
     SourceProductBatchFragment | undefined
   >();
-  const { data, loading } = useQuery(QUERY);
+  const { data, loading } = useQuery(QUERY, { variables: { productId } });
 
   const items = useMemo(() => {
     const items = getFragmentData(F, data?.productBatchList);

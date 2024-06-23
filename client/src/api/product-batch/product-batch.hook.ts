@@ -14,7 +14,7 @@ import {
   UPDATE_PRODUCT_BATCH_MUTATION,
 } from './productBatch.gql';
 
-export const useProductBatch = () => {
+export const useProductBatch = (productId: number) => {
   const [productBatchList, setProductBatchList] = useState<
     ProductBatchFragment[]
   >([]);
@@ -25,6 +25,7 @@ export const useProductBatch = () => {
 
   const { data: productBatchListData, loading } = useQuery(
     PRODUCT_BATCH_LIST_QUERY,
+    { variables: { productId } },
   );
   useEffect(() => {
     setProductBatchList(
@@ -74,5 +75,6 @@ export const useProductBatch = () => {
     productBatchList,
     moveProductBatch,
     loadingId,
+    loading,
   };
 };

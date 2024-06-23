@@ -13,7 +13,7 @@ import { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/
  * Therefore it is highly recommended to use the babel or swc plugin for production.
  */
 const documents = {
-    "\n  query productBatchList {\n    productBatchList {\n      ...ProductBatch\n    }\n  }\n": types.ProductBatchListDocument,
+    "\n  query productBatchList($productId: Int!) {\n    productBatchList(productId: $productId) {\n      ...ProductBatch\n    }\n  }\n": types.ProductBatchListDocument,
     "\n  fragment ProductBatch on ProductBatch {\n    id\n    name\n    product {\n      sku\n      name\n    }\n    parentId\n    statusId\n    count\n    pricePerUnit\n    costPrice\n    fullPrice\n    date\n    weight\n    volume\n    order\n  }\n": types.ProductBatchFragmentDoc,
     "\n  mutation updateProductBatch($input: UpdateProductBatchInput!) {\n    updateProductBatch(input: $input) {\n      ...ProductBatch\n    }\n  }\n": types.UpdateProductBatchDocument,
     "\n  mutation createProductBatch($input: CreateProductBatchInput!) {\n    createProductBatch(input: $input) {\n      ...ProductBatch\n    }\n  }\n": types.CreateProductBatchDocument,
@@ -27,7 +27,7 @@ const documents = {
     "\n  mutation createOperation($input: CreateOperationInput!) {\n    createOperation(input: $input) {\n      success\n    }\n  }\n": types.CreateOperationDocument,
     "\n  query operationList($productBatchId: Int!) {\n    operationList(productBatchId: $productBatchId) {\n      items {\n        id\n        name\n      }\n    }\n  }\n": types.OperationListDocument,
     "\n  fragment SourceProductBatch on ProductBatch {\n    id\n    name\n    status {\n      id\n      title\n      order\n    }\n    statusId\n    count\n    order\n  }\n": types.SourceProductBatchFragmentDoc,
-    "\n  query productParentBatchList {\n    productBatchList {\n      ...SourceProductBatch\n    }\n  }\n": types.ProductParentBatchListDocument,
+    "\n  query productParentBatchList($productId: Int!) {\n    productBatchList(productId: $productId) {\n      ...SourceProductBatch\n    }\n  }\n": types.ProductParentBatchListDocument,
     "\n  fragment StoreItem on StoreByProduct {\n    salesCount\n    inStoreCount\n    productBatches {\n      id\n      name\n      count\n      pricePerUnit\n      costPrice\n      fullPrice\n      date\n    }\n    product {\n      id\n      sku\n      name\n    }\n  }\n": types.StoreItemFragmentDoc,
     "\n  query storeState($productId: Int, $statusId: Int) {\n    storeState(productId: $productId, statusId: $statusId) {\n      id\n      items {\n        ...StoreItem\n      }\n    }\n  }\n": types.StoreStateDocument,
 };
@@ -49,7 +49,7 @@ export function graphql(source: string): unknown;
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  query productBatchList {\n    productBatchList {\n      ...ProductBatch\n    }\n  }\n"): (typeof documents)["\n  query productBatchList {\n    productBatchList {\n      ...ProductBatch\n    }\n  }\n"];
+export function graphql(source: "\n  query productBatchList($productId: Int!) {\n    productBatchList(productId: $productId) {\n      ...ProductBatch\n    }\n  }\n"): (typeof documents)["\n  query productBatchList($productId: Int!) {\n    productBatchList(productId: $productId) {\n      ...ProductBatch\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
@@ -105,7 +105,7 @@ export function graphql(source: "\n  fragment SourceProductBatch on ProductBatch
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  query productParentBatchList {\n    productBatchList {\n      ...SourceProductBatch\n    }\n  }\n"): (typeof documents)["\n  query productParentBatchList {\n    productBatchList {\n      ...SourceProductBatch\n    }\n  }\n"];
+export function graphql(source: "\n  query productParentBatchList($productId: Int!) {\n    productBatchList(productId: $productId) {\n      ...SourceProductBatch\n    }\n  }\n"): (typeof documents)["\n  query productParentBatchList($productId: Int!) {\n    productBatchList(productId: $productId) {\n      ...SourceProductBatch\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

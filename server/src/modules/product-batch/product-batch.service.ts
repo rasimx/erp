@@ -171,8 +171,8 @@ ORDER BY pb."order"
     return rows.map(row => row.id);
   }
 
-  async productBatchList(product_id?: number): Promise<ProductBatch[]> {
-    const ids = await this.getWithoutChildrenIds(product_id);
+  async productBatchList(productId?: number): Promise<ProductBatch[]> {
+    const ids = await this.getWithoutChildrenIds(productId);
     const map = await this.findProductBatchByIds(ids);
     return [...map.values()];
   }
@@ -182,18 +182,16 @@ ORDER BY pb."order"
     statusId: newStatusId,
     order: newOrder,
   }: UpdateProductBatchInput): Promise<ProductBatch[]> {
+    let batch: null | ProductBatchEntity;
     const queryRunner = this.dataSource.createQueryRunner();
 
     await queryRunner.connect();
     await queryRunner.startTransaction();
     try {
-      const batch = await queryRunner.manager.findOneOrFail(
-        ProductBatchEntity,
-        {
-          where: { id },
-          relations: ['status'],
-        },
-      );
+      batch = await queryRunner.manager.findOneOrFail(ProductBatchEntity, {
+        where: { id },
+        relations: ['status'],
+      });
       const newStatus = await queryRunner.manager.findOneOrFail(StatusEntity, {
         where: { id: newStatusId },
       });
@@ -224,11 +222,10 @@ ORDER BY pb."order"
       }
 
       const oldStatusId = batch.statusId;
-      batch.statusId = newStatusId;
+      batch.status = newStatus;
       const oldOrder = batch.order;
       batch.order = newOrder;
-      await queryRunner.manager.save(batch);
-
+      batch = await queryRunner.manager.save(batch);
       // Обновите порядок карточек в старом столбце
       if (oldStatusId === newStatusId) {
         // Перемещение внутри одного столбца
@@ -291,8 +288,6 @@ ORDER BY pb."order"
         console.log('a');
       }
       await queryRunner.commitTransaction();
-
-      return this.productBatchList();
     } catch (err) {
       await queryRunner.rollbackTransaction();
       throw err;
@@ -300,6 +295,9 @@ ORDER BY pb."order"
       // you need to release a queryRunner which was manually instantiated
       await queryRunner.release();
     }
+
+    // todo: возвращать только измененные
+    return this.productBatchList(batch.productId);
   }
 
   async findAncestorsTrees(

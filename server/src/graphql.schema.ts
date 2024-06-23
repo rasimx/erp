@@ -122,7 +122,7 @@ export interface Store {
 export interface IQuery {
     productList(): ProductList | Promise<ProductList>;
     statusList(): Status[] | Promise<Status[]>;
-    productBatchList(): ProductBatch[] | Promise<ProductBatch[]>;
+    productBatchList(productId: number): ProductBatch[] | Promise<ProductBatch[]>;
     operationList(productBatchId: number): OperationList | Promise<OperationList>;
     storeState(productId?: Nullable<number>, statusId?: Nullable<number>): Store[] | Promise<Store[]>;
 }

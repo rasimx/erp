@@ -11,9 +11,17 @@ import {
 import type { Active } from '@dnd-kit/core/dist/store';
 import { restrictToFirstScrollableAncestor } from '@dnd-kit/modifiers';
 import { arrayMove, SortableContext } from '@dnd-kit/sortable';
-import { Box, Stack } from '@mui/material';
+import {
+  Backdrop,
+  Box,
+  Button,
+  CircularProgress,
+  Paper,
+  Stack,
+} from '@mui/material';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { useParams } from 'react-router-dom';
 
 import AddOperation from '@/components/AddOperation/AddOperation';
 import { ProductBatchFragment, Status } from '@/gql-types/graphql';
@@ -27,7 +35,13 @@ import KanbanColumn from './KanbanColumn';
 import { DraggableType } from './types';
 
 const KanbanBoard = () => {
-  const { statusList, moveStatus, loadingId: statusInLoadingId } = useStatus();
+  const { productId } = useParams();
+  const {
+    statusList,
+    moveStatus,
+    loadingId: statusInLoadingId,
+    loading: statusListLoading,
+  } = useStatus();
 
   const columnsId = useMemo(
     () => statusList.map(col => `column_${col.id}`),
@@ -38,7 +52,8 @@ const KanbanBoard = () => {
     productBatchList,
     moveProductBatch,
     loadingId: productBatchInLoadingId,
-  } = useProductBatch();
+    loading: productBatchListLoading,
+  } = useProductBatch(Number(productId));
   const [cards, setCards] = useState<ProductBatchFragment[]>([]);
 
   useEffect(() => {
@@ -231,6 +246,12 @@ const KanbanBoard = () => {
     <Box
       sx={{ p: 2, height: '90vh', display: 'flex', flexDirection: 'column' }}
     >
+      <Backdrop
+        sx={{ color: '#fff', zIndex: theme => theme.zIndex.drawer + 1 }}
+        open={statusListLoading || productBatchListLoading}
+      >
+        <CircularProgress color="inherit" />
+      </Backdrop>
       <Box>
         <AddOperation />
       </Box>
@@ -277,7 +298,7 @@ const KanbanBoard = () => {
                       <AddProductBatchForm
                         onSubmit={handleClose}
                         statusId={status.id}
-                        productId={41}
+                        productId={Number(productId)}
                       />
                     )}
                   </ModalButton>
@@ -285,6 +306,22 @@ const KanbanBoard = () => {
               );
             })}
           </SortableContext>
+          {/*<Paper*/}
+          {/*  elevation={3}*/}
+          {/*  variant="elevation"*/}
+          {/*  onClick={createNewColumn}*/}
+          {/*  sx={{*/}
+          {/*    width: 300,*/}
+          {/*    position: 'relative',*/}
+          {/*    height: '100%',*/}
+          {/*    display: 'flex',*/}
+          {/*    flexDirection: 'column',*/}
+          {/*  }}*/}
+          {/*>*/}
+          {/*  <Button variant="contained" type="submit" sx={{ mt: 2 }}>*/}
+          {/*    Создать колонку*/}
+          {/*  </Button>*/}
+          {/*</Paper>*/}
         </Stack>
         {createPortal(
           <DragOverlay>

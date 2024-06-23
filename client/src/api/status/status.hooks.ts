@@ -36,7 +36,7 @@ export const useStatus = () => {
   const {
     data: statusListData,
     error,
-    loading: statusListLoading,
+    loading,
   } = useQuery(STATUS_LIST_QUERY, {
     skip: statusMap.size > 0,
   });
@@ -54,7 +54,7 @@ export const useStatus = () => {
     }
   }, [statusListData]);
 
-  const [move, { loading: moveLoading }] = useMutation(MOVE_STATUS_MUTATION);
+  const [move] = useMutation(MOVE_STATUS_MUTATION);
   const [loadingId, setLoadingId] = useState<number | null>(null);
   const { enqueueSnackbar } = useSnackbar();
 
@@ -105,7 +105,7 @@ export const useStatus = () => {
     statusList,
     moveStatus,
     error,
-    statusListLoading,
+    loading,
     loadingId,
   };
 };

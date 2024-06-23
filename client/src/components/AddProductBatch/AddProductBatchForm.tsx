@@ -14,22 +14,13 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { format } from 'date-fns';
 import { useFormik } from 'formik';
-import React, {
-  type FC,
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react';
+import React, { type FC, useEffect, useMemo, useState } from 'react';
 import * as Yup from 'yup';
 
 import { useAppDispatch, useAppSelector } from '@/hooks';
 
 import { useProductList } from '../../api/product/product.hooks';
-import {
-  createProductBatchAsync,
-  selectCheckedProductBatchList,
-} from '../../api/product-batch/product-batch.slice';
+import { createProductBatchAsync } from '../../api/product-batch/product-batch.slice';
 import { selectStatusList } from '../../api/status/status.slice';
 import { SourceProductBatchFragment } from '../../gql-types/graphql';
 import SelectParentProductBatch from './SelectParentProductBatch';
@@ -124,7 +115,10 @@ const AddProductBatchForm: FC<Props> = ({
       <Typography id="modal-modal-title" variant="h6" component="h2">
         Добавить партию
       </Typography>
-      <SelectParentProductBatch onChange={parent => setParent(parent)} />
+      <SelectParentProductBatch
+        productId={productId}
+        onChange={parent => setParent(parent)}
+      />
       <Box
         component="form"
         onSubmit={formik.handleSubmit}
