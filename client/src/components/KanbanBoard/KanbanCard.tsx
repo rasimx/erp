@@ -42,7 +42,7 @@ const Preloader = () => {
   );
 };
 
-const DraggablePresentation = React.memo<Props>(({ card, loading }) => {
+export const DraggablePresentation = React.memo<Props>(({ card, loading }) => {
   return (
     <Card
       elevation={3}

@@ -57,7 +57,7 @@ export const useProductBatch = () => {
         })
         .catch(err => {
           // todo: обработать ошику
-          enqueueSnackbar('This is a error message!', {
+          enqueueSnackbar(err.message, {
             variant: 'error',
             anchorOrigin: { vertical: 'bottom', horizontal: 'left' },
           });

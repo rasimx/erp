@@ -91,6 +91,7 @@ export interface ProductBatch {
     volume: number;
     order: number;
     statusId: number;
+    status: Status;
     parentId?: Nullable<number>;
 }
 

@@ -5,7 +5,6 @@ import React, { type FC, useMemo } from 'react';
 
 import { getFragmentData } from '@/gql-types';
 
-import AddProductBatch from '../AddProductBatch/AddProductBatch';
 import { StoreItemFragment, StoreItemType } from './store.gql';
 
 const Item = styled(Card)<StoreItemType>`
@@ -78,13 +77,13 @@ const StoreItem: FC<Props> = props => {
         продано: {storeItem.salesCount}
         <br />
         на складе: {storeItem.inStoreCount}
-        {maxCount > 0 && (
-          <AddProductBatch
-            statusId={props.statusId}
-            productId={storeItem.product.id}
-            maxCount={maxCount}
-          />
-        )}
+        {/*{maxCount > 0 && (*/}
+        {/*  <AddProductBatch*/}
+        {/*    statusId={props.statusId}*/}
+        {/*    productId={storeItem.product.id}*/}
+        {/*    maxCount={maxCount}*/}
+        {/*  />*/}
+        {/*)}*/}
         {productBatches.map(item => (
           <BatchItem sx={{ height: 200, p: 1 }} beforeh={item.beforeh}>
             <Box sx={{ position: 'relative' }}>

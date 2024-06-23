@@ -10,6 +10,7 @@ import { CustomPostgresQueryRunner } from '@/database/custom.query-runner.js';
 import {
   type CreateProductBatchInput,
   type ProductBatch,
+  StatusType,
   type UpdateProductBatchInput,
 } from '@/graphql.schema.js';
 import { OzonStateMicroservice } from '@/microservices/erp_ozon/ozon-state-microservice.service.js';
@@ -17,6 +18,7 @@ import type { FindLatestRequest } from '@/microservices/proto/erp.pb.js';
 import { OperationEntity } from '@/operation/operation.entity.js';
 import { ProductService } from '@/product/product.service.js';
 import { ProductBatchEntity } from '@/product-batch/product-batch.entity.js';
+import { StatusEntity } from '@/status/status.entity.js';
 import { StatusService } from '@/status/status.service.js';
 
 function buildAncestorTree(
@@ -189,8 +191,20 @@ ORDER BY pb."order"
         ProductBatchEntity,
         {
           where: { id },
+          relations: ['status'],
         },
       );
+      const newStatus = await queryRunner.manager.findOneOrFail(StatusEntity, {
+        where: { id: newStatusId },
+      });
+      if (
+        (batch.status.type != StatusType.custom ||
+          newStatus.type != StatusType.custom) &&
+        batch.statusId != newStatusId
+      )
+        throw new BadRequestException(
+          'нельзя перемещать партии между магазинами',
+        );
       // await new Promise((resolve, reject) => setTimeout(reject, 2000));
 
       if (!newOrder) {
@@ -306,6 +320,7 @@ ORDER BY pb."order"
       .select('pb')
       .from(ProductBatchEntity, 'pb')
       .leftJoinAndSelect('pb.parent', 'parent')
+      .leftJoinAndSelect('pb.status', 'status')
       .leftJoinAndSelect('pb.product', 'product')
       .leftJoinAndSelect('pb.productBatchOperations', 'pbo')
       .leftJoinAndMapOne(

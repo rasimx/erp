@@ -9,22 +9,19 @@ import {
   useSensors,
 } from '@dnd-kit/core';
 import type { Active } from '@dnd-kit/core/dist/store';
-import {
-  restrictToFirstScrollableAncestor,
-  restrictToVerticalAxis,
-  restrictToWindowEdges,
-} from '@dnd-kit/modifiers';
+import { restrictToFirstScrollableAncestor } from '@dnd-kit/modifiers';
 import { arrayMove, SortableContext } from '@dnd-kit/sortable';
 import { Box, Stack } from '@mui/material';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 
 import AddOperation from '@/components/AddOperation/AddOperation';
-import AddProductBatch from '@/components/AddProductBatch/AddProductBatch';
 import { ProductBatchFragment, Status } from '@/gql-types/graphql';
 
 import { useProductBatch } from '../../api/product-batch/product-batch.hook';
 import { useStatus } from '../../api/status/status.hooks';
+import AddProductBatchForm from '../AddProductBatch/AddProductBatchForm';
+import ModalButton from '../ModalButton';
 import KanbanCard, { getCardId } from './KanbanCard';
 import KanbanColumn from './KanbanColumn';
 import { DraggableType } from './types';
@@ -226,7 +223,7 @@ const KanbanBoard = () => {
   const modifiers = useMemo(() => {
     const modifiers = [];
     if (active && active.data.current?.modifiers?.length)
-      modifiers.push(...active.data.current?.modifiers);
+      modifiers.push(...(active.data.current?.modifiers ?? []));
     return modifiers;
   }, [active]);
 
@@ -236,7 +233,6 @@ const KanbanBoard = () => {
     >
       <Box>
         <AddOperation />
-        <AddProductBatch />
       </Box>
 
       <DndContext
@@ -276,6 +272,15 @@ const KanbanBoard = () => {
                       loading={batch.id == productBatchInLoadingId}
                     />
                   ))}
+                  <ModalButton label="Добавить">
+                    {handleClose => (
+                      <AddProductBatchForm
+                        onSubmit={handleClose}
+                        statusId={status.id}
+                        productId={41}
+                      />
+                    )}
+                  </ModalButton>
                 </KanbanColumn>
               );
             })}
