@@ -4,6 +4,9 @@ import {
   DragOverEvent,
   DragOverlay,
   DragStartEvent,
+  MeasuringConfiguration,
+  MeasuringStrategy,
+  Over,
   PointerSensor,
   useSensor,
   useSensors,
@@ -14,9 +17,9 @@ import { arrayMove, SortableContext } from '@dnd-kit/sortable';
 import {
   Backdrop,
   Box,
-  Button,
+  Card,
   CircularProgress,
-  Paper,
+  Divider,
   Stack,
 } from '@mui/material';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
@@ -24,7 +27,7 @@ import { createPortal } from 'react-dom';
 import { useParams } from 'react-router-dom';
 
 import AddOperation from '@/components/AddOperation/AddOperation';
-import { ProductBatchFragment, Status } from '@/gql-types/graphql';
+import { ProductBatchFragment, Status, StatusType } from '@/gql-types/graphql';
 
 import { useProductBatch } from '../../api/product-batch/product-batch.hook';
 import { useStatus } from '../../api/status/status.hooks';
@@ -33,6 +36,12 @@ import ModalButton from '../ModalButton';
 import KanbanCard, { getCardId } from './KanbanCard';
 import KanbanColumn from './KanbanColumn';
 import { DraggableType } from './types';
+
+const measuring: MeasuringConfiguration = {
+  droppable: {
+    strategy: MeasuringStrategy.Always,
+  },
+};
 
 const KanbanBoard = () => {
   const { productId } = useParams();
@@ -60,89 +69,169 @@ const KanbanBoard = () => {
     setCards(productBatchList.map(item => ({ ...item })));
   }, [productBatchList]);
 
-  const [activeColumn, setActiveColumn] = useState<Status | null>(null);
-  const [activeCard, setActiveCard] = useState<ProductBatchFragment | null>(
-    null,
-  );
   const [active, setActive] = useState<Active | null>(null);
-
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 10,
-      },
-    }),
+  const [over, setOver] = useState<Over | null>(null);
+  const activeCard = useMemo<ProductBatchFragment | null>(
+    () =>
+      active?.data.current?.type === DraggableType.Card
+        ? active.data.current.card
+        : null,
+    [active],
+  );
+  const activeColumn = useMemo<Status | null>(
+    () =>
+      active?.data.current?.type === DraggableType.Column
+        ? active.data.current.column
+        : null,
+    [active],
+  );
+  const overCard = useMemo<ProductBatchFragment | null>(
+    () =>
+      over?.data.current?.type === DraggableType.Card
+        ? over.data.current.card
+        : null,
+    [over],
+  );
+  const overColumn = useMemo<Status | null>(
+    () =>
+      over?.data.current?.type === DraggableType.Column
+        ? over.data.current.column
+        : null,
+    [over],
   );
 
-  const [order, setOrder] = useState<number | null>(null);
+  const nextIdOfActiveOnColumn = useMemo(() => {
+    if (activeCard) {
+      const activeIndex = cards.findIndex(item => item.id === activeCard?.id);
+      return cards.find(
+        (item, index) =>
+          item.statusId == activeCard?.statusId && index > activeIndex,
+      )?.id;
+    }
+  }, [activeCard, cards]);
+
+  const activeIsLastOnColumn = useMemo<boolean>(() => {
+    return (
+      cards.findLast(item => item.statusId == activeCard?.statusId)?.id ==
+      activeCard?.id
+    );
+  }, [activeCard, cards]);
+
+  const activeColumnCards = useMemo<ProductBatchFragment[]>(
+    () =>
+      (activeColumn &&
+        cards.filter(batch => batch.statusId == activeColumn.id)) ??
+      [],
+    [activeColumn, cards],
+  );
 
   const onDragStart = useCallback((event: DragStartEvent) => {
     setActive(event.active);
-    if (event.active.data.current?.type === DraggableType.Column) {
-      setActiveColumn(event.active.data.current.column);
-      return;
-    }
-    if (event.active.data.current?.type === DraggableType.Card) {
-      setActiveCard(event.active.data.current.card);
-      return;
-    }
   }, []);
 
   const onDragEnd = useCallback(
     (event: DragEndEvent) => {
       setActive(null);
-      setActiveColumn(null);
-      setActiveCard(null);
+      setOver(null);
 
       const { active, over } = event;
       if (!over) return;
 
-      const activeId = active.id;
-      const overId = over.id;
+      if (active.id === over.id) return;
 
-      const isActiveCard = active.data.current?.type === DraggableType.Card;
-      if (isActiveCard) {
-        const activeBatch = cards.find(
-          item => item.id == active.data.current?.card.id,
-        );
-        if (!activeBatch) {
-          // todo: обработать
-          throw new Error('AAA');
-        }
-        const currentIndex = cards.indexOf(activeBatch);
-        const originalBatch = productBatchList.find(
-          item => item.id == active.data.current?.card.id,
-        );
-        if (!originalBatch) {
-          // todo: обработать
-          throw new Error('AAA');
-        }
-        const originalIndex = productBatchList.indexOf(originalBatch);
+      const activeData = active.data.current;
+      const overData = over.data.current;
+      if (!activeData || !overData) return;
 
-        if (
-          currentIndex != originalIndex ||
-          activeBatch.statusId != originalBatch.statusId
-        ) {
-          const afterItems = cards.some(
-            (item, index) =>
-              index > currentIndex && item.statusId == activeBatch.statusId,
+      if (activeData.type === DraggableType.Card) {
+        const activeIndex = cards.findIndex(
+          item => item.id == activeData.card.id,
+        );
+        const activeBatch = activeData.card;
+
+        const activeStatus = statusList.find(
+          item => item.id == activeBatch.statusId,
+        );
+        const id = activeBatch.id;
+        let order: undefined | number;
+        const overStatusId =
+          overData.type === DraggableType.Card
+            ? overData.card.statusId
+            : overData.column.id;
+
+        const overStatus = statusList.find(item => item.id == overStatusId);
+
+        if (overData.type === DraggableType.Card) {
+          const overIndex = cards.findIndex(
+            item => item.id == overData.card.id,
           );
+          const nextIndexOfActiveOnColumn = cards.findIndex(
+            (item, index) =>
+              item.statusId == overStatusId && index > activeIndex,
+          );
+          if (
+            overIndex == activeIndex ||
+            (overIndex == nextIndexOfActiveOnColumn &&
+              activeBatch.statusId == overStatusId)
+          )
+            return;
 
-          moveProductBatch({
-            id: activeBatch.id,
-            statusId: activeBatch.statusId,
-            order: afterItems ? order : undefined,
+          if (
+            (activeStatus?.type != StatusType.custom ||
+              overStatus?.type != StatusType.custom) &&
+            activeStatus?.id != overStatus?.id
+          ) {
+            return;
+          }
+
+          setCards(items => {
+            items[activeIndex].statusId = overStatusId;
+            if (activeIndex > overIndex) {
+              return arrayMove(items, activeIndex, overIndex);
+            } else {
+              return arrayMove(items, activeIndex, overIndex - 1);
+            }
+          });
+
+          order = overData.card.order;
+          if (
+            activeBatch.statusId === overStatusId &&
+            overIndex > activeIndex
+          ) {
+            // если перемещается в конец в текущем слобце
+            const prevIndexOfOverOnColumn = cards.findLast(
+              (item, index) =>
+                item.statusId == overStatusId && index < overIndex,
+            );
+            order = prevIndexOfOverOnColumn?.order;
+          }
+        } else {
+          const lastIndexOnColumn = cards.findLastIndex(
+            item => item.statusId == overStatusId,
+          );
+          if (activeIndex == lastIndexOnColumn) return;
+
+          if (
+            (activeStatus?.type != StatusType.custom ||
+              overStatus?.type != StatusType.custom) &&
+            activeStatus?.id != overStatus?.id
+          ) {
+            return;
+          }
+          setCards(items => {
+            items[activeIndex].statusId = overStatusId;
+            return arrayMove(items, activeIndex, lastIndexOnColumn + 1);
           });
         }
+        moveProductBatch({
+          id,
+          statusId: overStatusId,
+          order,
+        });
       }
 
-      if (activeId === overId) return;
-
-      const isActiveColumn = active.data.current?.type === DraggableType.Column;
-      if (isActiveColumn) {
-        if (!active.data.current || !over.data.current)
-          throw new Error('currrent was not defined');
-        moveStatus(active.data.current.column, over.data.current.column);
+      if (activeData.type === DraggableType.Column) {
+        moveStatus(activeData.column, overData.column);
       }
     },
     [cards, moveStatus, moveProductBatch],
@@ -151,88 +240,11 @@ const KanbanBoard = () => {
   const onDragOver = useCallback(
     (event: DragOverEvent) => {
       requestAnimationFrame(() => {
-        const { active, over } = event;
-        if (!over) return;
-
-        const activeId = active.id;
-        const overId = over.id;
-
-        if (activeId === overId) return;
-
-        const isActiveCard = active.data.current?.type === DraggableType.Card;
-        const isOverCard = over.data.current?.type === DraggableType.Card;
-        if (!isActiveCard) return;
-
-        const activeStatus = statusList.find(
-          item => item.id == active.data.current?.card.statusId,
-        );
-
-        if (isActiveCard && isOverCard) {
-          const overStatus = statusList.find(
-            item => item.id == over.data.current?.card.statusId,
-          );
-
-          if (
-            (activeStatus?.type != 'custom' || overStatus?.type != 'custom') &&
-            activeStatus?.id != overStatus?.id
-          )
-            // если перемещение в предалах store
-            return;
-
-          setCards(cards => {
-            const activeIndex = cards.findIndex(
-              t => t.id === active.data.current?.card.id,
-            );
-            const overIndex = cards.findIndex(
-              t => t.id === over.data.current?.card.id,
-            );
-            const activeCard = cards[activeIndex];
-            const overCard = cards[overIndex];
-            setOrder(overCard.order);
-
-            if (activeCard.statusId != overCard.statusId) {
-              activeCard.statusId = overCard.statusId;
-              return arrayMove(cards, activeIndex, Math.max(overIndex - 1, 0));
-            }
-
-            return arrayMove(cards, activeIndex, overIndex);
-          });
-        }
-
-        const isOverAColumn = over.data.current?.type === DraggableType.Column;
-
-        // Im dropping a Task over a column
-        if (isActiveCard && isOverAColumn) {
-          if (
-            activeStatus?.type != 'custom' ||
-            over.data.current?.column.type != 'custom'
-          )
-            // если перемещение в предалах store
-            return;
-
-          setCards(cards => {
-            const activeIndex = cards.findIndex(
-              t => t.id === active.data.current?.card.id,
-            );
-
-            if (!over.data.current?.column.id)
-              throw new Error('over.data.current?.colum.id was not defined');
-            cards[activeIndex].statusId = over.data.current?.column.id;
-            return arrayMove(cards, activeIndex, activeIndex);
-          });
-          setOrder(null);
-        }
+        const { over } = event;
+        setOver(over);
       });
     },
     [statusList],
-  );
-
-  const activeColumnCards = useMemo(
-    () =>
-      (activeColumn &&
-        cards.filter(batch => batch.statusId == activeColumn.id)) ??
-      [],
-    [activeColumn],
   );
 
   const modifiers = useMemo(() => {
@@ -242,6 +254,13 @@ const KanbanBoard = () => {
     return modifiers;
   }, [active]);
 
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 10,
+      },
+    }),
+  );
   return (
     <Box
       sx={{ p: 2, height: '90vh', display: 'flex', flexDirection: 'column' }}
@@ -257,6 +276,7 @@ const KanbanBoard = () => {
       </Box>
 
       <DndContext
+        measuring={measuring}
         sensors={sensors}
         onDragStart={onDragStart}
         onDragEnd={onDragEnd}
@@ -265,69 +285,87 @@ const KanbanBoard = () => {
       >
         <Stack
           direction="row"
-          spacing={2}
           alignContent="stretch"
           sx={{ flexGrow: 1, maxHeight: '100%' }}
         >
           <SortableContext items={columnsId}>
-            {statusList?.map(status => {
+            {statusList?.map((status, index) => {
               const children = cards.filter(
                 batch => batch.statusId == status.id,
               );
               return (
-                <KanbanColumn
-                  key={status.id}
-                  column={status}
-                  loading={status.id === statusInLoadingId}
-                  items={children.map(item => getCardId(item))}
-                >
-                  {children.map(batch => (
-                    <KanbanCard
-                      card={batch}
-                      key={batch.id}
-                      modifiers={
-                        status.type != 'custom'
-                          ? [restrictToFirstScrollableAncestor]
-                          : []
-                      }
-                      loading={batch.id == productBatchInLoadingId}
-                    />
-                  ))}
-                  <ModalButton label="Добавить">
-                    {handleClose => (
-                      <AddProductBatchForm
-                        onSubmit={handleClose}
-                        statusId={status.id}
-                        productId={Number(productId)}
-                      />
-                    )}
-                  </ModalButton>
-                </KanbanColumn>
+                <>
+                  {index != 0 && <Divider orientation="vertical" />}
+                  <KanbanColumn
+                    key={status.id}
+                    column={status}
+                    loading={status.id === statusInLoadingId}
+                    items={children.map(item => getCardId(item))}
+                  >
+                    {children.map(batch => (
+                      <Box key={batch.id}>
+                        {overCard?.id == batch.id &&
+                          activeCard?.id != batch.id &&
+                          nextIdOfActiveOnColumn != batch.id &&
+                          ((status.type != StatusType.custom &&
+                            activeCard?.statusId == status.id) ||
+                            status.type == StatusType.custom) && (
+                            <Card
+                              elevation={3}
+                              sx={{
+                                height: 5,
+                                backgroundColor: 'rgba(0,255,0,.5)',
+                                marginBottom: 1,
+                              }}
+                            ></Card>
+                          )}
+                        <KanbanCard
+                          card={batch}
+                          modifiers={
+                            status.type != StatusType.custom
+                              ? [restrictToFirstScrollableAncestor]
+                              : []
+                          }
+                          loading={batch.id == productBatchInLoadingId}
+                        />
+                      </Box>
+                    ))}
+                    {overColumn?.id == status.id &&
+                      ((!activeIsLastOnColumn &&
+                        activeCard?.statusId == status.id) ||
+                        activeCard?.statusId != status.id) &&
+                      ((status.type != StatusType.custom &&
+                        activeCard?.statusId == status.id) ||
+                        status.type == StatusType.custom) && (
+                        <Card
+                          elevation={3}
+                          sx={{
+                            height: 5,
+                            backgroundColor: 'rgba(0,255,0,.5)',
+                          }}
+                        ></Card>
+                      )}
+                    <ModalButton label="Добавить">
+                      {handleClose => (
+                        <AddProductBatchForm
+                          onSubmit={handleClose}
+                          statusId={status.id}
+                          productId={Number(productId)}
+                        />
+                      )}
+                    </ModalButton>
+                  </KanbanColumn>
+                </>
               );
             })}
           </SortableContext>
-          {/*<Paper*/}
-          {/*  elevation={3}*/}
-          {/*  variant="elevation"*/}
-          {/*  onClick={createNewColumn}*/}
-          {/*  sx={{*/}
-          {/*    width: 300,*/}
-          {/*    position: 'relative',*/}
-          {/*    height: '100%',*/}
-          {/*    display: 'flex',*/}
-          {/*    flexDirection: 'column',*/}
-          {/*  }}*/}
-          {/*>*/}
-          {/*  <Button variant="contained" type="submit" sx={{ mt: 2 }}>*/}
-          {/*    Создать колонку*/}
-          {/*  </Button>*/}
-          {/*</Paper>*/}
         </Stack>
         {createPortal(
           <DragOverlay>
             {activeColumn && (
               <KanbanColumn
                 column={activeColumn}
+                isActive
                 items={activeColumnCards.map(item => getCardId(item))}
               >
                 {activeColumnCards.map(batch => (

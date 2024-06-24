@@ -1,5 +1,4 @@
 import { Modifiers } from '@dnd-kit/core/dist/modifiers';
-import { restrictToVerticalAxis } from '@dnd-kit/modifiers';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import {
@@ -19,10 +18,9 @@ import { DraggableType } from './types';
 
 export const getCardId = (item: ProductBatchFragment) => `card_${item.id}`;
 
-export interface Props {
-  card: ProductBatchFragment;
-  modifiers?: Modifiers;
-  loading?: boolean;
+export enum Position {
+  Before = -1,
+  After = 1,
 }
 
 const Preloader = () => {
@@ -42,67 +40,76 @@ const Preloader = () => {
   );
 };
 
-export const DraggablePresentation = React.memo<Props>(({ card, loading }) => {
-  return (
-    <Card
-      elevation={3}
-      sx={{ height: 200, cursor: 'grab', position: 'relative' }}
-    >
-      {loading && <Preloader />}
-      <CardContent>
-        <strong>{card.name}</strong>
-        <br />
-        <strong>{card.id}</strong>
-        <br />
-        <strong>{card.order}</strong>
+export interface Props2 {
+  card: ProductBatchFragment;
+  loading?: boolean;
+}
 
-        <List dense>
-          <ListItem disableGutters>
-            <ListItemText primary={card.id} />
-          </ListItem>
-          <ListItem disableGutters>
-            <ListItemText
-              primary={card.product.sku}
-              secondary={card.product.name}
-            />
-          </ListItem>
-          <ListItem
-            disableGutters
-            secondaryAction={<Typography>{card.count}</Typography>}
-          >
-            <ListItemText primary="количество" />
-          </ListItem>
-          <ListItem
-            disableGutters
-            secondaryAction={
-              <Typography>{(card.costPrice / 100).toFixed(2)}</Typography>
-            }
-          >
-            <ListItemText primary="цена закупки" />
-          </ListItem>
-          <ListItem
-            disableGutters
-            secondaryAction={
-              <Typography>{(card.pricePerUnit / 100).toFixed(2)}</Typography>
-            }
-          >
-            <ListItemText primary="с/с единицы" />
-          </ListItem>
-          <ListItem
-            disableGutters
-            secondaryAction={
-              <Typography>{(card.fullPrice / 100).toFixed(2)}</Typography>
-            }
-          >
-            <ListItemText primary="с/с партии" />
-          </ListItem>
-        </List>
-      </CardContent>
-    </Card>
+export const DraggablePresentation = React.memo<Props2>(({ card, loading }) => {
+  return (
+    <>
+      <Card elevation={3} sx={{ cursor: 'grab', position: 'relative' }}>
+        {loading && <Preloader />}
+        <CardContent>
+          <strong>{card.name}</strong>
+          {/*<strong>{card.order}</strong>*/}
+
+          <List dense>
+            <ListItem disableGutters>
+              <ListItemText primary={card.id} />
+            </ListItem>
+            <ListItem disableGutters>
+              <ListItemText
+                primary={card.product.sku}
+                secondary={card.product.name}
+              />
+            </ListItem>
+            <ListItem
+              disableGutters
+              secondaryAction={<Typography>{card.count}</Typography>}
+            >
+              <ListItemText primary="количество" />
+            </ListItem>
+            <ListItem
+              disableGutters
+              secondaryAction={
+                <Typography>{(card.costPrice / 100).toFixed(2)}</Typography>
+              }
+            >
+              <ListItemText primary="цена закупки" />
+            </ListItem>
+            <ListItem
+              disableGutters
+              secondaryAction={
+                <Typography>{(card.pricePerUnit / 100).toFixed(2)}</Typography>
+              }
+            >
+              <ListItemText primary="с/с единицы" />
+            </ListItem>
+            <ListItem
+              disableGutters
+              secondaryAction={
+                <Typography>{(card.fullPrice / 100).toFixed(2)}</Typography>
+              }
+            >
+              <ListItemText primary="с/с партии" />
+            </ListItem>
+          </List>
+        </CardContent>
+      </Card>
+    </>
   );
 });
 
-const KanbanCard: FC<Props> = ({ card, loading, modifiers }) => {
+export interface Props {
+  card: ProductBatchFragment;
+  modifiers?: Modifiers;
+  loading?: boolean;
+  isNext?: boolean;
+}
+
+const KanbanCard: FC<Props> = ({ card, loading, modifiers, isNext }) => {
+  const id = getCardId(card);
   const {
     setNodeRef,
     attributes,
@@ -110,8 +117,10 @@ const KanbanCard: FC<Props> = ({ card, loading, modifiers }) => {
     transform,
     transition,
     isDragging,
+    isSorting,
   } = useSortable({
-    id: getCardId(card),
+    id,
+    animateLayoutChanges: () => true,
     data: {
       modifiers,
       type: DraggableType.Card,
@@ -121,7 +130,7 @@ const KanbanCard: FC<Props> = ({ card, loading, modifiers }) => {
 
   const style = {
     transition,
-    transform: CSS.Transform.toString(transform),
+    transform: isSorting ? undefined : CSS.Translate.toString(transform),
   };
 
   if (isDragging) {
@@ -130,7 +139,7 @@ const KanbanCard: FC<Props> = ({ card, loading, modifiers }) => {
         elevation={3}
         ref={setNodeRef}
         style={style}
-        sx={{ height: 200, backgroundColor: 'rgba(255,0,0,.5)' }}
+        sx={{ height: 150, backgroundColor: 'rgba(0,0,0,.1)' }}
       >
         {card.id}
       </Card>

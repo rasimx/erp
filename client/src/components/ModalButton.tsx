@@ -1,8 +1,9 @@
 import { Button, Modal } from '@mui/material';
-import React, { type FC, ReactElement, useCallback, useState } from 'react';
+import Box from '@mui/material/Box';
+import React, { type FC, useCallback, useState } from 'react';
 
 export interface Props {
-  children: (handleClose: () => void) => ReactElement;
+  children: (handleClose: () => void) => React.ReactElement;
   label: string;
 }
 
@@ -29,7 +30,7 @@ const ModalButton: FC<Props> = ({ children, label }) => {
         aria-labelledby="modal-modal-title"
         aria-describedby="modal-modal-description"
       >
-        {children(handleClose)}
+        <Box>{children(handleClose)}</Box>
       </Modal>
     </>
   );

@@ -31,18 +31,32 @@ export type Props = {
   column: Status;
   loading?: boolean;
   children?: React.ReactNode;
+  isActive?: boolean;
 };
 
-const KanbanColumn: FC<Props> = ({ items, column, loading, children }) => {
+export const getId = (column: Status) => `column_${column.id}`;
+
+const KanbanColumn: FC<Props> = ({
+  items,
+  column,
+  loading,
+  children,
+  isActive,
+}) => {
+  const id = getId(column);
   const {
     setNodeRef,
     attributes,
     listeners,
     transform,
     transition,
+    isSorting,
+    activeIndex,
+    active,
+    index,
     isDragging,
   } = useSortable({
-    id: `column_${column.id}`,
+    id,
     data: {
       type: DraggableType.Column,
       column,
@@ -56,18 +70,19 @@ const KanbanColumn: FC<Props> = ({ items, column, loading, children }) => {
 
   if (isDragging) {
     return (
-      <Paper
-        elevation={3}
-        variant="elevation"
+      <Box
+        // elevation={3}
+        // variant="elevation"
         ref={setNodeRef}
         style={style}
         sx={{ width: 300 }}
-      ></Paper>
+      ></Box>
     );
   }
 
   return (
-    <Paper
+    <Box
+      component={isActive ? Paper : Box}
       elevation={3}
       variant="elevation"
       ref={setNodeRef}
@@ -83,7 +98,7 @@ const KanbanColumn: FC<Props> = ({ items, column, loading, children }) => {
       <Box
         sx={{
           background: '#FAFAFA',
-          p: 1,
+          // p: 1,
           textAlign: 'center',
           cursor: 'grab',
         }}
@@ -98,7 +113,7 @@ const KanbanColumn: FC<Props> = ({ items, column, loading, children }) => {
           <SortableContext items={items}>{children}</SortableContext>
         </Stack>
       </Box>
-    </Paper>
+    </Box>
   );
 };
 export default KanbanColumn;
