@@ -13,6 +13,7 @@ import {
 } from 'typeorm';
 
 import { ProductEntity } from '@/product/product.entity.js';
+import { ProductBatchGroupEntity } from '@/product-batch-group/product-batch-group.entity.js';
 import { ProductBatchOperationEntity } from '@/product-batch-operation/product-batch-operation.entity.js';
 import { StatusEntity } from '@/status/status.entity.js';
 
@@ -43,8 +44,8 @@ export class ProductBatchEntity {
   status: Relation<StatusEntity>;
 
   @RelationId((entity: ProductBatchEntity) => entity.status)
-  @Column()
-  statusId: number;
+  @Column('integer', { nullable: true })
+  statusId: number | null;
 
   @Column()
   order: number;
@@ -56,6 +57,14 @@ export class ProductBatchEntity {
   @RelationId((entity: ProductBatchEntity) => entity.parent)
   @Column('integer', { nullable: true })
   parentId: number | null;
+
+  @ManyToOne(() => ProductBatchGroupEntity, { cascade: ['insert'] })
+  @JoinColumn()
+  group: Relation<ProductBatchGroupEntity>;
+
+  @RelationId((entity: ProductBatchEntity) => entity.group)
+  @Column('integer', { nullable: true })
+  groupId: number | null;
 
   @Column()
   count: number;

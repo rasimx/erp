@@ -2,24 +2,24 @@ import { CommandHandler, type ICommandHandler } from '@nestjs/cqrs';
 import { InjectDataSource } from '@nestjs/typeorm';
 
 import type { CustomDataSource } from '@/database/custom.data-source.js';
-import { MoveProductBatchCommand } from '@/product-batch/commands/impl/move-product-batch.command.js';
 import { ProductBatchEventStore } from '@/product-batch/prodict-batch.eventstore.js';
-import { ProductBatchRepository } from '@/product-batch/product-batch.repository.js';
+import type { ProductBatchRepository } from '@/product-batch/product-batch.repository.js';
+import { MoveProductBatchGroupCommand } from '@/product-batch-group/commands/impl/move-product-batch-group.command.js';
 import { ProductBatchGroupRepository } from '@/product-batch-group/product-batch-group.repository.js';
 
-@CommandHandler(MoveProductBatchCommand)
-export class MoveProductBatchHandler
-  implements ICommandHandler<MoveProductBatchCommand>
+@CommandHandler(MoveProductBatchGroupCommand)
+export class MoveProductBatchGroupHandler
+  implements ICommandHandler<MoveProductBatchGroupCommand>
 {
   constructor(
-    private readonly productBatchRepository: ProductBatchRepository,
     private readonly productBatchGroupRepository: ProductBatchGroupRepository,
+    private readonly productBatchRepository: ProductBatchRepository,
     private readonly productBatchEventStore: ProductBatchEventStore,
     @InjectDataSource()
     private dataSource: CustomDataSource,
   ) {}
 
-  async execute(command: MoveProductBatchCommand) {
+  async execute(command: MoveProductBatchGroupCommand) {
     const queryRunner = this.dataSource.createQueryRunner();
 
     await queryRunner.connect();
@@ -27,24 +27,19 @@ export class MoveProductBatchHandler
     try {
       const { dto } = command;
 
-      await this.productBatchEventStore.moveProductBatch(dto);
+      // await this.productBatchEventStore.moveProductBatch(dto);
       const productBatchRepository = queryRunner.manager.withRepository(
-        this.productBatchRepository,
+        this.productBatchGroupRepository,
       );
 
-      const {
+      const { statusId, oldStatusId, order, oldOrder } =
+        await productBatchRepository.moveProductBatchGroup(dto);
+      await this.productBatchRepository.moveOthersByStatus({
+        statusId,
         oldStatusId,
+        order,
         oldOrder,
-        order: newOrder,
-      } = await productBatchRepository.moveProductBatch(dto);
-      if (dto.statusId && oldStatusId) {
-        await this.productBatchGroupRepository.moveOthers({
-          statusId: dto.statusId,
-          oldStatusId,
-          order: newOrder,
-          oldOrder,
-        });
-      }
+      });
 
       await queryRunner.commitTransaction();
     } catch (err) {

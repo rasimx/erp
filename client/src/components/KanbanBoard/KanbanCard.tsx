@@ -73,7 +73,9 @@ export const DraggablePresentation = React.memo<Props2>(({ card, loading }) => {
             <ListItem
               disableGutters
               secondaryAction={
-                <Typography>{(card.costPrice / 100).toFixed(2)}</Typography>
+                <Typography>
+                  {(card.costPricePerUnit / 100).toFixed(2)}
+                </Typography>
               }
             >
               <ListItemText primary="цена закупки" />
@@ -81,7 +83,12 @@ export const DraggablePresentation = React.memo<Props2>(({ card, loading }) => {
             <ListItem
               disableGutters
               secondaryAction={
-                <Typography>{(card.pricePerUnit / 100).toFixed(2)}</Typography>
+                <Typography>
+                  {(
+                    (card.operationsPricePerUnit + card.costPricePerUnit) /
+                    100
+                  ).toFixed(2)}
+                </Typography>
               }
             >
               <ListItemText primary="с/с единицы" />
@@ -89,7 +96,13 @@ export const DraggablePresentation = React.memo<Props2>(({ card, loading }) => {
             <ListItem
               disableGutters
               secondaryAction={
-                <Typography>{(card.fullPrice / 100).toFixed(2)}</Typography>
+                <Typography>
+                  {(
+                    ((card.operationsPricePerUnit + card.costPricePerUnit) *
+                      card.count) /
+                    100
+                  ).toFixed(2)}
+                </Typography>
               }
             >
               <ListItemText primary="с/с партии" />
