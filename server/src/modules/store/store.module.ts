@@ -10,7 +10,8 @@ import { StoreService } from './store.service.js';
 
 @Module({
   imports: [Microservices, ProductBatchModule, ProductModule, StatusModule],
-  providers: [StoreService, StoreResolver],
+  providers: [StoreService],
+  // providers: [StoreService, StoreResolver],
   exports: [StoreService],
 })
 export class StoreModule {}

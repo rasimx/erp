@@ -8,6 +8,7 @@ import { OperationService } from './operation.service.js';
 
 @Module({
   imports: [TypeOrmModule.forFeature([OperationEntity])],
-  providers: [OperationService, OperationResolver],
+  providers: [OperationService],
+  // providers: [OperationService, OperationResolver],
 })
 export class OperationModule {}

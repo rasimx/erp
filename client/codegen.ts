@@ -2,7 +2,7 @@ import type { CodegenConfig } from '@graphql-codegen/cli';
 
 const config: CodegenConfig = {
   overwrite: true,
-  schema: '../metricsplace_common/graphql/erp.gql',
+  schema: '../server/src/schema.gql',
   ignoreNoDocuments: true,
   documents: 'src/**/*.(ts|tsx)',
   generates: {

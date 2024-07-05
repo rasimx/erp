@@ -1,10 +1,13 @@
+import { ApolloDriver, type ApolloDriverConfig } from '@nestjs/apollo';
 import {
   type MiddlewareConsumer,
   Module,
   type NestModule,
   RequestMethod,
 } from '@nestjs/common';
+import { GraphQLModule } from '@nestjs/graphql';
 import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 
 import { ExcludeAssetsMiddleware } from '@/assets.middleware.js';
 import { AuthModule } from '@/auth/auth.module.js';
@@ -28,7 +31,12 @@ import { AppService } from './app.service.js';
 @Module({
   imports: [
     AppConfigModule,
-    GraphqlConfigModule,
+    // GraphqlConfigModule,
+
+    GraphQLModule.forRoot<ApolloDriverConfig>({
+      driver: ApolloDriver,
+      autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
+    }),
     DatabaseModule,
     ProductModule,
     StatusModule,

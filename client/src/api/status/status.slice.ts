@@ -10,7 +10,7 @@ import { type RootState } from '@/redux-store';
 
 import {
   createStatus,
-  deleteStatus,
+  // deleteStatus,
   fetchStatusList,
   moveStatusMutation,
 } from './status.api';
@@ -44,10 +44,10 @@ export const createStatusAsync = createAsyncThunk(
   'statusList/create',
   createStatus,
 );
-export const deleteStatusAsync = createAsyncThunk(
-  'statusList/delete',
-  deleteStatus,
-);
+// export const deleteStatusAsync = createAsyncThunk(
+//   'statusList/delete',
+//   deleteStatus,
+// );
 
 export const statusSlice = createSlice({
   name: 'status',
@@ -127,18 +127,18 @@ export const statusSlice = createSlice({
       })
       .addCase(moveStatusAsync.rejected, state => {
         state.statusInLoadingId = null;
-      })
-
-      .addCase(deleteStatusAsync.pending, state => {
-        // state.status = 'loading';
-      })
-      .addCase(deleteStatusAsync.fulfilled, (state, action) => {
-        // state.status = 'idle';
-        // state.items = action.payload;
-      })
-      .addCase(deleteStatusAsync.rejected, state => {
-        // state.status = 'loading';
       });
+
+    // .addCase(deleteStatusAsync.pending, state => {
+    //   // state.status = 'loading';
+    // })
+    // .addCase(deleteStatusAsync.fulfilled, (state, action) => {
+    //   // state.status = 'idle';
+    //   // state.items = action.payload;
+    // })
+    // .addCase(deleteStatusAsync.rejected, state => {
+    //   // state.status = 'loading';
+    // });
   },
 });
 

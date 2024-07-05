@@ -45,12 +45,12 @@ export const createStatus = async (title: string) => {
   return getFragmentData(STATUS_FRAGMENT, response.data?.createStatus);
 };
 
-export const deleteStatus = async (id: number): Promise<StatusFragment[]> => {
-  const response = await apolloClient.mutate({
-    mutation: DELETE_STATUS_MUTATION,
-    variables: { id },
-    fetchPolicy: 'network-only',
-  });
-  // @ts-expect-error .......
-  return response.data?.deleteStatus ?? [];
-};
+// export const deleteStatus = async (id: number): Promise<StatusFragment[]> => {
+//   const response = await apolloClient.mutate({
+//     mutation: DELETE_STATUS_MUTATION,
+//     variables: { id },
+//     fetchPolicy: 'network-only',
+//   });
+//   // @ts-expect-error .......
+//   return response.data?.deleteStatus ?? [];
+// };

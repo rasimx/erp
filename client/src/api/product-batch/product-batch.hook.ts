@@ -4,14 +4,15 @@ import { useCallback, useEffect, useState } from 'react';
 
 import { getFragmentData } from '@/gql-types';
 import {
+  MoveProductBatchDto,
   ProductBatchFragment,
   UpdateProductBatchInput,
 } from '@/gql-types/graphql';
 
 import {
+  MOVE_PRODUCT_BATCH_MUTATION,
   PRODUCT_BATCH_FRAGMENT,
   PRODUCT_BATCH_LIST_QUERY,
-  UPDATE_PRODUCT_BATCH_MUTATION,
 } from './productBatch.gql';
 
 export const useProductBatch = (productId: number) => {
@@ -38,23 +39,23 @@ export const useProductBatch = (productId: number) => {
     );
   }, [productBatchListData]);
 
-  const [updateProductBatch] = useMutation(UPDATE_PRODUCT_BATCH_MUTATION);
+  const [updateProductBatch] = useMutation(MOVE_PRODUCT_BATCH_MUTATION);
 
   const { enqueueSnackbar } = useSnackbar();
 
   const moveProductBatch = useCallback(
-    (input: UpdateProductBatchInput) => {
-      setLoadingId(input.id);
-      updateProductBatch({ variables: { input } })
+    (dto: MoveProductBatchDto) => {
+      setLoadingId(dto.id);
+      updateProductBatch({ variables: { dto } })
         .then(res => {
-          setProductBatchList(
-            (
-              getFragmentData(
-                PRODUCT_BATCH_FRAGMENT,
-                res.data?.updateProductBatch,
-              ) || []
-            ).toSorted(orderFunc),
-          );
+          // setProductBatchList(
+          //   (
+          //     getFragmentData(
+          //       PRODUCT_BATCH_FRAGMENT,
+          //       res.data?.moveProductBatchProductBatch,
+          //     ) || []
+          //   ).toSorted(orderFunc),
+          // );
         })
         .catch(err => {
           // todo: обработать ошику

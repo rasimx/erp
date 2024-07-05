@@ -9,7 +9,7 @@ export const PRODUCT_BATCH_LIST_QUERY = graphql(`
 `);
 
 export const PRODUCT_BATCH_FRAGMENT = graphql(`
-  fragment ProductBatch on ProductBatch {
+  fragment ProductBatch on ProductBatchDto {
     id
     name
     product {
@@ -19,27 +19,24 @@ export const PRODUCT_BATCH_FRAGMENT = graphql(`
     parentId
     statusId
     count
-    pricePerUnit
-    costPrice
-    fullPrice
+    costPricePerUnit
+    operationsPricePerUnit
     date
-    weight
-    volume
     order
   }
 `);
 
-export const UPDATE_PRODUCT_BATCH_MUTATION = graphql(`
-  mutation updateProductBatch($input: UpdateProductBatchInput!) {
-    updateProductBatch(input: $input) {
+export const MOVE_PRODUCT_BATCH_MUTATION = graphql(`
+  mutation moveProductBatch($dto: MoveProductBatchDto!) {
+    moveProductBatch(dto: $dto) {
       ...ProductBatch
     }
   }
 `);
 
 export const CREATE_PRODUCT_BATCH_MUTATION = graphql(`
-  mutation createProductBatch($input: CreateProductBatchInput!) {
-    createProductBatch(input: $input) {
+  mutation createProductBatch($dto: CreateProductBatchDto!) {
+    createProductBatch(dto: $dto) {
       ...ProductBatch
     }
   }

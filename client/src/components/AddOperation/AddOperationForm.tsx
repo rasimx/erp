@@ -20,14 +20,14 @@ import { format } from 'date-fns';
 import _ from 'lodash';
 import React, { type FC, useCallback, useMemo, useState } from 'react';
 
-import { ProportionType } from '@/gql-types/graphql';
+// import { ProportionType } from '@/gql-types/graphql';
 import { useAppSelector } from '@/hooks';
 
 import {
   ProductBatchStateItem,
   selectCheckedProductBatchList,
 } from '../../api/product-batch/product-batch.slice';
-import { createOperation } from './operation.api';
+// import { createOperation } from './operation.api';
 
 const Value = styled('div')`
   display: flex;

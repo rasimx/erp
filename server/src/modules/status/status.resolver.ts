@@ -1,8 +1,9 @@
 import { UseInterceptors } from '@nestjs/common';
-import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
+import { Args, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
 
 import { UserInterceptor } from '@/auth/user.interceptor.js';
-import type { Status } from '@/graphql.schema.js';
+import { MoveStatusDto } from '@/status/dtos/move-status.dto.js';
+import { StatusDto } from '@/status/dtos/status.dto.js';
 import { StatusService } from '@/status/status.service.js';
 
 @Resolver()
@@ -10,23 +11,22 @@ import { StatusService } from '@/status/status.service.js';
 export class StatusResolver {
   constructor(private readonly service: StatusService) {}
 
-  @Query('statusList')
-  async stateList(): Promise<Status[]> {
+  @Query(() => [StatusDto])
+  async statusList(): Promise<StatusDto[]> {
     return this.service.statusList();
   }
-  @Mutation('createStatus')
-  async createStatus(@Args('title') title: string): Promise<Status[]> {
+  @Mutation(() => [StatusDto])
+  async createStatus(@Args('title') title: string): Promise<StatusDto[]> {
     return this.service.createStatus({ title });
   }
-  @Mutation('deleteStatus')
-  async deleteStatus(@Args('id') id: number): Promise<Status[]> {
-    return this.service.deleteStatus(id);
-  }
-  @Mutation('moveStatus')
+  // @Mutation('deleteStatus')
+  // async deleteStatus(@Args('id') id: number): Promise<StatusDto[]> {
+  //   return this.service.deleteStatus(id);
+  // }
+  @Mutation(() => [StatusDto])
   async moveStatus(
-    @Args('id') id: number,
-    @Args('order') order: number,
-  ): Promise<Status[]> {
-    return this.service.moveStatus(id, order);
+    @Args('dto', { type: () => MoveStatusDto }) dto: MoveStatusDto,
+  ): Promise<StatusDto[]> {
+    return this.service.moveStatus(dto);
   }
 }

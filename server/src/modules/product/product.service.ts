@@ -10,6 +10,8 @@ import type {
 } from '@/graphql.schema.js';
 import type { Product } from '@/microservices/proto/erp.pb.js';
 import { OperationEntity } from '@/operation/operation.entity.js';
+import type { CreateProductDto } from '@/product/dtos/create-product.dto.js';
+import { ProductListDto } from '@/product/dtos/product-list.dto.js';
 import {
   ProductEntity,
   type ProductInsertEntity,
@@ -83,15 +85,13 @@ export class ProductService {
     });
   }
 
-  async productList(): Promise<ProductList> {
+  async productList(): Promise<ProductListDto> {
     const [items, totalCount] = await this.repository.findAndCount();
     return { items, totalCount };
   }
 
-  async createProduct(
-    input: CreateProductInput,
-  ): Promise<CreateProductResponse> {
+  async createProduct(dto: CreateProductDto): Promise<CreateProductResponse> {
     // await this.insert([input]);
-    return { success: true };
+    return {};
   }
 }

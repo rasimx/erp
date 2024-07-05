@@ -8,6 +8,7 @@ import { ProductBatchOperationService } from './product-batch-operation.service.
 
 @Module({
   imports: [TypeOrmModule.forFeature([ProductBatchOperationEntity])],
-  providers: [ProductBatchOperationService, ProductBatchOperationResolver],
+  providers: [ProductBatchOperationService],
+  // providers: [ProductBatchOperationService, ProductBatchOperationResolver],
 })
 export class ProductBatchOperationModule {}

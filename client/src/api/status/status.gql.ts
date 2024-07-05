@@ -1,12 +1,11 @@
 import { graphql } from '../../gql-types';
 
 export const STATUS_FRAGMENT = graphql(`
-  fragment Status on Status {
+  fragment Status on StatusDto {
     id
     title
     type
     order
-    storeId
   }
 `);
 
@@ -27,17 +26,17 @@ export const CREATE_STATUS_MUTATION = graphql(`
 `);
 
 export const MOVE_STATUS_MUTATION = graphql(`
-  mutation moveStatus($id: Int!, $order: Int!) {
-    moveStatus(id: $id, order: $order) {
+  mutation moveStatus($dto: MoveStatusDto!) {
+    moveStatus(dto: $dto) {
       ...Status
     }
   }
 `);
 
-export const DELETE_STATUS_MUTATION = graphql(`
-  mutation deleteStatus($id: Int!) {
-    deleteStatus(id: $id) {
-      id
-    }
-  }
-`);
+// export const DELETE_STATUS_MUTATION = graphql(`
+//   mutation deleteStatus($id: Int!) {
+//     deleteStatus(id: $id) {
+//       id
+//     }
+//   }
+// `);

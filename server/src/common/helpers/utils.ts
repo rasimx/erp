@@ -32,8 +32,8 @@ export const sumOfArray = (arr: number[]): number =>
   }, 0);
 
 export function applyMixins(derivedCtor: any, constructors: any[]) {
-  constructors.forEach((baseCtor) => {
-    Object.getOwnPropertyNames(baseCtor.prototype).forEach((name) => {
+  constructors.forEach(baseCtor => {
+    Object.getOwnPropertyNames(baseCtor.prototype).forEach(name => {
       Object.defineProperty(
         derivedCtor.prototype,
         name,
@@ -46,3 +46,11 @@ export function applyMixins(derivedCtor: any, constructors: any[]) {
 
 export const isDev = ['dev', 'development'].includes(getEnv('APP_ENV'));
 export const isProd = ['prod', 'production'].includes(getEnv('APP_ENV'));
+
+export type JSONCompatible<T> = T extends string | number | boolean | null
+  ? T
+  : T extends (infer U)[]
+    ? JSONCompatible<U>[]
+    : T extends object
+      ? { [K in keyof T]: JSONCompatible<T[K]> }
+      : never;

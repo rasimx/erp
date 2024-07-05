@@ -9,10 +9,6 @@ import {
   PrimaryGeneratedColumn,
   type Relation,
   RelationId,
-  Tree,
-  TreeChildren,
-  TreeParent,
-  Unique,
   UpdateDateColumn,
 } from 'typeorm';
 
@@ -21,11 +17,6 @@ import { ProductBatchOperationEntity } from '@/product-batch-operation/product-b
 import { StatusEntity } from '@/status/status.entity.js';
 
 @Entity({ name: 'product_batch' })
-@Tree('closure-table', {
-  closureTableName: 'product_batch',
-  ancestorColumnName: column => 'ancestor_' + column.propertyName,
-  descendantColumnName: column => 'descendant_' + column.propertyName,
-})
 export class ProductBatchEntity {
   @PrimaryGeneratedColumn()
   id: number;
@@ -58,13 +49,12 @@ export class ProductBatchEntity {
   @Column()
   order: number;
 
-  @TreeChildren()
-  children: ProductBatchEntity[];
+  @ManyToOne(() => ProductBatchEntity, { cascade: ['insert'] })
+  @JoinColumn()
+  parent: Relation<ProductBatchEntity>;
 
-  @TreeParent()
-  parent: ProductBatchEntity | null;
-
-  @Column({ nullable: true })
+  @RelationId((entity: ProductBatchEntity) => entity.parent)
+  @Column('integer', { nullable: true })
   parentId: number | null;
 
   @Column()
@@ -74,7 +64,10 @@ export class ProductBatchEntity {
   countUpdated: boolean;
 
   @Column()
-  costPrice: number;
+  costPricePerUnit: number;
+
+  @Column()
+  operationsPricePerUnit: number;
 
   @Column('date')
   date: string;
@@ -100,8 +93,3 @@ export class ProductBatchEntity {
     return this.product.weight * this.count;
   }
 }
-
-export type ProductBatchEntityForInsert = Pick<
-  ProductBatchEntity,
-  'productId' | 'statusId' | 'count' | 'costPrice' | 'date'
->;

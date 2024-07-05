@@ -26,7 +26,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useParams } from 'react-router-dom';
 
-import AddOperation from '@/components/AddOperation/AddOperation';
+// import AddOperation from '@/components/AddOperation/AddOperation';
 import { ProductBatchFragment, Status, StatusType } from '@/gql-types/graphql';
 
 import { useProductBatch } from '../../api/product-batch/product-batch.hook';
@@ -271,9 +271,9 @@ const KanbanBoard = () => {
       >
         <CircularProgress color="inherit" />
       </Backdrop>
-      <Box>
-        <AddOperation />
-      </Box>
+      {/*<Box>*/}
+      {/*  <AddOperation />*/}
+      {/*</Box>*/}
 
       <DndContext
         measuring={measuring}

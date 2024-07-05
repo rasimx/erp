@@ -14,31 +14,32 @@ import { StatusService } from '@/status/status.service.js';
 
 @Controller()
 @UseInterceptors(UserInterceptor)
-@ProductBatchServiceControllerMethods()
-export class ProductBatchController implements ProductBatchServiceController {
+// @ProductBatchServiceControllerMethods()
+// export class ProductBatchController implements ProductBatchServiceController {
+export class ProductBatchController {
   constructor(
     private readonly productBatchService: ProductBatchService,
     private readonly statusService: StatusService,
   ) {}
 
-  async findLatest(
-    request: FindLatestRequest,
-  ): Promise<ProductBatchListResponse> {
-    const items = await this.productBatchService.findLatest(request);
-    return { items };
-  }
-
-  async createStatus(
-    request: CreateStatusRequest,
-  ): Promise<CreateStatusResponse> {
-    try {
-      // @ts-expect-error StatusType -> string
-      await this.statusService.createStatus(request);
-    } catch (e: unknown) {
-      return { error: (e as Error).message };
-    }
-    return {};
-  }
+  // async findLatest(
+  //   request: FindLatestRequest,
+  // ): Promise<ProductBatchListResponse> {
+  //   const items = await this.productBatchService.findLatest(request);
+  //   return { items };
+  // }
+  //
+  // async createStatus(
+  //   request: CreateStatusRequest,
+  // ): Promise<CreateStatusResponse> {
+  //   try {
+  //     // @ts-expect-error StatusType -> string
+  //     await this.statusService.createStatus(request);
+  //   } catch (e: unknown) {
+  //     return { error: (e as Error).message };
+  //   }
+  //   return {};
+  // }
 
   // async productBatchListByProductId({
   //   productIdList,

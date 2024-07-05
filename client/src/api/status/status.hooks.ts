@@ -3,7 +3,7 @@ import { arrayMove } from '@dnd-kit/sortable';
 import { useSnackbar } from 'notistack';
 import { useCallback, useEffect, useState } from 'react';
 
-import { type Status, StatusFragment } from '@/gql-types/graphql';
+import { type StatusDto, StatusFragment } from '@/gql-types/graphql';
 
 import { getFragmentData } from '../../gql-types';
 import {
@@ -25,7 +25,7 @@ export const useStatus = () => {
   const [statusMap, setStatusMap] = useState<Map<number, StatusFragment>>(
     new Map(),
   );
-  const [statusList, setStatusList] = useState<Status[]>([]);
+  const [statusList, setStatusList] = useState<StatusDto[]>([]);
 
   useEffect(() => {
     setStatusList(
@@ -59,7 +59,7 @@ export const useStatus = () => {
   const { enqueueSnackbar } = useSnackbar();
 
   const moveStatus = useCallback(
-    (active: Status, over: Status) => {
+    (active: StatusDto, over: StatusDto) => {
       setLoadingId(active.id);
       const activeIndex = statusList.indexOf(active);
       const overIndex = statusList.indexOf(over);
@@ -67,7 +67,7 @@ export const useStatus = () => {
         arrayMove(statusList, activeIndex, overIndex),
       );
 
-      move({ variables: { id: active.id, order: over.order } })
+      move({ variables: { dto: { id: active.id, order: over.order } } })
         .then(({ data, errors }) => {
           if (data) {
             setStatusMap(statusMap => {

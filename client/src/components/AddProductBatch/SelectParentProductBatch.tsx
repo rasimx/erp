@@ -35,7 +35,7 @@ const style = {
 };
 
 export const F = graphql(`
-  fragment SourceProductBatch on ProductBatch {
+  fragment SourceProductBatch on ProductBatchDto {
     id
     name
     status {

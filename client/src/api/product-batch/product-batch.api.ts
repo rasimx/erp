@@ -8,9 +8,9 @@ import {
 import {
   CREATE_PRODUCT_BATCH_MUTATION,
   DELETE_PRODUCT_BATCH_MUTATION,
+  MOVE_PRODUCT_BATCH_MUTATION,
   PRODUCT_BATCH_FRAGMENT,
   PRODUCT_BATCH_LIST_QUERY,
-  UPDATE_PRODUCT_BATCH_MUTATION,
 } from './productBatch.gql';
 
 export const fetchProductBatchList = async () => {
@@ -26,7 +26,7 @@ export const fetchProductBatchList = async () => {
 
 export const updateProductBatch = async (input: UpdateProductBatchInput) => {
   const response = await apolloClient.mutate({
-    mutation: UPDATE_PRODUCT_BATCH_MUTATION,
+    mutation: MOVE_PRODUCT_BATCH_MUTATION,
     variables: { input },
     fetchPolicy: 'network-only',
   });
