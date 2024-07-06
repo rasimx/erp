@@ -26,12 +26,24 @@ export type CreateProductBatchDto = {
   statusId: Scalars['Int']['input'];
 };
 
+export type CreateProductBatchGroupDto = {
+  name: Scalars['String']['input'];
+  statusId: Scalars['Int']['input'];
+};
+
 export type CreateProductDto = {
   name: Scalars['String']['input'];
   sku: Scalars['String']['input'];
 };
 
 export type MoveProductBatchDto = {
+  groupId?: InputMaybe<Scalars['Int']['input']>;
+  id: Scalars['Int']['input'];
+  order?: InputMaybe<Scalars['Int']['input']>;
+  statusId?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export type MoveProductBatchGroupDto = {
   id: Scalars['Int']['input'];
   order?: InputMaybe<Scalars['Int']['input']>;
   statusId: Scalars['Int']['input'];
@@ -46,9 +58,12 @@ export type Mutation = {
   __typename?: 'Mutation';
   createProduct: ProductDto;
   createProductBatch: Array<ProductBatchDto>;
+  createProductBatchGroup: Array<ProductBatchGroupDto>;
   createStatus: Array<StatusDto>;
   deleteProductBatch: Scalars['Int']['output'];
+  deleteProductBatchGroup: Scalars['Int']['output'];
   moveProductBatch: Array<ProductBatchDto>;
+  moveProductBatchGroup: Array<ProductBatchGroupDto>;
   moveStatus: Array<StatusDto>;
 };
 
@@ -63,6 +78,11 @@ export type MutationCreateProductBatchArgs = {
 };
 
 
+export type MutationCreateProductBatchGroupArgs = {
+  dto: CreateProductBatchGroupDto;
+};
+
+
 export type MutationCreateStatusArgs = {
   title: Scalars['String']['input'];
 };
@@ -73,8 +93,18 @@ export type MutationDeleteProductBatchArgs = {
 };
 
 
+export type MutationDeleteProductBatchGroupArgs = {
+  id: Scalars['Int']['input'];
+};
+
+
 export type MutationMoveProductBatchArgs = {
   dto: MoveProductBatchDto;
+};
+
+
+export type MutationMoveProductBatchGroupArgs = {
+  dto: MoveProductBatchGroupDto;
 };
 
 
@@ -94,6 +124,16 @@ export type ProductBatchDto = {
   parentId?: Maybe<Scalars['Int']['output']>;
   product: ProductDto;
   productId: Scalars['Int']['output'];
+  status?: Maybe<StatusDto>;
+  statusId?: Maybe<Scalars['Int']['output']>;
+};
+
+export type ProductBatchGroupDto = {
+  __typename?: 'ProductBatchGroupDto';
+  id: Scalars['Int']['output'];
+  name: Scalars['String']['output'];
+  order: Scalars['Int']['output'];
+  productBatchList: Array<ProductBatchDto>;
   status: StatusDto;
   statusId: Scalars['Int']['output'];
 };
@@ -117,9 +157,15 @@ export type ProductListDto = {
 
 export type Query = {
   __typename?: 'Query';
+  productBatchGroupList: Array<ProductBatchGroupDto>;
   productBatchList: Array<ProductBatchDto>;
   productList: ProductListDto;
   statusList: Array<StatusDto>;
+};
+
+
+export type QueryProductBatchGroupListArgs = {
+  productId?: InputMaybe<Scalars['Int']['input']>;
 };
 
 
@@ -151,7 +197,7 @@ export type ProductBatchListQuery = { __typename?: 'Query', productBatchList: Ar
     & { ' $fragmentRefs'?: { 'ProductBatchFragment': ProductBatchFragment } }
   )> };
 
-export type ProductBatchFragment = { __typename?: 'ProductBatchDto', id: number, name: string, parentId?: number | null, statusId: number, count: number, costPricePerUnit: number, operationsPricePerUnit: number, date: string, order: number, product: { __typename?: 'ProductDto', sku: string, name: string } } & { ' $fragmentName'?: 'ProductBatchFragment' };
+export type ProductBatchFragment = { __typename?: 'ProductBatchDto', id: number, name: string, parentId?: number | null, statusId?: number | null, count: number, costPricePerUnit: number, operationsPricePerUnit: number, date: string, order: number, product: { __typename?: 'ProductDto', sku: string, name: string } } & { ' $fragmentName'?: 'ProductBatchFragment' };
 
 export type MoveProductBatchMutationVariables = Exact<{
   dto: MoveProductBatchDto;
@@ -215,7 +261,7 @@ export type MoveStatusMutation = { __typename?: 'Mutation', moveStatus: Array<(
     & { ' $fragmentRefs'?: { 'StatusFragment': StatusFragment } }
   )> };
 
-export type SourceProductBatchFragment = { __typename?: 'ProductBatchDto', id: number, name: string, statusId: number, count: number, order: number, status: { __typename?: 'StatusDto', id: number, title: string, order: number } } & { ' $fragmentName'?: 'SourceProductBatchFragment' };
+export type SourceProductBatchFragment = { __typename?: 'ProductBatchDto', id: number, name: string, statusId?: number | null, count: number, order: number, status?: { __typename?: 'StatusDto', id: number, title: string, order: number } | null } & { ' $fragmentName'?: 'SourceProductBatchFragment' };
 
 export type ProductParentBatchListQueryVariables = Exact<{
   productId: Scalars['Int']['input'];

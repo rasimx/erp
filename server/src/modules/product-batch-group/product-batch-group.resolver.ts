@@ -2,22 +2,23 @@ import { UseInterceptors } from '@nestjs/common';
 import { Args, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
 
 import { UserInterceptor } from '@/auth/user.interceptor.js';
-import { CreateProductBatchGroupDto } from '@/product-batch/dtos/create-product-batch-group.dto.js';
-import { MoveProductBatchGroupDto } from '@/product-batch/dtos/move-product-batch-group.dto.js';
-import { ProductBatchGroupDto } from '@/product-batch/dtos/product-batch-group.dto.js';
-import { ProductBatchService } from '@/product-batch/product-batch.service.js';
+
+import { CreateProductBatchGroupDto } from './dtos/create-product-batch-group.dto.js';
+import { MoveProductBatchGroupDto } from './dtos/move-product-batch-group.dto.js';
+import { ProductBatchGroupDto } from './dtos/product-batch-group.dto.js';
+import { ProductBatchGroupService } from './product-batch-group.service.js';
 
 @Resolver()
 @UseInterceptors(UserInterceptor)
-export class ProductBatchResolver {
-  constructor(private readonly service: ProductBatchService) {}
+export class ProductBatchGroupResolver {
+  constructor(private readonly service: ProductBatchGroupService) {}
 
   @Query(() => [ProductBatchGroupDto])
-  async productBatchList(
+  async productBatchGroupList(
     @Args('productId', { type: () => Int, nullable: true })
     productId: number | null,
   ): Promise<ProductBatchGroupDto[]> {
-    return this.service.productBatchList(productId);
+    return this.service.productBatchGroupList(productId);
   }
   //
   // @Mutation('updateProductBatch')
@@ -28,25 +29,25 @@ export class ProductBatchResolver {
   // }
 
   @Mutation(() => [ProductBatchGroupDto])
-  async createProductBatch(
+  async createProductBatchGroup(
     @Args('dto', { type: () => CreateProductBatchGroupDto })
     dto: CreateProductBatchGroupDto,
   ): Promise<ProductBatchGroupDto[]> {
-    return this.service.createProductBatch(dto);
+    return this.service.createProductBatchGroup(dto);
   }
 
   @Mutation(() => [ProductBatchGroupDto])
-  async moveProductBatch(
+  async moveProductBatchGroup(
     @Args('dto', { type: () => MoveProductBatchGroupDto })
     dto: MoveProductBatchGroupDto,
   ): Promise<ProductBatchGroupDto[]> {
-    return this.service.moveProductBatch(dto);
+    return this.service.moveProductBatchGroup(dto);
   }
 
   @Mutation(() => Int)
-  async deleteProductBatch(
+  async deleteProductBatchGroup(
     @Args('id', { type: () => Int }) id: number,
   ): Promise<void> {
-    return this.service.deleteProductBatch(id);
+    return this.service.deleteProductBatchGroup(id);
   }
 }

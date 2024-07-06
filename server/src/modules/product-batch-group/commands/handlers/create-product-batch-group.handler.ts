@@ -1,9 +1,10 @@
+import { forwardRef, Inject } from '@nestjs/common';
 import { CommandHandler, type ICommandHandler } from '@nestjs/cqrs';
 import { InjectDataSource } from '@nestjs/typeorm';
 
 import type { CustomDataSource } from '@/database/custom.data-source.js';
-import { ProductBatchEventStore } from '@/product-batch/prodict-batch.eventstore.js';
 import { CreateProductBatchGroupCommand } from '@/product-batch-group/commands/impl/create-product-batch-group.command.js';
+import { ProductBatchGroupEventStore } from '@/product-batch-group/prodict-batch-group.eventstore.js';
 import { ProductBatchGroupRepository } from '@/product-batch-group/product-batch-group.repository.js';
 
 @CommandHandler(CreateProductBatchGroupCommand)
@@ -12,7 +13,9 @@ export class CreateProductBatchGroupHandler
 {
   constructor(
     private readonly productBatchGroupRepository: ProductBatchGroupRepository,
-    private readonly productBatchEventStore: ProductBatchEventStore,
+
+    // @Inject(forwardRef(() => CommonService))
+    private readonly productBatchGroupEventStore: ProductBatchGroupEventStore,
     @InjectDataSource()
     private dataSource: CustomDataSource,
   ) {}
@@ -29,15 +32,10 @@ export class CreateProductBatchGroupHandler
       );
 
       const entity = await productBatchRepository.createFromDto(dto);
-      // await this.productBatchEventStore.createProductBatch(entity.id, dto);
-      // if (dto.parentId) {
-      //   // todo: если вдруг второй ивент упадет с ошибкой. нужно предыдущее отменить
-      //   await this.productBatchEventStore.moveProductBatchItems({
-      //     donorId: dto.parentId,
-      //     count: dto.count,
-      //     recipientId: entity.id,
-      //   });
-      // }
+      await this.productBatchGroupEventStore.createProductBatchGroup(
+        entity.id,
+        dto,
+      );
 
       await queryRunner.commitTransaction();
     } catch (err) {

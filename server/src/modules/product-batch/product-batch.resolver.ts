@@ -32,7 +32,7 @@ export class ProductBatchResolver {
     @Args('dto', { type: () => CreateProductBatchDto })
     dto: CreateProductBatchDto,
   ): Promise<ProductBatchDto[]> {
-    return this.service.createProductBatch(dto);
+    return this.service.createProductBatchGroup(dto);
   }
 
   @Mutation(() => [ProductBatchDto])
@@ -40,13 +40,13 @@ export class ProductBatchResolver {
     @Args('dto', { type: () => MoveProductBatchDto })
     dto: MoveProductBatchDto,
   ): Promise<ProductBatchDto[]> {
-    return this.service.moveProductBatch(dto);
+    return this.service.moveProductBatchGroup(dto);
   }
 
   @Mutation(() => Int)
   async deleteProductBatch(
     @Args('id', { type: () => Int }) id: number,
   ): Promise<void> {
-    return this.service.deleteProductBatch(id);
+    return this.service.deleteProductBatchGroup(id);
   }
 }

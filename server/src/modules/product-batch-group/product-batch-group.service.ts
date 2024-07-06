@@ -1,55 +1,39 @@
 import { Injectable } from '@nestjs/common';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
-import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 
-import { formatDate } from '@/common/helpers/date.js';
 import { ContextService } from '@/context/context.service.js';
-import { CustomDataSource } from '@/database/custom.data-source.js';
-import type { ProductBatch } from '@/graphql.schema.js';
-import { OzonStateMicroservice } from '@/microservices/erp_ozon/ozon-state-microservice.service.js';
-import { ProductService } from '@/product/product.service.js';
-import { MoveProductBatchGroupDto } from '@/product-batch/dtos/move-product-batch-group.dto.js';
-import { StatusService } from '@/status/status.service.js';
 
 import { CreateProductBatchGroupCommand } from './commands/impl/create-product-batch-group.command.js';
 import { MoveProductBatchGroupCommand } from './commands/impl/move-product-batch-group.command.js';
 import { CreateProductBatchGroupDto } from './dtos/create-product-batch-group.dto.js';
+import { MoveProductBatchGroupDto } from './dtos/move-product-batch-group.dto.js';
 import { ProductBatchGroupDto } from './dtos/product-batch-group.dto.js';
-import { ProductBatchGroupEntity } from './product-batch-group.entity.js';
-import { GetProductBatchListQuery } from './queries/impl/get-product-batch-list.query.js';
+import { GetProductBatchGroupListQuery } from './queries/impl/get-product-batch-group-list.query.js';
 
 @Injectable()
-export class ProductBatchService {
+export class ProductBatchGroupService {
   constructor(
-    @InjectRepository(ProductBatchGroupEntity)
-    private readonly repository: Repository<ProductBatchGroupEntity>,
-    private readonly productService: ProductService,
-    private readonly ozonStateMicroservice: OzonStateMicroservice,
     private readonly contextService: ContextService,
-    private readonly statusService: StatusService,
-    @InjectDataSource()
-    private dataSource: CustomDataSource,
     private commandBus: CommandBus,
     private queryBus: QueryBus,
   ) {}
 
-  async productBatchList(
+  async productBatchGroupList(
     productId?: number | null,
   ): Promise<ProductBatchGroupDto[]> {
-    return this.queryBus.execute(new GetProductBatchListQuery(productId));
+    return this.queryBus.execute(new GetProductBatchGroupListQuery(productId));
   }
 
-  async createProductBatch(dto: CreateProductBatchGroupDto) {
+  async createProductBatchGroup(dto: CreateProductBatchGroupDto) {
     await this.commandBus.execute(new CreateProductBatchGroupCommand(dto));
-    return this.queryBus.execute(new GetProductBatchListQuery());
+    return this.queryBus.execute(new GetProductBatchGroupListQuery());
   }
-  async moveProductBatch(dto: MoveProductBatchGroupDto) {
+  async moveProductBatchGroup(dto: MoveProductBatchGroupDto) {
     await this.commandBus.execute(new MoveProductBatchGroupCommand(dto));
-    return this.queryBus.execute(new GetProductBatchListQuery());
+    return this.queryBus.execute(new GetProductBatchGroupListQuery());
   }
 
-  async deleteProductBatch(id: number) {
+  async deleteProductBatchGroup(id: number) {
     // await this.commandBus.execute(new MoveProductBatchCommand(dto));
     // return this.queryBus.execute(new GetProductBatchListQuery());
   }

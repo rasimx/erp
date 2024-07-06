@@ -13,6 +13,8 @@ import { ProductBatchEntity } from '@/product-batch/product-batch.entity.js';
 import { ProductBatchRepositoryProvider } from '@/product-batch/product-batch.repository.js';
 import { ProductBatchResolver } from '@/product-batch/product-batch.resolver.js';
 import { GetProductBatchListHandler } from '@/product-batch/queries/handlers/get-product-batch-list.handler.js';
+import { ProductBatchGroupModule } from '@/product-batch-group/product-batch-group.module.js';
+import { ProductBatchGroupRepositoryProvider } from '@/product-batch-group/product-batch-group.repository.js';
 import { StatusModule } from '@/status/status.module.js';
 
 import { ProductBatchService } from './product-batch.service.js';
@@ -22,6 +24,7 @@ import { ProductBatchService } from './product-batch.service.js';
     TypeOrmModule.forFeature([ProductBatchEntity]),
     Microservices,
     ProductModule,
+    ProductBatchGroupModule,
     StatusModule,
     CqrsModule,
     EventStoreModule,
@@ -36,6 +39,6 @@ import { ProductBatchService } from './product-batch.service.js';
     ProductBatchRepositoryProvider,
   ],
   controllers: [ProductBatchController],
-  exports: [ProductBatchService],
+  exports: [ProductBatchService, ProductBatchRepositoryProvider],
 })
 export class ProductBatchModule {}

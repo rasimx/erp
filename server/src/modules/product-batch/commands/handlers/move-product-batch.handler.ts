@@ -33,13 +33,14 @@ export class MoveProductBatchHandler
       );
 
       const {
+        statusId,
         oldStatusId,
         oldOrder,
         order: newOrder,
       } = await productBatchRepository.moveProductBatch(dto);
-      if (dto.statusId && oldStatusId) {
+      if (statusId ?? oldStatusId) {
         await this.productBatchGroupRepository.moveOthers({
-          statusId: dto.statusId,
+          statusId,
           oldStatusId,
           order: newOrder,
           oldOrder,

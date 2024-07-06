@@ -41,7 +41,7 @@ export class ProductBatchEntity {
 
   @ManyToOne(() => StatusEntity, { cascade: ['insert'] })
   @JoinColumn()
-  status: Relation<StatusEntity>;
+  status: Relation<StatusEntity> | null;
 
   @RelationId((entity: ProductBatchEntity) => entity.status)
   @Column('integer', { nullable: true })
@@ -60,7 +60,7 @@ export class ProductBatchEntity {
 
   @ManyToOne(() => ProductBatchGroupEntity, { cascade: ['insert'] })
   @JoinColumn()
-  group: Relation<ProductBatchGroupEntity>;
+  group: Relation<ProductBatchGroupEntity> | null;
 
   @RelationId((entity: ProductBatchEntity) => entity.group)
   @Column('integer', { nullable: true })

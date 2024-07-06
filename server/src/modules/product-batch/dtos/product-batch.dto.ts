@@ -11,8 +11,8 @@ export class ProductBatchDto {
   @Field(() => Int)
   count: number;
 
-  @Field(() => Int)
-  statusId: number;
+  @Field(() => Int, { nullable: true })
+  statusId: number | null;
 
   @Field(() => Int)
   productId: number;
@@ -35,8 +35,8 @@ export class ProductBatchDto {
   @Field(() => ProductDto)
   product: ProductDto;
 
-  @Field(() => StatusDto)
-  status: StatusDto;
+  @Field(() => StatusDto, { nullable: true })
+  status: StatusDto | null;
 
   @Field(() => Int, { nullable: true })
   parentId?: number | null;

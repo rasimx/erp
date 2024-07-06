@@ -3,11 +3,14 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   type Relation,
   RelationId,
 } from 'typeorm';
 
+import { ProductBatchEntity } from '@/product-batch/product-batch.entity.js';
+import { ProductBatchOperationEntity } from '@/product-batch-operation/product-batch-operation.entity.js';
 import { StatusEntity } from '@/status/status.entity.js';
 
 @Entity({ name: 'product_batch_group' })
@@ -34,4 +37,7 @@ export class ProductBatchGroupEntity {
 
   @Column()
   order: number;
+
+  @OneToMany(() => ProductBatchEntity, entity => entity.group)
+  productBatchList: ProductBatchEntity[];
 }

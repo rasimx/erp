@@ -2,9 +2,9 @@ import { CommandHandler, type ICommandHandler } from '@nestjs/cqrs';
 import { InjectDataSource } from '@nestjs/typeorm';
 
 import type { CustomDataSource } from '@/database/custom.data-source.js';
-import { ProductBatchEventStore } from '@/product-batch/prodict-batch.eventstore.js';
-import type { ProductBatchRepository } from '@/product-batch/product-batch.repository.js';
+import { ProductBatchRepository } from '@/product-batch/product-batch.repository.js';
 import { MoveProductBatchGroupCommand } from '@/product-batch-group/commands/impl/move-product-batch-group.command.js';
+import { ProductBatchGroupEventStore } from '@/product-batch-group/prodict-batch-group.eventstore.js';
 import { ProductBatchGroupRepository } from '@/product-batch-group/product-batch-group.repository.js';
 
 @CommandHandler(MoveProductBatchGroupCommand)
@@ -14,7 +14,7 @@ export class MoveProductBatchGroupHandler
   constructor(
     private readonly productBatchGroupRepository: ProductBatchGroupRepository,
     private readonly productBatchRepository: ProductBatchRepository,
-    private readonly productBatchEventStore: ProductBatchEventStore,
+    private readonly productBatchGroupEventStore: ProductBatchGroupEventStore,
     @InjectDataSource()
     private dataSource: CustomDataSource,
   ) {}
@@ -27,13 +27,14 @@ export class MoveProductBatchGroupHandler
     try {
       const { dto } = command;
 
-      // await this.productBatchEventStore.moveProductBatch(dto);
-      const productBatchRepository = queryRunner.manager.withRepository(
+      await this.productBatchGroupEventStore.moveProductBatchGroup(dto);
+
+      const productBatchGroupRepository = queryRunner.manager.withRepository(
         this.productBatchGroupRepository,
       );
 
       const { statusId, oldStatusId, order, oldOrder } =
-        await productBatchRepository.moveProductBatchGroup(dto);
+        await productBatchGroupRepository.moveProductBatchGroup(dto);
       await this.productBatchRepository.moveOthersByStatus({
         statusId,
         oldStatusId,

@@ -5,30 +5,31 @@ import { ProductBatchEntity } from '@/product-batch/product-batch.entity.js';
 import type { CreateProductBatchGroupDto } from '@/product-batch-group/dtos/create-product-batch-group.dto.js';
 import type { MoveProductBatchGroupDto } from '@/product-batch-group/dtos/move-product-batch-group.dto.js';
 import { ProductBatchGroupEntity } from '@/product-batch-group/product-batch-group.entity.js';
+import { StatusEntity } from '@/status/status.entity.js';
 
 export class ProductBatchGroupRepository extends Repository<ProductBatchGroupEntity> {
-  async createFromDto(dto: CreateProductBatchGroupDto) {
-    /*
-     * если создается в новой колонке то order - последний
-     * если создается в той же партии
-     * */
-
+  async getLastOrder(statusId: number): Promise<number | null> {
     const lastItems: (ProductBatchEntity | ProductBatchGroupEntity)[] = [];
     const lastUngroupedBatch = await this.manager.findOne(ProductBatchEntity, {
-      where: { statusId: dto.statusId, groupId: IsNull() },
+      where: { statusId: statusId, groupId: IsNull() },
       order: { order: 'DESC' },
     });
     if (lastUngroupedBatch) lastItems.push(lastUngroupedBatch);
 
     const lastGroup = await this.findOne({
-      where: { statusId: dto.statusId },
+      where: { statusId: statusId },
       order: { order: 'DESC' },
     });
     if (lastGroup) lastItems.push(lastGroup);
 
-    const order = lastItems.length
-      ? Math.max(...lastItems.map(({ order }) => order)) + 1
-      : 1;
+    return lastItems.length
+      ? Math.max(...lastItems.map(({ order }) => order))
+      : null;
+  }
+
+  async createFromDto(dto: CreateProductBatchGroupDto) {
+    const lastOrder = await this.getLastOrder(dto.statusId);
+    const order = lastOrder ? lastOrder + 1 : 1;
 
     let newEntity = new ProductBatchGroupEntity();
     Object.assign(newEntity, dto, { order });
@@ -44,7 +45,7 @@ export class ProductBatchGroupRepository extends Repository<ProductBatchGroupEnt
     oldStatusId: number;
   }) {
     return this.createQueryBuilder()
-      .update(ProductBatchEntity)
+      .update()
       .set({ order: () => '"order" - 1' })
       .where('"order" > :oldOrder AND statusId = :oldStatusId', {
         oldOrder,
@@ -63,7 +64,7 @@ export class ProductBatchGroupRepository extends Repository<ProductBatchGroupEnt
     statusId: number;
   }) {
     let query = this.createQueryBuilder()
-      .update(ProductBatchEntity)
+      .update()
       .set({ order: () => '"order" + 1' })
       .where('"order" >= :newOrder AND statusId = :statusId', {
         newOrder,
@@ -89,7 +90,7 @@ export class ProductBatchGroupRepository extends Repository<ProductBatchGroupEnt
     oldOrder: number;
     statusId: number;
   }) {
-    let query = this.createQueryBuilder().update(ProductBatchEntity);
+    let query = this.createQueryBuilder().update();
     if (newOrder < oldOrder) {
       query = query
         .set({ order: () => '"order" + 1' })
@@ -105,7 +106,7 @@ export class ProductBatchGroupRepository extends Repository<ProductBatchGroupEnt
       query = query
         .set({ order: () => '"order" - 1' })
         .where(
-          '"order" >= :oldOrder AND "order" <= :newOrder AND statusId = :statusIdr',
+          '"order" >= :oldOrder AND "order" <= :newOrder AND statusId = :statusId',
           {
             oldOrder,
             newOrder,
@@ -131,12 +132,12 @@ export class ProductBatchGroupRepository extends Repository<ProductBatchGroupEnt
     oldOrder,
   }: {
     id?: number;
-    statusId: number;
+    statusId: number | null;
     oldStatusId: number | null;
     order: number;
     oldOrder: number;
   }) {
-    if (oldStatusId === statusId) {
+    if (statusId && oldStatusId === statusId) {
       // Перемещение внутри одного столбца
       await this.moveOthersByMovingInside({
         statusId,
@@ -146,11 +147,14 @@ export class ProductBatchGroupRepository extends Repository<ProductBatchGroupEnt
       });
     } else {
       // Перемещение в другой столбец
-      await this.moveOthersInNew({
-        id,
-        newOrder: order,
-        statusId,
-      });
+      if (statusId) {
+        await this.moveOthersInNew({
+          id,
+          newOrder: order,
+          statusId,
+        });
+      }
+
       if (oldStatusId) await this.moveOthersInOld({ oldOrder, oldStatusId });
     }
   }
@@ -170,23 +174,33 @@ export class ProductBatchGroupRepository extends Repository<ProductBatchGroupEnt
       relations: ['status'],
     });
 
-    if (!order) {
-      const lastGroup = await this.findOne({
-        where: { statusId },
-        order: { order: 'DESC' },
-      });
+    let lastOrder = 1;
 
-      order = !lastGroup
-        ? 1
-        : lastGroup.statusId == group.statusId
-          ? lastGroup.order
-          : lastGroup.order + 1;
+    const lastOrderInStatus = await this.getLastOrder(statusId);
+    if (lastOrderInStatus) {
+      lastOrder =
+        statusId == group.statusId ? lastOrderInStatus : lastOrderInStatus + 1;
     }
+
+    order = order ? Math.min(order, lastOrder) : lastOrder;
+
+    if (!order) {
+      const lastOrder = await this.getLastOrder(dto.statusId);
+
+      order = !lastOrder
+        ? 1
+        : statusId == group.statusId
+          ? lastOrder
+          : lastOrder + 1;
+    }
+    const status = await this.manager.findOneOrFail(StatusEntity, {
+      where: { id: statusId },
+    });
 
     const oldOrder = group.order;
     group.order = order;
     const oldStatusId = group.statusId;
-    group.statusId = statusId;
+    group.status = status;
     group = await this.save(group);
     await this.moveOthers({
       id: group.id,

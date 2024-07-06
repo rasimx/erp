@@ -14,13 +14,13 @@ import { AuthModule } from '@/auth/auth.module.js';
 import { getPathRelativeToRoot } from '@/common/helpers/paths.js';
 import { AppConfigModule } from '@/config/app/config.module.js';
 import { AuthConfigModule } from '@/config/auth/config.module.js';
-import { GraphqlConfigModule } from '@/config/graphql/config.module.js';
 import { ContextModule } from '@/context/context.module.js';
 import { DatabaseModule } from '@/database/database.module.js';
 import { Microservices } from '@/microservices/microservices.js';
 import { OperationModule } from '@/operation/operation.module.js';
 import { ProductModule } from '@/product/product.module.js';
 import { ProductBatchModule } from '@/product-batch/product-batch.module.js';
+import { ProductBatchGroupModule } from '@/product-batch-group/product-batch-group.module.js';
 import { ProductBatchOperationModule } from '@/product-batch-operation/product-batch-operation.module.js';
 import { StatusModule } from '@/status/status.module.js';
 import { StoreModule } from '@/store/store.module.js';
@@ -31,8 +31,6 @@ import { AppService } from './app.service.js';
 @Module({
   imports: [
     AppConfigModule,
-    // GraphqlConfigModule,
-
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
       autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
@@ -41,6 +39,7 @@ import { AppService } from './app.service.js';
     ProductModule,
     StatusModule,
     ProductBatchModule,
+    ProductBatchGroupModule,
     OperationModule,
     ProductBatchOperationModule,
     Microservices,

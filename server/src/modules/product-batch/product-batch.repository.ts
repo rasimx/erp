@@ -1,12 +1,14 @@
 import { BadRequestException } from '@nestjs/common';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import omit from 'lodash/omit.js';
-import { Repository } from 'typeorm';
+import { IsNull, Repository } from 'typeorm';
 
 import type { FindLatestRequest } from '@/microservices/proto/erp.pb.js';
 import type { CreateProductBatchDto } from '@/product-batch/dtos/create-product-batch.dto.js';
 import type { MoveProductBatchDto } from '@/product-batch/dtos/move-product-batch.dto.js';
 import { ProductBatchEntity } from '@/product-batch/product-batch.entity.js';
+import { ProductBatchGroupEntity } from '@/product-batch-group/product-batch-group.entity.js';
+import { StatusEntity } from '@/status/status.entity.js';
 
 export class ProductBatchRepository extends Repository<ProductBatchEntity> {
   async createFromDto(dto: CreateProductBatchDto) {
@@ -32,13 +34,8 @@ export class ProductBatchRepository extends Repository<ProductBatchEntity> {
       await this.save(parent);
     }
 
-    let lastBatch: ProductBatchEntity | null = null;
-    lastBatch = await this.findOne({
-      where: { statusId: dto.statusId },
-      order: { order: 'DESC' },
-    });
-
-    const order = lastBatch ? lastBatch.order + 1 : 1;
+    const lastOrder = await this.getLastOrder(dto.statusId);
+    const order = lastOrder ? lastOrder + 1 : 1;
 
     let newEntity = new ProductBatchEntity();
     Object.assign(newEntity, dto, { order, operationsPricePerUnit: 0 });
@@ -53,6 +50,25 @@ export class ProductBatchRepository extends Repository<ProductBatchEntity> {
     return newEntity;
   }
 
+  async getLastOrder(statusId: number): Promise<number | null> {
+    const lastItems: (ProductBatchEntity | ProductBatchGroupEntity)[] = [];
+    const lastUngroupedBatch = await this.findOne({
+      where: { statusId: statusId, groupId: IsNull() },
+      order: { order: 'DESC' },
+    });
+    if (lastUngroupedBatch) lastItems.push(lastUngroupedBatch);
+
+    const lastGroup = await this.manager.findOne(ProductBatchGroupEntity, {
+      where: { statusId: statusId },
+      order: { order: 'DESC' },
+    });
+    if (lastGroup) lastItems.push(lastGroup);
+
+    return lastItems.length
+      ? Math.max(...lastItems.map(({ order }) => order))
+      : null;
+  }
+
   async moveOthersInOld({
     oldOrder,
     oldGroupId,
@@ -62,10 +78,10 @@ export class ProductBatchRepository extends Repository<ProductBatchEntity> {
     oldGroupId?: number;
     oldStatusId?: number;
   }) {
-    if (!oldGroupId || !oldStatusId)
+    if (!(oldGroupId ?? oldStatusId))
       throw new Error('oldGroupId or oldStatusId');
     let query = this.createQueryBuilder()
-      .update(ProductBatchEntity)
+      .update()
       .set({ order: () => '"order" - 1' })
       .where('"order" > :oldOrder', {
         oldOrder,
@@ -95,17 +111,17 @@ export class ProductBatchRepository extends Repository<ProductBatchEntity> {
     statusId?: number;
     groupId?: number;
   }) {
-    if (!groupId || !statusId) throw new Error('groupId or statusId');
+    if (!(groupId ?? statusId)) throw new Error('groupId or statusId');
 
     let query = this.createQueryBuilder()
-      .update(ProductBatchEntity)
+      .update()
       .set({ order: () => '"order" + 1' })
       .where('"order" >= :newOrder', {
         newOrder,
       });
 
     if (groupId) {
-      query = query.andWhere('groupId = :groupId ', {
+      query = query.andWhere('groupId = :groupId', {
         groupId,
       });
     } else {
@@ -136,9 +152,9 @@ export class ProductBatchRepository extends Repository<ProductBatchEntity> {
     groupId?: number;
     statusId?: number;
   }) {
-    if (!groupId || !statusId) throw new Error('groupId or statusId');
+    if (!(groupId ?? statusId)) throw new Error('groupId or statusId');
 
-    let query = this.createQueryBuilder().update(ProductBatchEntity);
+    let query = this.createQueryBuilder().update();
     if (newOrder < oldOrder) {
       query = query
         .set({ order: () => '"order" + 1' })
@@ -209,13 +225,13 @@ export class ProductBatchRepository extends Repository<ProductBatchEntity> {
     id: number;
     order: number;
     oldOrder: number;
-    statusId?: number;
-    oldStatusId?: number | null;
-    groupId?: number;
-    oldGroupId?: number | null;
+    statusId: number | null;
+    oldStatusId: number | null;
+    groupId: number | null;
+    oldGroupId: number | null;
   }> {
     const { id, statusId, groupId } = dto;
-    if (!statusId || !groupId)
+    if (!(statusId ?? groupId))
       throw new BadRequestException('statusId or groupId');
 
     let order = dto.order;
@@ -224,29 +240,38 @@ export class ProductBatchRepository extends Repository<ProductBatchEntity> {
       relations: ['status'],
     });
 
-    if (!order) {
-      const where = groupId ? { groupId } : { statusId };
+    let lastOrder = 1;
+    if (groupId) {
       const lastBatch = await this.findOne({
-        where,
+        where: { groupId },
         order: { order: 'DESC' },
       });
-
-      order = !lastBatch
-        ? 1
-        : groupId
-          ? lastBatch.groupId == batch.groupId
-            ? lastBatch.order
-            : lastBatch.order + 1
-          : lastBatch.statusId == batch.statusId
-            ? lastBatch.order
-            : lastBatch.order + 1;
+      if (lastBatch) {
+        lastOrder =
+          groupId == batch.groupId ? lastBatch.order : lastBatch.order + 1;
+      }
+    } else if (statusId) {
+      const lastOrderInStatus = await this.getLastOrder(statusId);
+      if (lastOrderInStatus) {
+        lastOrder =
+          statusId == batch.statusId
+            ? lastOrderInStatus
+            : lastOrderInStatus + 1;
+      }
     }
 
+    order = order ? Math.min(order, lastOrder) : lastOrder;
+
     const oldOrder = batch.order;
+    const oldStatusId = batch.statusId;
+    const oldGroupId = batch.groupId;
     batch.order = order;
     if (groupId) {
-      const oldGroupId = batch.groupId;
-      batch.groupId = groupId;
+      const group = await this.manager.findOneOrFail(ProductBatchGroupEntity, {
+        where: { id: groupId },
+      });
+      batch.group = group;
+      batch.status = null;
       batch = await this.save(batch);
       // Обновите порядок карточек в старом столбце
 
@@ -267,16 +292,14 @@ export class ProductBatchRepository extends Repository<ProductBatchEntity> {
         });
         if (oldGroupId) await this.moveOthersInOld({ oldOrder, oldGroupId });
       }
-      return {
-        id,
-        order,
-        oldOrder,
-        groupId,
-        oldGroupId,
-      };
     } else {
-      const oldStatusId = batch.statusId;
-      batch.statusId = statusId;
+      if (!statusId) throw new Error('statusId was not defined');
+      const status = await this.manager.findOneOrFail(StatusEntity, {
+        where: { id: statusId },
+      });
+
+      batch.status = status;
+      batch.group = null;
       batch = await this.save(batch);
       await this.moveOthersByStatus({
         id: batch.id,
@@ -285,14 +308,16 @@ export class ProductBatchRepository extends Repository<ProductBatchEntity> {
         order,
         oldOrder,
       });
-      return {
-        id,
-        order,
-        oldOrder,
-        statusId,
-        oldStatusId,
-      };
     }
+    return {
+      id,
+      order,
+      oldOrder,
+      oldGroupId,
+      groupId,
+      statusId,
+      oldStatusId,
+    };
   }
 
   async findFromId({ storeId, id }: { storeId: number; id: number }) {
