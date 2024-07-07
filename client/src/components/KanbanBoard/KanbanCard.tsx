@@ -1,128 +1,34 @@
-import { Modifiers } from '@dnd-kit/core/dist/modifiers';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import {
-  Card,
-  CardContent,
-  CircularProgress,
-  List,
-  ListItem,
-  ListItemText,
-  Typography,
-} from '@mui/material';
+import { Button, Card } from '@mui/material';
 import Box from '@mui/material/Box';
-import React, { FC } from 'react';
+import React, { ReactElement, useMemo } from 'react';
 
-import { ProductBatchFragment } from '../../gql-types/graphql';
-import { DraggableType } from './types';
+import { DraggableType, IsForbiddenFunc, SortableType } from './types';
 
-export const getCardId = (item: ProductBatchFragment) => `card_${item.id}`;
-
-export enum Position {
-  Before = -1,
-  After = 1,
+export interface Props<
+  Column extends SortableType,
+  Group extends SortableType,
+  Card extends SortableType,
+> {
+  card: Card;
+  render: (data: Card) => ReactElement;
+  isForbiddenMove?: IsForbiddenFunc<Column, Group, Card>;
 }
 
-const Preloader = () => {
-  return (
-    <Box
-      sx={{
-        position: 'absolute',
-        left: 0,
-        top: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: 'rgba(255,255,255,.5)',
-      }}
-    >
-      <CircularProgress />
-    </Box>
-  );
-};
+export const getCardId = (item: SortableType) => `card_${item.id}`;
 
-export interface Props2 {
-  card: ProductBatchFragment;
-  loading?: boolean;
-}
-
-export const DraggablePresentation = React.memo<Props2>(({ card, loading }) => {
-  return (
-    <>
-      <Card elevation={3} sx={{ cursor: 'grab', position: 'relative' }}>
-        {loading && <Preloader />}
-        <CardContent>
-          <strong>{card.name}</strong>
-          {/*<strong>{card.order}</strong>*/}
-
-          <List dense>
-            <ListItem disableGutters>
-              <ListItemText primary={card.id} />
-            </ListItem>
-            <ListItem disableGutters>
-              <ListItemText
-                primary={card.product.sku}
-                secondary={card.product.name}
-              />
-            </ListItem>
-            <ListItem
-              disableGutters
-              secondaryAction={<Typography>{card.count}</Typography>}
-            >
-              <ListItemText primary="количество" />
-            </ListItem>
-            <ListItem
-              disableGutters
-              secondaryAction={
-                <Typography>
-                  {(card.costPricePerUnit / 100).toFixed(2)}
-                </Typography>
-              }
-            >
-              <ListItemText primary="цена закупки" />
-            </ListItem>
-            <ListItem
-              disableGutters
-              secondaryAction={
-                <Typography>
-                  {(
-                    (card.operationsPricePerUnit + card.costPricePerUnit) /
-                    100
-                  ).toFixed(2)}
-                </Typography>
-              }
-            >
-              <ListItemText primary="с/с единицы" />
-            </ListItem>
-            <ListItem
-              disableGutters
-              secondaryAction={
-                <Typography>
-                  {(
-                    ((card.operationsPricePerUnit + card.costPricePerUnit) *
-                      card.count) /
-                    100
-                  ).toFixed(2)}
-                </Typography>
-              }
-            >
-              <ListItemText primary="с/с партии" />
-            </ListItem>
-          </List>
-        </CardContent>
-      </Card>
-    </>
-  );
-});
-
-export interface Props {
-  card: ProductBatchFragment;
-  modifiers?: Modifiers;
-  loading?: boolean;
-  isNext?: boolean;
-}
-
-const KanbanCard: FC<Props> = ({ card, loading, modifiers, isNext }) => {
+const KanbanCard = <
+  Column extends SortableType,
+  Group extends SortableType,
+  Card extends SortableType,
+>({
+  card,
+  render,
+  isForbiddenMove,
+}: Props<Column, Group, Card>) => {
   const id = getCardId(card);
+
   const {
     setNodeRef,
     attributes,
@@ -130,14 +36,19 @@ const KanbanCard: FC<Props> = ({ card, loading, modifiers, isNext }) => {
     transform,
     transition,
     isDragging,
+    active,
+    over,
+    isOver,
+    overIndex,
+    activeIndex,
     isSorting,
+    setActivatorNodeRef,
   } = useSortable({
     id,
     animateLayoutChanges: () => true,
     data: {
-      modifiers,
       type: DraggableType.Card,
-      card,
+      data: card,
     },
   });
 
@@ -145,6 +56,28 @@ const KanbanCard: FC<Props> = ({ card, loading, modifiers, isNext }) => {
     transition,
     transform: isSorting ? undefined : CSS.Translate.toString(transform),
   };
+
+  const showPrev = useMemo(() => {
+    return (
+      isOver &&
+      ((overIndex != -1 && activeIndex != -1 && overIndex - activeIndex != 1) ||
+        overIndex == -1 ||
+        activeIndex == -1) &&
+      !(
+        isForbiddenMove &&
+        isForbiddenMove({
+          active: {
+            type: active?.data.current?.type,
+            data: active?.data.current?.data,
+          },
+          over: {
+            type: over?.data.current?.type,
+            data: over?.data.current?.data,
+          },
+        })
+      )
+    );
+  }, [isOver, overIndex, activeIndex, isForbiddenMove, active, over]);
 
   if (isDragging) {
     return (
@@ -160,9 +93,31 @@ const KanbanCard: FC<Props> = ({ card, loading, modifiers, isNext }) => {
   }
 
   return (
-    <div ref={setNodeRef} {...attributes} {...listeners} style={style}>
-      <DraggablePresentation card={card} loading={loading} />
-    </div>
+    <React.Fragment>
+      {showPrev && (
+        <Card
+          elevation={3}
+          sx={{
+            height: 5,
+            backgroundColor: 'rgba(0,255,0,.5)',
+            marginBottom: 1,
+          }}
+        ></Card>
+      )}
+      <Card
+        ref={setNodeRef}
+        {...listeners}
+        {...attributes}
+        style={style}
+        elevation={3}
+        sx={{ backgroundColor: 'rgba(0,0,0,.1)', p: 1 }}
+      >
+        {/*<Button ref={setActivatorNodeRef} {...listeners}>*/}
+        {/*  AAAA*/}
+        {/*</Button>*/}
+        {render(card)}
+      </Card>
+    </React.Fragment>
   );
 };
 export default KanbanCard;

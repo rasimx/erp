@@ -1,5 +1,6 @@
 import { type IQueryHandler, QueryHandler } from '@nestjs/cqrs';
 import { InjectRepository } from '@nestjs/typeorm';
+import { IsNull } from 'typeorm';
 
 import { ProductBatchEntity } from '@/product-batch/product-batch.entity.js';
 import { ProductBatchRepository } from '@/product-batch/product-batch.repository.js';
@@ -15,6 +16,9 @@ export class GetProductBatchListHandler
   ) {}
 
   async execute(query: GetProductBatchListQuery) {
-    return this.productBatchRepository.find({ relations: ['product'] });
+    return this.productBatchRepository.find({
+      where: { groupId: IsNull() },
+      relations: ['product'],
+    });
   }
 }

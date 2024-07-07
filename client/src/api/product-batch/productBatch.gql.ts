@@ -12,6 +12,7 @@ export const PRODUCT_BATCH_FRAGMENT = graphql(`
   fragment ProductBatch on ProductBatchDto {
     id
     name
+    groupId
     product {
       sku
       name

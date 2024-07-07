@@ -14,6 +14,9 @@ export class ProductBatchDto {
   @Field(() => Int, { nullable: true })
   statusId: number | null;
 
+  @Field(() => Int, { nullable: true })
+  groupId: number | null;
+
   @Field(() => Int)
   productId: number;
 

@@ -2,7 +2,7 @@ import { Router } from '@remix-run/router';
 import React from 'react';
 import { createBrowserRouter, RouteObject } from 'react-router-dom';
 
-import KanbanBoard from './components/KanbanBoard/KanbanBoard';
+import { ProductBatchPage } from './components/ProductBatchPage/ProductBatchPage';
 import ProductList from './components/ProductList';
 import StoreComponent from './components/Store/Store';
 import Root from './Root';
@@ -17,8 +17,8 @@ export const routeObject: RouteObject[] = [
         element: <ProductList />,
       },
       {
-        path: 'kanban/:productId',
-        element: <KanbanBoard />,
+        path: 'batch/:productId',
+        element: <ProductBatchPage />,
       },
       {
         path: 'ozon-store/:statusId',

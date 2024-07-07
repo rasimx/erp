@@ -16,7 +16,7 @@ export class GetProductBatchGroupListHandler
 
   async execute(query: GetProductBatchGroupListQuery) {
     return this.productBatchRepository.find({
-      relations: ['productBatchList', 'status'],
+      relations: ['productBatchList', 'productBatchList.product', 'status'],
     });
   }
 }

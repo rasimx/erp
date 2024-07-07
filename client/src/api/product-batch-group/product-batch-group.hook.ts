@@ -3,46 +3,51 @@ import { useSnackbar } from 'notistack';
 import { useCallback, useEffect, useState } from 'react';
 
 import { getFragmentData } from '@/gql-types';
-import { MoveProductBatchDto, ProductBatchFragment } from '@/gql-types/graphql';
+import {
+  MoveProductBatchGroupDto,
+  ProductBatchGroupFragment,
+} from '@/gql-types/graphql';
 
 import {
-  MOVE_PRODUCT_BATCH_MUTATION,
-  PRODUCT_BATCH_FRAGMENT,
-  PRODUCT_BATCH_LIST_QUERY,
-} from './productBatch.gql';
+  MOVE_PRODUCT_BATCH_GROUP_MUTATION,
+  PRODUCT_BATCH_GROUP_FRAGMENT,
+  PRODUCT_BATCH_GROUP_LIST_QUERY,
+} from './product-batch-group.gql';
 
-export const useProductBatch = (productId: number) => {
-  const [productBatchList, setProductBatchList] = useState<
-    ProductBatchFragment[]
+export const useProductBatchGroup = (productId: number) => {
+  const [productBatchGroupList, setProductBatchGroupList] = useState<
+    ProductBatchGroupFragment[]
   >([]);
   const [loadingId, setLoadingId] = useState<number | null>(null);
 
-  const orderFunc = (a: ProductBatchFragment, b: ProductBatchFragment) =>
-    a.order - b.order;
+  const orderFunc = (
+    a: ProductBatchGroupFragment,
+    b: ProductBatchGroupFragment,
+  ) => a.order - b.order;
 
-  const { data: productBatchListData, loading } = useQuery(
-    PRODUCT_BATCH_LIST_QUERY,
+  const { data: productBatchGroupListData, loading } = useQuery(
+    PRODUCT_BATCH_GROUP_LIST_QUERY,
     { variables: { productId } },
   );
   useEffect(() => {
-    setProductBatchList(
+    setProductBatchGroupList(
       (
         getFragmentData(
-          PRODUCT_BATCH_FRAGMENT,
-          productBatchListData?.productBatchList,
+          PRODUCT_BATCH_GROUP_FRAGMENT,
+          productBatchGroupListData?.productBatchGroupList,
         ) || []
       ).toSorted(orderFunc),
     );
-  }, [productBatchListData]);
+  }, [productBatchGroupListData]);
 
-  const [updateProductBatch] = useMutation(MOVE_PRODUCT_BATCH_MUTATION);
+  const [move] = useMutation(MOVE_PRODUCT_BATCH_GROUP_MUTATION);
 
   const { enqueueSnackbar } = useSnackbar();
 
-  const moveProductBatch = useCallback(
-    (dto: MoveProductBatchDto) => {
+  const moveProductBatchGroup = useCallback(
+    (dto: MoveProductBatchGroupDto) => {
       setLoadingId(dto.id);
-      updateProductBatch({ variables: { dto } })
+      move({ variables: { dto } })
         .then(res => {
           // setProductBatchList(
           //   (
@@ -59,18 +64,18 @@ export const useProductBatch = (productId: number) => {
             variant: 'error',
             anchorOrigin: { vertical: 'bottom', horizontal: 'left' },
           });
-          setProductBatchList([...productBatchList]);
+          setProductBatchGroupList([...productBatchGroupList]);
         })
         .finally(() => {
           setLoadingId(null);
         });
     },
-    [productBatchList],
+    [productBatchGroupList],
   );
 
   return {
-    productBatchList,
-    moveProductBatch,
+    productBatchGroupList,
+    moveProductBatchGroup,
     loadingId,
     loading,
   };
