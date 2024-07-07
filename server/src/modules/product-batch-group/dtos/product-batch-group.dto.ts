@@ -23,3 +23,9 @@ export class ProductBatchGroupDto {
   @Field(() => [ProductBatchDto])
   productBatchList: ProductBatchDto[];
 }
+
+@ObjectType()
+export class CommandResponse {
+  @Field(() => Boolean)
+  success: boolean;
+}

@@ -23,10 +23,10 @@ import React, { type FC, useCallback, useMemo, useState } from 'react';
 // import { ProportionType } from '@/gql-types/graphql';
 import { useAppSelector } from '@/hooks';
 
-import {
-  ProductBatchStateItem,
-  selectCheckedProductBatchList,
-} from '../../api/product-batch/product-batch.slice';
+// import {
+//   ProductBatchStateItem,
+//   selectCheckedProductBatchList,
+// } from '../../api/product-batch/product-batch.slice';
 // import { createOperation } from './operation.api';
 
 const Value = styled('div')`
@@ -106,7 +106,7 @@ type B = {
 
 type DataCellProps = {
   type: ProportionType;
-  row: ProductBatchStateItem;
+  // row: ProductBatchStateItem;
   items: B;
   label: string;
   getValue?: (value: number) => number;
@@ -144,7 +144,7 @@ const AddOperationForm: FC<Props> = ({ onSubmit }) => {
   const [name, setName] = React.useState<string>('');
   const [cost, setCost] = React.useState<number>(0);
   const [date, setDate] = React.useState<Date | null>(null);
-  const selectedProductBatches = useAppSelector(selectCheckedProductBatchList);
+  // const selectedProductBatches = useAppSelector(selectCheckedProductBatchList);
   const [proportionType, setProportionType] = useState<ProportionType>(
     ProportionType.equal,
   );

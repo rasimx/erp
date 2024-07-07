@@ -1,11 +1,12 @@
 import { SortableContext, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import styled from '@emotion/styled';
 import { Card, CircularProgress, Paper, Stack } from '@mui/material';
 import Box from '@mui/material/Box';
 import React, { ReactElement, useMemo } from 'react';
 
-import KanbanCard, { getCardId } from './KanbanCard';
-import KanbanGroup, { getGroupId } from './KanbanGroup';
+import KanbanCard, { getCardSortId } from './KanbanCard';
+import KanbanGroup, { getGroupSortId } from './KanbanGroup';
 import { DraggableType, IsForbiddenFunc, SortableType } from './types';
 
 const Preloader = () => {
@@ -25,6 +26,32 @@ const Preloader = () => {
   );
 };
 
+const Column = styled(Box)<{ showAfter: boolean }>`
+  height: 100%;
+  overflow: auto;
+  flex-grow: 1;
+  background-color: rgba(0, 0, 0, 0.1);
+  position: relative;
+  &::after {
+    content: '';
+    display: ${props => (props.showAfter ? 'block' : 'none')};
+    position: absolute;
+    //background: rgba(0, 0, 0, 0.5);
+    opacity: 0.2;
+    background: repeating-linear-gradient(
+      45deg,
+      #606dbc,
+      #606dbc 10px,
+      #465298 10px,
+      #465298 20px
+    );
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+  }
+`;
+
 export type Props<
   Column extends SortableType,
   Group extends SortableType,
@@ -35,6 +62,7 @@ export type Props<
   getTitle: (column: Column) => string;
   getGroupTitle: (group: Group) => string;
   getGroupItems: (group: Group) => Card[];
+  getGroupId: (card: Card) => number | null;
   isGroup: (cardOrGroup: Card | Group) => boolean;
   loading?: boolean;
   renderCard: (data: Card) => ReactElement;
@@ -54,6 +82,7 @@ const KanbanColumn = <
   getTitle,
   getGroupTitle,
   getGroupItems,
+  getGroupId,
   isGroup,
   loading,
   isActive,
@@ -62,7 +91,9 @@ const KanbanColumn = <
 }: Props<Column, Group, Card>) => {
   const itemsIds = useMemo(
     () =>
-      items.map(item => (isGroup(item) ? getGroupId(item) : getCardId(item))),
+      items.map(item =>
+        isGroup(item) ? getGroupSortId(item) : getCardSortId(item),
+      ),
     [items],
   );
 
@@ -89,18 +120,13 @@ const KanbanColumn = <
   const showAfter = useMemo(() => {
     const lastItemId = items?.length
       ? isGroup(items[items.length - 1])
-        ? getGroupId(items[items.length - 1])
-        : getCardId(items[items.length - 1])
+        ? getGroupSortId(items[items.length - 1])
+        : getCardSortId(items[items.length - 1])
       : undefined;
-
-    const activeCard =
-      active?.data.current?.type == DraggableType.Card
-        ? active.data.current.data
-        : null;
 
     return (
       isOver &&
-      activeCard &&
+      active?.data.current?.type != DraggableType.Column &&
       lastItemId != active?.id &&
       !(
         isForbiddenMove &&
@@ -163,7 +189,7 @@ const KanbanColumn = <
         {getTitle(column)}
         {loading && <Preloader />}
       </Box>
-      <Box sx={{ height: '100%', overflow: 'auto', flexGrow: 1 }}>
+      <Column showAfter={showAfter}>
         <Stack spacing={2} sx={{ p: 1 }}>
           <SortableContext items={itemsIds}>
             {items.map(item =>
@@ -175,29 +201,31 @@ const KanbanColumn = <
                   getGroupItems={getGroupItems}
                   key={`group_${item.id}`}
                   renderCard={renderCard}
+                  getGroupId={getGroupId}
                 />
               ) : (
                 <KanbanCard
                   card={item as Card}
                   key={`card_${item.id}`}
                   isForbiddenMove={isForbiddenMove}
+                  getGroupId={getGroupId}
                   render={renderCard}
                 />
               ),
             )}
           </SortableContext>
 
-          {showAfter && (
-            <Card
-              elevation={3}
-              sx={{
-                height: 5,
-                backgroundColor: 'rgba(0,255,0,.5)',
-              }}
-            ></Card>
-          )}
+          {/*{showAfter && (*/}
+          {/*  <Card*/}
+          {/*    elevation={3}*/}
+          {/*    sx={{*/}
+          {/*      height: 5,*/}
+          {/*      backgroundColor: 'rgba(0,255,0,.5)',*/}
+          {/*    }}*/}
+          {/*  ></Card>*/}
+          {/*)}*/}
         </Stack>
-      </Box>
+      </Column>
     </Box>
   );
 };

@@ -217,6 +217,16 @@ export class ProductBatchGroupRepository extends Repository<ProductBatchGroupEnt
       oldStatusId,
     };
   }
+
+  async findItems() {
+    return this.createQueryBuilder('pbg')
+      .leftJoinAndSelect('pbg.productBatchList', 'productBatchList')
+      .leftJoinAndSelect('productBatchList.product', 'product')
+      .leftJoinAndSelect('pbg.status', 'status')
+      .orderBy('pbg.order', 'ASC')
+      .orderBy('productBatchList.order', 'ASC')
+      .getMany();
+  }
 }
 
 export const ProductBatchGroupRepositoryProvider = {

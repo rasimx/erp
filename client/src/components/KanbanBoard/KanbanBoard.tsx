@@ -1,27 +1,26 @@
 import {
-  closestCenter,
-  closestCorners,
+  ClientRect,
   DndContext,
   DragEndEvent,
-  DragOverEvent,
   DragOverlay,
   DragStartEvent,
   MeasuringConfiguration,
   MeasuringStrategy,
-  Over,
   PointerSensor,
   pointerWithin,
   rectIntersection,
   useSensor,
   useSensors,
 } from '@dnd-kit/core';
-import type { Active } from '@dnd-kit/core/dist/store';
-import { DataRef } from '@dnd-kit/core/dist/store/types';
+import type {
+  Active,
+  DroppableContainer,
+  RectMap,
+} from '@dnd-kit/core/dist/store';
 import { arrayMove, SortableContext } from '@dnd-kit/sortable';
+import { Coordinates } from '@dnd-kit/utilities';
 import { Box, Divider, Stack } from '@mui/material';
-import { indexOf } from 'lodash';
 import cloneDeep from 'lodash/cloneDeep';
-import isNumber from 'lodash/isNumber';
 import React, {
   ReactElement,
   useCallback,
@@ -35,11 +34,7 @@ import AddOperation from '@/components/AddOperation/AddOperation';
 
 import KanbanCard from './KanbanCard';
 import KanbanColumn from './KanbanColumn';
-import KanbanGroup, {
-  getGroupId,
-  isInGroup,
-  isInsteadGroup,
-} from './KanbanGroup';
+import KanbanGroup, { isInsteadGroup } from './KanbanGroup';
 import {
   DraggableType,
   IsForbiddenFunc,
@@ -53,9 +48,6 @@ const measuring: MeasuringConfiguration = {
     strategy: MeasuringStrategy.Always,
   },
 };
-
-type CardFunction<Card> = (card: Card) => number | null;
-type GroupFunction<Group> = (group: Group) => number;
 
 export type Props<
   Column extends SortableType,
@@ -71,9 +63,14 @@ export type Props<
   getGroupItems: (group: Group) => Card[];
   setGroupItems: (group: Group, items: Card[]) => Group;
   moveGroup: (data: { id: number; columnId: number; order?: number }) => void;
-  moveCard: (data: { id: number; columnId: number; order?: number }) => void;
+  moveCard: (data: {
+    id: number;
+    columnId: number | null;
+    groupId: number | null;
+    order?: number;
+  }) => void;
   cardItems: (Group | Card)[];
-  getColumnId: CardFunction<Card> | GroupFunction<Group>;
+  getColumnId: (card: Card | Group) => number | null;
   getGroupId: (card: Card) => number | null;
   setColumnId: (card: Group | Card, newColumnId: number | null) => void;
   setGroupId: (card: Card, newGroupId: number | null) => void;
@@ -98,7 +95,6 @@ const KanbanBoard = <
   setGroupId,
   getGroupTitle,
   isGroup,
-  isInGroup,
   getGroupItems,
   setGroupItems,
   setColumnId,
@@ -126,7 +122,6 @@ const KanbanBoard = <
   }, [cardItems]);
 
   const [active, setActive] = useState<Active | null>(null);
-  const [over, setOver] = useState<Over | null>(null);
   const activeCard = useMemo<Card | null>(
     () =>
       active?.data.current?.type === DraggableType.Card
@@ -149,43 +144,13 @@ const KanbanBoard = <
     [active],
   );
 
-  const overCard = useMemo<Card | null>(
-    () =>
-      over?.data.current?.type === DraggableType.Card
-        ? over.data.current.data
-        : undefined,
-    [over],
-  );
-  const overGroup = useMemo<Group | null>(
-    () =>
-      over?.data.current?.type === DraggableType.Column
-        ? over.data.current.data
-        : undefined,
-    [over],
-  );
-  const overColumn = useMemo<Column | null>(
-    () =>
-      over?.data.current?.type === DraggableType.Column
-        ? over.data.current.data
-        : undefined,
-    [over],
-  );
-
   const onDragStart = useCallback((event: DragStartEvent) => {
     setActive(event.active);
   }, []);
 
-  const onDragOver = useCallback((event: DragOverEvent) => {
-    requestAnimationFrame(() => {
-      setOver(event.over);
-    });
-  }, []);
-  console.log(cards);
-
   const onDragEnd = useCallback(
     (event: DragEndEvent) => {
       setActive(null);
-      setOver(null);
 
       const { active, over } = event;
       if (!over) return;
@@ -210,20 +175,27 @@ const KanbanBoard = <
       switch (activeData.type) {
         case DraggableType.Card: {
           const activeCard = activeData.data;
+
+          const activeGroupId = getGroupId(activeCard);
+          const activeGroup = activeGroupId
+            ? (cards.find(
+                item => isGroup(item) && item.id === activeGroupId,
+              ) as Group)
+            : null;
+          const activeIndexInGroup =
+            activeGroup && getGroupItems(activeGroup).indexOf(activeCard);
+
+          const activeColumnId = getColumnId(activeCard);
+          const activeColumn = existsIndex(activeColumnId)
+            ? columns.find(item => activeColumnId == item.id) ?? null
+            : null;
+          const activeIndex = activeColumnId && cards.indexOf(activeCard);
+
           switch (overData.type) {
             case DraggableType.Card: {
               const overCard = overData.data;
 
               if (activeCard == overCard) return;
-
-              const activeGroupId = getGroupId(activeCard);
-              const activeGroup = activeGroupId
-                ? (cards.find(
-                    item => isGroup(item) && item.id === activeGroupId,
-                  ) as Group)
-                : null;
-              const activeIndexInGroup =
-                activeGroup && getGroupItems(activeGroup).indexOf(activeCard);
 
               const overGroupId = getGroupId(overCard);
               const overGroup = overGroupId
@@ -234,22 +206,13 @@ const KanbanBoard = <
               const overIndexInGroup =
                 overGroup && getGroupItems(overGroup).indexOf(overCard);
 
-              const activeColumnId = (getColumnId as CardFunction<Card>)(
-                activeCard,
-              );
-              const activeColumn =
-                activeColumnId !== undefined
-                  ? columns.find(item => activeColumnId == item.id)
-                  : null;
-              const activeIndex = activeColumnId && cards.indexOf(activeCard);
-              const overColumnId = (getColumnId as CardFunction<Card>)(
-                overCard,
-              );
-              const overColumn =
-                overColumnId !== undefined
-                  ? columns.find(item => overColumnId == item.id)
-                  : null;
-              const overIndex = overColumnId && cards.indexOf(overCard);
+              const overColumnId = getColumnId(overCard);
+              const overColumn = existsIndex(overColumnId)
+                ? columns.find(item => overColumnId == item.id) ?? null
+                : null;
+              const overIndex = overColumn && cards.indexOf(overCard);
+
+              let order: number | undefined = overCard.order;
 
               if (activeColumn && activeColumn.id == overColumn?.id) {
                 // если over - следующий за active - return
@@ -264,6 +227,17 @@ const KanbanBoard = <
                   overIndex == nextIndexOfActiveInColumn
                 ) {
                   return;
+                }
+
+                if (!(existsIndex(activeIndex) && existsIndex(overIndex)))
+                  throw new Error('activeIndexInGroup or overIndexInGroup');
+                // если перемещается в конец в текущем столбце
+                if (overIndex > activeIndex) {
+                  const prevIndexOfOverInColumn = cards.findLast(
+                    (card, index) =>
+                      getColumnId(card) == overColumnId && index < overIndex,
+                  );
+                  order = prevIndexOfOverInColumn?.order;
                 }
               }
 
@@ -287,6 +261,15 @@ const KanbanBoard = <
                   )
                 )
                   throw new Error('activeIndexInGroup or overIndexInGroup');
+
+                // если перемещается в конец в текущей группе - меняем order на предыдущего
+                if (overIndexInGroup > activeIndexInGroup) {
+                  const prevIndexOfOverInGroup = getGroupItems(
+                    overGroup,
+                  ).findLast((card, index) => index < overIndexInGroup);
+                  order = prevIndexOfOverInGroup?.order;
+                }
+
                 setGroupItems(
                   activeGroup,
                   arrayMove(
@@ -338,69 +321,50 @@ const KanbanBoard = <
                 setCards(cards);
               }
 
-              // let order = overCard.order;
-              // if (
-              //   getColumnId(activeCardData) === overColumnId &&
-              //   overIndex > activeIndex
-              // ) {
-              //   // если перемещается в конец в текущем столбце
-              //   const prevIndexOfOverInColumn = cards.findLast(
-              //     (card, index) =>
-              //       getColumnId(card) == overColumnId && index < overIndex,
-              //   );
-              //   order = prevIndexOfOverInColumn?.order;
-              // }
-              // moveCard({
-              //   id: activeCard.id,
-              //   columnId: overColumnId,
-              //   order,
-              // });
+              moveCard({
+                id: activeCard.id,
+                columnId: overColumn ? overColumn.id : null,
+                groupId: overGroup ? overGroup.id : null,
+                order,
+              });
 
               break;
             }
             case DraggableType.Group: {
               const overGroup = overData.data;
 
-              const activeGroupId = getGroupId(activeCard);
-              const activeGroup = activeGroupId
-                ? (cards.find(
-                    item => isGroup(item) && item.id === activeGroupId,
-                  ) as Group)
-                : null;
-              const activeIndexInGroup =
-                activeGroup && getGroupItems(activeGroup).indexOf(activeCard);
+              const overColumnId = getColumnId(overGroup) as number;
+              const overColumn = columns.find(
+                item => overColumnId == item.id,
+              ) as Column;
+              const overIndex = cards.indexOf(overGroup);
 
-              const activeColumnId = (getColumnId as CardFunction<Card>)(
-                activeCard,
-              );
-              const activeColumn =
-                activeColumnId !== undefined
-                  ? columns.find(item => activeColumnId == item.id)
-                  : null;
-              const activeIndex = activeColumnId && cards.indexOf(activeCard);
+              let order: number | undefined = overGroup.order;
 
-              const overColumnId = (getColumnId as GroupFunction<Group>)(
-                overGroup,
-              );
-              const overColumn =
-                overColumnId !== undefined
-                  ? columns.find(item => overColumnId == item.id)
-                  : null;
-              const overIndex = overColumnId && cards.indexOf(overGroup);
+              const isInstead = isInsteadGroup(active, over);
 
-              if (activeColumn && activeColumn.id == overColumn?.id) {
+              if (
+                activeColumn &&
+                activeColumn.id == overColumn.id &&
+                isInstead
+              ) {
+                if (!existsIndex(activeIndex))
+                  throw new Error('activeIndex is undefined');
                 // если over - следующий за active - return
-                const nextIndexOfActiveInColumn =
-                  existsIndex(activeIndex) &&
-                  cards.findIndex(
-                    (card, index) =>
-                      getColumnId(card) == overColumnId && index > activeIndex,
-                  );
-                if (
-                  existsIndex(overIndex) &&
-                  overIndex == nextIndexOfActiveInColumn
-                ) {
+                const nextIndexOfActiveInColumn = cards.findIndex(
+                  (card, index) =>
+                    getColumnId(card) == overColumnId && index > activeIndex,
+                );
+                if (overIndex == nextIndexOfActiveInColumn) {
                   return;
+                }
+
+                if (overIndex > activeIndex) {
+                  const prevIndexOfOverInColumn = cards.findLast(
+                    (card, index) =>
+                      getColumnId(card) == overColumnId && index < overIndex,
+                  );
+                  order = prevIndexOfOverInColumn?.order;
                 }
               }
 
@@ -411,8 +375,6 @@ const KanbanBoard = <
                   getGroupItems(activeGroup).toSpliced(activeIndexInGroup, 1),
                 );
               }
-
-              const isInstead = isInsteadGroup(active, over);
 
               if (overGroup && !isInstead) {
                 setGroupId(activeCard, overGroup.id);
@@ -444,28 +406,17 @@ const KanbanBoard = <
                 setCards(cards);
               }
 
+              moveCard({
+                id: activeCard.id,
+                columnId: isInstead ? overColumn.id : null,
+                groupId: !isInstead ? overGroup.id : null,
+                order,
+              });
+
               break;
             }
             case DraggableType.Column: {
               const overColumn = overData.data;
-
-              const activeGroupId = getGroupId(activeCard);
-              const activeGroup = activeGroupId
-                ? (cards.find(
-                    item => isGroup(item) && item.id === activeGroupId,
-                  ) as Group)
-                : null;
-              const activeIndexInGroup =
-                activeGroup && getGroupItems(activeGroup).indexOf(activeCard);
-
-              const activeColumnId = (getColumnId as CardFunction<Card>)(
-                activeCard,
-              );
-              const activeColumn =
-                activeColumnId !== undefined
-                  ? columns.find(item => activeColumnId == item.id)
-                  : null;
-              const activeIndex = activeColumnId && cards.indexOf(activeCard);
 
               const lastIndexOnColumn = cards.findLastIndex(
                 card => getColumnId(card) == overColumn.id,
@@ -487,10 +438,11 @@ const KanbanBoard = <
                 setCards([...cards, activeCard]);
               }
 
-              // moveCard({
-              //   id,
-              //   columnId: overColumnId,
-              // });
+              moveCard({
+                id: activeCard.id,
+                columnId: overColumn.id,
+                groupId: null,
+              });
               break;
             }
           }
@@ -498,17 +450,133 @@ const KanbanBoard = <
         }
         case DraggableType.Group: {
           const activeGroup = activeData.data;
+          const activeColumnId = getColumnId(activeGroup) as number;
+          const activeColumn = columns.find(item => activeColumnId == item.id);
+          const activeIndex = cards.indexOf(activeGroup);
+
           switch (overData.type) {
             case DraggableType.Card: {
               const overCard = overData.data;
+
+              const overGroupId = getGroupId(overCard);
+              if (overGroupId) return;
+
+              const overColumnId = getColumnId(overCard);
+              if (!overColumnId)
+                throw new Error('overColumnId was not provided');
+
+              const overColumn = columns.find(
+                item => overColumnId == item.id,
+              ) as Column;
+              const overIndex = cards.indexOf(overCard);
+
+              if (!(existsIndex(activeIndex) && existsIndex(overIndex)))
+                throw new Error('activeIndex or overIndex was not provided');
+
+              let order: number | undefined = overCard.order;
+              if (activeColumn && activeColumn.id == overColumn.id) {
+                // если over - следующий за active - return
+                const nextIndexOfActiveInColumn = cards.findIndex(
+                  (card, index) =>
+                    getColumnId(card) == overColumn.id && index > activeIndex,
+                );
+                if (overIndex == nextIndexOfActiveInColumn) {
+                  return;
+                }
+
+                if (overIndex > activeIndex) {
+                  const prevIndexOfOverInColumn = cards.findLast(
+                    (card, index) =>
+                      getColumnId(card) == overColumnId && index < overIndex,
+                  );
+                  order = prevIndexOfOverInColumn?.order;
+                }
+              }
+
+              setColumnId(activeGroup, overColumn.id);
+              setCards(
+                arrayMove(
+                  cards,
+                  activeIndex,
+                  activeIndex > overIndex ? overIndex : overIndex - 1,
+                ),
+              );
+
+              moveGroup({ id: activeGroup.id, columnId: overColumn.id, order });
+
               break;
             }
             case DraggableType.Group: {
               const overGroup = overData.data;
+
+              const overColumnId = getColumnId(overGroup) as number;
+              const overColumn = columns.find(
+                item => overColumnId == item.id,
+              ) as Column;
+              const overIndex = cards.indexOf(overGroup);
+
+              let order: number | undefined = overGroup.order;
+
+              if (activeColumn && activeColumn.id == overColumn.id) {
+                // если over - следующий за active - return
+                const nextIndexOfActiveInColumn =
+                  existsIndex(activeIndex) &&
+                  cards.findIndex(
+                    (card, index) =>
+                      getColumnId(card) == overColumn.id && index > activeIndex,
+                  );
+                if (
+                  existsIndex(overIndex) &&
+                  overIndex == nextIndexOfActiveInColumn
+                ) {
+                  return;
+                }
+
+                if (overIndex > activeIndex) {
+                  const prevIndexOfOverInColumn = cards.findLast(
+                    (card, index) =>
+                      getColumnId(card) == overColumnId && index < overIndex,
+                  );
+                  order = prevIndexOfOverInColumn?.order;
+                }
+              }
+
+              const isInstead = isInsteadGroup(active, over);
+
+              if (
+                isInstead &&
+                existsIndex(activeIndex) &&
+                existsIndex(overIndex)
+              ) {
+                setColumnId(activeGroup, overColumn.id);
+                if (activeIndex > overIndex) {
+                  setCards(arrayMove(cards, activeIndex, overIndex));
+                } else {
+                  setCards(arrayMove(cards, activeIndex, overIndex - 1));
+                }
+              }
+
+              moveGroup({ id: activeGroup.id, columnId: overColumn.id, order });
+
               break;
             }
             case DraggableType.Column: {
               const overColumn = overData.data;
+
+              const lastIndexOnColumn = cards.findLastIndex(
+                card => getColumnId(card) == overColumn.id,
+              );
+              if (activeIndex == lastIndexOnColumn) return; // уже последний в этой колонке
+
+              setColumnId(activeGroup, overColumn.id);
+              if (activeIndex) {
+                setCards(arrayMove(cards, activeIndex, lastIndexOnColumn + 1));
+              } else {
+                setCards([...cards, activeGroup]);
+              }
+
+              moveGroup({ id: activeGroup.id, columnId: overColumn.id });
+
               break;
             }
           }
@@ -528,170 +596,6 @@ const KanbanBoard = <
           break;
         }
       }
-
-      /*if (activeDataRef.current.type === DraggableType.Card) {
-        const activeCard = activeDataRef.current.data;
-
-        const activeIndex = cards.findIndex(item => item.id == activeCard.id);
-
-        const id = activeCard.id;
-
-        switch (overDataRef.current.type) {
-          case DraggableType.Card: {
-            const overCard = overDataRef.current.data;
-            if (isInGroup(overCard)) {
-              const overGroupId = getGroupId(overCard);
-            } else {
-              const overColumnId = getColumnId(overCard);
-              const overIndex = cards.findIndex(item => item.id == overCard.id);
-              const nextIndexOfActiveInColumn = cards.findIndex(
-                (card, index) =>
-                  getColumnId(card) == overColumnId && index > activeIndex,
-              );
-              if (
-                overIndex == activeIndex ||
-                (overIndex == nextIndexOfActiveInColumn &&
-                  getColumnId(activeCardData) == overColumnId)
-              )
-                return;
-
-              setCards(cards => {
-                setColumnId(cards[activeIndex], overColumnId);
-                if (activeIndex > overIndex) {
-                  return arrayMove(cards, activeIndex, overIndex);
-                } else {
-                  return arrayMove(cards, activeIndex, overIndex - 1);
-                }
-              });
-
-              let order = overCardData.order;
-              if (
-                getColumnId(activeCardData) === overColumnId &&
-                overIndex > activeIndex
-              ) {
-                // если перемещается в конец в текущем столбце
-                const prevIndexOfOverInColumn = cards.findLast(
-                  (card, index) =>
-                    getColumnId(card) == overColumnId && index < overIndex,
-                );
-                order = prevIndexOfOverInColumn?.order;
-              }
-              moveCard({
-                id,
-                columnId: overColumnId,
-                order,
-              });
-            }
-
-            break;
-          }
-          case DraggableType.Group: {
-            const overGroup = overDataRef.current.data;
-
-            moveCard({
-              id,
-              groupId,
-            });
-            break;
-          }
-          case DraggableType.Column: {
-            const overColumn = overDataRef.current.data;
-            const overColumnId = getColumnId(overColumn.id);
-            const lastIndexOnColumn = cards.findLastIndex(
-              card => getColumnId(card) == overColumnId,
-            );
-            if (activeIndex == lastIndexOnColumn) return; // уже последний в этой колонке
-
-            setCards(items => {
-              setColumnId(items[activeIndex], overColumnId);
-              return arrayMove(items, activeIndex, lastIndexOnColumn + 1);
-            });
-            moveCard({
-              id,
-              columnId: overColumnId,
-            });
-            break;
-          }
-          default:
-            throw new Error(`Unknown type ${overData.type}`);
-        }
-      }
-
-      if (activeData.type === DraggableType.Group) {
-        const activeIndex = cards.findIndex(
-          item => item.id == activeData.data.id,
-        );
-        const activeCardData = activeData.data;
-
-        const overCard = overData.data;
-        const id = activeCardData.id;
-        let order: undefined | number;
-        const overColumnId =
-          overData.type === DraggableType.Card
-            ? getColumnId(overCard)
-            : overData.data.id;
-
-        if (overData.type === DraggableType.Column) {
-          const lastIndexOnColumn = cards.findLastIndex(
-            card => getColumnId(card) == overColumnId,
-          );
-          if (activeIndex == lastIndexOnColumn) return;
-
-          setCards(items => {
-            setColumnId(items[activeIndex], overColumnId);
-            return arrayMove(items, activeIndex, lastIndexOnColumn + 1);
-          });
-        } else {
-          const overIndex = cards.findIndex(item => item.id == overCard.id);
-          const nextIndexOfActiveOnColumn = cards.findIndex(
-            (card, index) =>
-              getColumnId(card) == overColumnId && index > activeIndex,
-          );
-          if (
-            overIndex == activeIndex ||
-            (overIndex == nextIndexOfActiveOnColumn &&
-              getColumnId(activeCardData) == overColumnId)
-          )
-            return;
-
-          setCards(cards => {
-            setColumnId(cards[activeIndex], overColumnId);
-            if (activeIndex > overIndex) {
-              return arrayMove(cards, activeIndex, overIndex);
-            } else {
-              return arrayMove(cards, activeIndex, overIndex - 1);
-            }
-          });
-
-          order = overCard.order;
-          if (
-            getColumnId(activeCardData) === overColumnId &&
-            overIndex > activeIndex
-          ) {
-            // если перемещается в конец в текущем слобце
-            const prevIndexOfOverOnColumn = cards.findLast(
-              (card, index) =>
-                getColumnId(card) == overColumnId && index < overIndex,
-            );
-            order = prevIndexOfOverOnColumn?.order;
-          }
-        }
-        // moveCard({
-        //   id,
-        //   columnId: overColumnId,
-        //   order,
-        // });
-      }
-
-      if (activeData.type === DraggableType.Column) {
-        setColumns(items => {
-          const activeIndex = items.indexOf(activeData.data);
-          const overIndex = items.indexOf(overData.data);
-          return arrayMove(items, activeIndex, overIndex);
-        });
-
-        // moveColumn(activeData.data, overData.data);
-      }*/
     },
     [cards, moveColumn, moveGroup, moveCard],
   );
@@ -712,7 +616,13 @@ const KanbanBoard = <
     }),
   );
 
-  function customCollisionDetectionAlgorithm(args) {
+  function customCollisionDetectionAlgorithm(args: {
+    active: Active;
+    collisionRect: ClientRect;
+    droppableRects: RectMap;
+    droppableContainers: DroppableContainer[];
+    pointerCoordinates: Coordinates | null;
+  }) {
     // First, let's see if there are any collisions with the pointer
     const pointerCollisions = pointerWithin(args);
     // console.log(
@@ -750,7 +660,6 @@ const KanbanBoard = <
         sensors={sensors}
         onDragStart={onDragStart}
         onDragEnd={onDragEnd}
-        onDragOver={onDragOver}
         // modifiers={
         //   modifiers &&
         //   modifiers({
@@ -779,6 +688,7 @@ const KanbanBoard = <
                   isGroup={isGroup}
                   items={cards.filter(card => getColumnId(card) == column.id)}
                   // loading={column.id === statusInLoadingId}
+                  getGroupId={getGroupId}
                   renderCard={renderCard}
                 />
               </React.Fragment>
@@ -795,15 +705,23 @@ const KanbanBoard = <
                 getGroupTitle={getGroupTitle}
                 getGroupItems={getGroupItems}
                 isGroup={isGroup}
+                getGroupId={getGroupId}
                 items={cards.filter(
                   card => getColumnId(card) == activeColumn.id,
                 )}
                 renderCard={renderCard}
               />
             )}
-            {activeCard && <KanbanCard card={activeCard} render={renderCard} />}
+            {activeCard && (
+              <KanbanCard
+                card={activeCard}
+                render={renderCard}
+                getGroupId={getGroupId}
+              />
+            )}
             {activeGroup && (
               <KanbanGroup
+                getGroupId={getGroupId}
                 group={activeGroup}
                 renderCard={renderCard}
                 getGroupItems={getGroupItems}

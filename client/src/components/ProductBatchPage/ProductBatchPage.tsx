@@ -4,12 +4,9 @@ import { useParams } from 'react-router-dom';
 import { useProductBatch } from '@/api/product-batch/product-batch.hook';
 import { useStatus } from '@/api/status/status.hooks';
 import KanbanBoard from '@/components/KanbanBoard/KanbanBoard';
-import {
-  CardOptions,
-  ColumnOptions,
-  MoveOptions,
-} from '@/components/KanbanBoard/types';
+import { MoveOptions } from '@/components/KanbanBoard/types';
 
+import { useKanban } from '../../api/kanban/kanban.hook';
 import { useProductBatchGroup } from '../../api/product-batch-group/product-batch-group.hook';
 import {
   ProductBatchFragment,
@@ -30,28 +27,11 @@ export const ProductBatchPage: FC = () => {
     loading: statusListLoading,
   } = useStatus();
 
-  const { productBatchList, moveProductBatch } = useProductBatch(
-    Number(productId),
-  );
-  const { productBatchGroupList, moveProductBatchGroup } = useProductBatchGroup(
+  const { kanbanCards, moveProductBatch, moveProductBatchGroup } = useKanban(
     Number(productId),
   );
 
-  const orderFunc = (a: { order: number }, b: { order: number }) =>
-    a.order - b.order;
-
-  const cards = useMemo(() => {
-    // const groupMap = new Map<number, ProductBatchGroupFragment>([
-    //   ...productBatchList
-    //     .filter(item => !!item.group)
-    //     .map(
-    //       item =>
-    //         [item.group?.id, item.group] as [number, ProductBatchGroupFragment],
-    //     ),
-    // ]);
-
-    return [...productBatchList, ...productBatchGroupList].toSorted(orderFunc);
-  }, [productBatchList, productBatchGroupList]);
+  const cards = useMemo(() => [...kanbanCards], [kanbanCards]);
 
   const isCardInNotCustomColumn = useCallback(
     (item?: ProductBatchFragment) => {
@@ -89,7 +69,7 @@ export const ProductBatchPage: FC = () => {
       //   );
       // }
     },
-    [statusList, productBatchList],
+    [statusList, cards],
   );
 
   const modifiers = useCallback(
@@ -102,7 +82,7 @@ export const ProductBatchPage: FC = () => {
       // if (activeCard && isCardInNotCustomColumn(activeCard))
       //   return [restrictToFirstScrollableAncestor];
     },
-    [statusList, productBatchList],
+    [statusList],
   );
 
   return (
@@ -115,18 +95,25 @@ export const ProductBatchPage: FC = () => {
       getColumnId={item => item.statusId}
       getGroupId={item => item.groupId}
       cardItems={cards}
-      moveCard={data =>
+      moveCard={data => {
         moveProductBatch({
           id: data.id,
           statusId: data.columnId,
+          groupId: data.groupId,
           order: data.order,
-        })
-      }
-      isGroup={item => (item as ProductBatchGroupFragment).productBatchList}
-      getGroupTitle={group => group.name}
+        });
+      }}
+      isGroup={item => item.__typename == 'ProductBatchGroupDto'}
+      getGroupTitle={group => `${group.name}_${group.order}`}
       getGroupItems={item => item.productBatchList}
       setGroupItems={(group, items) => (group.productBatchList = items)}
-      moveGroup={data => {}}
+      moveGroup={data => {
+        moveProductBatchGroup({
+          id: data.id,
+          statusId: data.columnId,
+          order: data.order,
+        });
+      }}
       isForbiddenMove={isForbiddenMove}
       modifiers={modifiers}
       renderCard={card => (

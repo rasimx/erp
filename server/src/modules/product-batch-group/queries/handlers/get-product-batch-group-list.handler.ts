@@ -10,13 +10,10 @@ export class GetProductBatchGroupListHandler
   implements IQueryHandler<GetProductBatchGroupListQuery>
 {
   constructor(
-    @InjectRepository(ProductBatchGroupEntity)
-    private readonly productBatchRepository: ProductBatchGroupRepository,
+    private readonly productBatchGroupRepository: ProductBatchGroupRepository,
   ) {}
 
   async execute(query: GetProductBatchGroupListQuery) {
-    return this.productBatchRepository.find({
-      relations: ['productBatchList', 'productBatchList.product', 'status'],
-    });
+    return this.productBatchGroupRepository.findItems();
   }
 }

@@ -39,7 +39,12 @@ export const ProductBatchCard = React.memo<Props>(({ card, loading }) => {
     <>
       <Card
         elevation={3}
-        sx={{ cursor: 'grab', position: 'relative', height: 180 }}
+        sx={{
+          cursor: 'grab',
+          position: 'relative',
+          height: 180,
+          backgroundColor: 'rgba(0,0,255,.1)',
+        }}
       >
         {loading && <Preloader />}
         <CardContent>

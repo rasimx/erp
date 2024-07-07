@@ -3,7 +3,7 @@ import React, { type FC, useCallback, useState } from 'react';
 
 import { useAppSelector } from '@/hooks';
 
-import { selectCheckedProductBatchList } from '../../api/product-batch/product-batch.slice';
+// import { selectCheckedProductBatchList } from '../../api/product-batch/product-batch.slice';
 import AddOperationForm from './AddOperationForm';
 
 const style = {
@@ -21,20 +21,21 @@ const style = {
 export interface Props {}
 
 const AddOperation: FC<Props> = () => {
-  const selectedProductBatches = useAppSelector(selectCheckedProductBatchList);
+  // const selectedProductBatches = useAppSelector(selectCheckedProductBatchList);
 
   const [isOpenModal, setIsOpenModal] = useState(false);
 
   const handleClose = useCallback(() => {
     setIsOpenModal(false);
   }, []);
-  const handleOpen = useCallback(() => {
-    if (selectedProductBatches.length) {
-      setIsOpenModal(true);
-    } else {
-      alert('Выбери партии');
-    }
-  }, [selectedProductBatches]);
+  // const handleOpen = useCallback(() => {
+  //   if (selectedProductBatches.length) {
+  //     setIsOpenModal(true);
+  //   } else {
+  //     alert('Выбери партии');
+  //   }
+  // }, [selectedProductBatches]);
+  const handleOpen = useCallback(() => {}, []);
 
   return (
     <>

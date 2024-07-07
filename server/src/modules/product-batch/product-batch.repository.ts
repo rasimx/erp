@@ -231,7 +231,7 @@ export class ProductBatchRepository extends Repository<ProductBatchEntity> {
     oldGroupId: number | null;
   }> {
     const { id, statusId, groupId } = dto;
-    if (!(statusId ?? groupId))
+    if (!(statusId || groupId))
       throw new BadRequestException('statusId or groupId');
 
     let order = dto.order;

@@ -14,9 +14,10 @@ export interface Props<
   card: Card;
   render: (data: Card) => ReactElement;
   isForbiddenMove?: IsForbiddenFunc<Column, Group, Card>;
+  getGroupId: (card: Card) => number | null;
 }
 
-export const getCardId = (item: SortableType) => `card_${item.id}`;
+export const getCardSortId = (item: SortableType) => `card_${item.id}`;
 
 const KanbanCard = <
   Column extends SortableType,
@@ -26,8 +27,9 @@ const KanbanCard = <
   card,
   render,
   isForbiddenMove,
+  getGroupId,
 }: Props<Column, Group, Card>) => {
-  const id = getCardId(card);
+  const id = getCardSortId(card);
 
   const {
     setNodeRef,
@@ -58,8 +60,12 @@ const KanbanCard = <
   };
 
   const showPrev = useMemo(() => {
+    const groupId = getGroupId(card);
+    const activeIsCard = active?.data.current?.type == DraggableType.Card;
+    const onlyCardInGroup = activeIsCard || (!activeIsCard && !groupId);
     return (
       isOver &&
+      onlyCardInGroup &&
       ((overIndex != -1 && activeIndex != -1 && overIndex - activeIndex != 1) ||
         overIndex == -1 ||
         activeIndex == -1) &&
@@ -110,7 +116,7 @@ const KanbanCard = <
         {...attributes}
         style={style}
         elevation={3}
-        sx={{ backgroundColor: 'rgba(0,0,0,.1)', p: 1 }}
+        // sx={{ backgroundColor: 'rgba(0,0,0,.1)', p: 1 }}
       >
         {/*<Button ref={setActivatorNodeRef} {...listeners}>*/}
         {/*  AAAA*/}

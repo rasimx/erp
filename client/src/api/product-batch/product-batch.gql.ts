@@ -5,6 +5,9 @@ export const PRODUCT_BATCH_LIST_QUERY = graphql(`
     productBatchList(productId: $productId) {
       ...ProductBatch
     }
+    productBatchGroupList(productId: $productId) {
+      ...ProductBatchGroup
+    }
   }
 `);
 
@@ -30,7 +33,7 @@ export const PRODUCT_BATCH_FRAGMENT = graphql(`
 export const MOVE_PRODUCT_BATCH_MUTATION = graphql(`
   mutation moveProductBatch($dto: MoveProductBatchDto!) {
     moveProductBatch(dto: $dto) {
-      ...ProductBatch
+      success
     }
   }
 `);

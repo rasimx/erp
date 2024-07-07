@@ -1,11 +1,12 @@
 import { Active, Over } from '@dnd-kit/core';
 import { SortableContext, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import styled from '@emotion/styled';
 import { Card, CircularProgress, Paper, Stack } from '@mui/material';
 import Box from '@mui/material/Box';
 import React, { ReactElement, useMemo } from 'react';
 
-import KanbanCard, { getCardId } from './KanbanCard';
+import KanbanCard, { getCardSortId } from './KanbanCard';
 import { DraggableType, IsForbiddenFunc, SortableType } from './types';
 
 const Preloader = () => {
@@ -25,6 +26,32 @@ const Preloader = () => {
   );
 };
 
+const Group = styled(Card)<{ showAfter: boolean }>`
+  height: 100%;
+  overflow: auto;
+  flex-grow: 1;
+  background-color: rgba(0, 0, 0, 0.1);
+  position: relative;
+  &::after {
+    content: '';
+    display: ${props => (props.showAfter ? 'block' : 'none')};
+    position: absolute;
+    //background: rgba(0, 0, 0, 0.5);
+    opacity: 0.2;
+    background: repeating-linear-gradient(
+      45deg,
+      #606dbc,
+      #606dbc 10px,
+      #465298 10px,
+      #465298 20px
+    );
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+  }
+`;
+
 export const isInsteadGroup = (active: Active | null, over: Over | null) => {
   if (!(active && over)) return;
   const overRect = over.rect;
@@ -32,8 +59,8 @@ export const isInsteadGroup = (active: Active | null, over: Over | null) => {
   return (
     overRect &&
     activeTranslated &&
-    Math.abs(overRect.top - activeTranslated.top) <
-      Math.abs(overRect.bottom - activeTranslated.bottom) + 50
+    Math.abs(overRect.top - activeTranslated.top) <=
+      Math.abs(overRect.bottom - activeTranslated.bottom)
   );
 };
 
@@ -49,9 +76,10 @@ export type Props<
   renderCard: (data: Card) => ReactElement;
   isActive?: boolean;
   isForbiddenMove?: IsForbiddenFunc<Column, Group, Card>;
+  getGroupId: (card: Card) => number | null;
 };
 
-export const getGroupId = (column: SortableType) => `group_${column.id}`;
+export const getGroupSortId = (column: SortableType) => `group_${column.id}`;
 
 const KanbanGroup = <
   Column extends SortableType,
@@ -65,10 +93,11 @@ const KanbanGroup = <
   isActive,
   renderCard,
   isForbiddenMove,
+  getGroupId,
 }: Props<Column, Group, Card>) => {
   const items = getGroupItems(group);
-  const itemsIds = items.map(item => getCardId(item));
-  const id = getGroupId(group);
+  const itemsIds = items.map(item => getCardSortId(item));
+  const id = getGroupSortId(group);
 
   const {
     setNodeRef,
@@ -94,7 +123,7 @@ const KanbanGroup = <
 
   const show = useMemo(() => {
     const lastCardId = items?.length
-      ? getCardId(items[items.length - 1])
+      ? getCardSortId(items[items.length - 1])
       : undefined;
 
     const activeIsCard = active?.data.current?.type == DraggableType.Card;
@@ -116,9 +145,10 @@ const KanbanGroup = <
   }, [isOver, items, over, isForbiddenMove]);
 
   const showPrev = useMemo(() => {
-    return show && isInsteadGroup(active, over);
+    console.log(isOver, isInsteadGroup(active, over));
+    return isOver && isInsteadGroup(active, over);
   }, [show, active, over]);
-  const showAfter = useMemo(() => {
+  const showInEnd = useMemo(() => {
     return show && !isInsteadGroup(active, over);
   }, [show, active, over]);
   // const showPrev = useMemo(() => {
@@ -173,9 +203,10 @@ const KanbanGroup = <
           }}
         ></Card>
       )}
-      <Box
+      <Group
+        showAfter={showInEnd}
         // component={isActive ? Paper : Box}
-        component={Card}
+        // component={Card}
         elevation={3}
         variant="elevation"
         ref={setNodeRef}
@@ -183,10 +214,12 @@ const KanbanGroup = <
         sx={{
           width: 280,
           position: 'relative',
-          height: '100%',
+          minHeight: '250px',
           display: 'flex',
           flexDirection: 'column',
-          backgroundColor: 'rgba(0,0,0,.1)',
+          backgroundColor: showInEnd
+            ? `rgba(0, 255, 0, 0.6)`
+            : 'rgba(0,255,0,.1)',
         }}
       >
         <Box
@@ -210,23 +243,24 @@ const KanbanGroup = <
                   card={card}
                   key={card.id}
                   isForbiddenMove={isForbiddenMove}
+                  getGroupId={getGroupId}
                   render={renderCard}
                 />
               ))}
             </SortableContext>
 
-            {showAfter && (
-              <Card
-                elevation={3}
-                sx={{
-                  height: 5,
-                  backgroundColor: 'rgba(0,255,0,.5)',
-                }}
-              ></Card>
-            )}
+            {/*{showInEnd && (*/}
+            {/*  <Card*/}
+            {/*    elevation={3}*/}
+            {/*    sx={{*/}
+            {/*      height: 5,*/}
+            {/*      backgroundColor: 'rgba(0,255,0,.5)',*/}
+            {/*    }}*/}
+            {/*  ></Card>*/}
+            {/*)}*/}
           </Stack>
         </Box>
-      </Box>
+      </Group>
     </React.Fragment>
   );
 };
