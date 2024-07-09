@@ -15,14 +15,20 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { format } from 'date-fns';
 import { useFormik } from 'formik';
 import React, { type FC, useEffect, useMemo, useState } from 'react';
-import * as Yup from 'yup';
+import { number, object, ObjectSchema, string } from 'yup';
 
 import { useAppDispatch, useAppSelector } from '@/hooks';
 
 import { useProductList } from '../../api/product/product.hooks';
-import { createProductBatchAsync } from '../../api/product-batch/product-batch.slice';
+// import { createProductBatchAsync } from '../../api/product-batch/product-batch.slice';
 import { selectStatusList } from '../../api/status/status.slice';
-import { SourceProductBatchFragment } from '../../gql-types/graphql';
+import {
+  CreateProductBatchDto,
+  CreateProductBatchGroupDto,
+  InputMaybe,
+  Scalars,
+  SourceProductBatchFragment,
+} from '../../gql-types/graphql';
 import SelectParentProductBatch from './SelectParentProductBatch';
 
 const style = {
@@ -54,6 +60,34 @@ type FormData = {
   statusId: number;
 };
 
+export const createProductBatchValidationSchema =
+  (): ObjectSchema<CreateProductBatchDto> => {
+    return object().shape({
+      parentId: number(),
+      count: number().required(),
+      name: string().when('parentId', {
+        is: (val: number | null) => !!val,
+        then: schema => schema.required(),
+      }),
+      productId: number().when('parentId', {
+        is: (val: number | null) => !!val,
+        then: schema => schema.required(),
+      }),
+      costPricePerUnit: number().when('parentId', {
+        is: (val: number | null) => !!val,
+        then: schema => schema.required(),
+      }),
+      date: string().when('parentId', {
+        is: (val: number | null) => !!val,
+        then: schema => schema.required(),
+      }),
+      statusId: number().when('parentId', {
+        is: (val: number | null) => !!val,
+        then: schema => schema.required(),
+      }),
+    });
+  };
+
 const AddProductBatchForm: FC<Props> = ({
   onSubmit,
   statusId,
@@ -65,19 +99,19 @@ const AddProductBatchForm: FC<Props> = ({
     parentBatch,
   );
 
-  const AddProductBatchSchema = useMemo(() => {
-    let count = Yup.number().required('Required');
-    if (parent) count = count.max(parent.count);
-    return Yup.object().shape({
-      name: Yup.string(),
-      productId: Yup.number(),
-      costPrice: Yup.number(),
-      count,
-      date: Yup.string().required('Required'),
-      // statusId: Yup.number().required('Required'),
-      statusId: Yup.number(),
-    });
-  }, [parent]);
+  // const AddProductBatchSchema = useMemo(() => {
+  //   let count = number().required('Required');
+  //   if (parent) count = count.max(parent.count);
+  //   return object().shape({
+  //     name: string(),
+  //     productId: number(),
+  //     costPrice: number(),
+  //     count,
+  //     date: string().required('Required'),
+  //     // statusId: Yup.number().required('Required'),
+  //     statusId: number(),
+  //   });
+  // }, [parent]);
 
   const { items: productList } = useProductList();
   const statusList = useAppSelector(selectStatusList);
@@ -91,16 +125,16 @@ const AddProductBatchForm: FC<Props> = ({
       count: parent?.count,
       date: new Date(),
     } as unknown as FormData,
-    validationSchema: AddProductBatchSchema,
+    validationSchema: createProductBatchValidationSchema(),
     onSubmit: async values => {
-      await dispatch(
-        createProductBatchAsync({
-          ...values,
-          statusId,
-          costPrice: values.costPrice * 100,
-          date: format(values.date, 'yyyy-MM-dd'),
-        }),
-      );
+      // await dispatch(
+      //   createProductBatchAsync({
+      //     ...values,
+      //     statusId,
+      //     costPrice: values.costPrice * 100,
+      //     date: format(values.date, 'yyyy-MM-dd'),
+      //   }),
+      // );
       onSubmit();
     },
   });

@@ -59,7 +59,7 @@ export type Props<
 > = {
   items: (Card | Group)[];
   column: Column;
-  getTitle: (column: Column) => string;
+  getColumnHeader: (column: Column) => ReactElement;
   getGroupTitle: (group: Group) => string;
   getGroupItems: (group: Group) => Card[];
   getGroupId: (card: Card) => number | null;
@@ -79,7 +79,7 @@ const KanbanColumn = <
 >({
   items,
   column,
-  getTitle,
+  getColumnHeader,
   getGroupTitle,
   getGroupItems,
   getGroupId,
@@ -186,7 +186,7 @@ const KanbanColumn = <
         {...attributes}
         {...listeners}
       >
-        {getTitle(column)}
+        {getColumnHeader(column)}
         {loading && <Preloader />}
       </Box>
       <Column showAfter={showAfter}>

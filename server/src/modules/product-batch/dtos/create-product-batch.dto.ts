@@ -15,9 +15,8 @@ export class CreateProductBatchDto {
   count: number;
 
   @IsNumber()
-  @IsNotEmpty()
-  @Field(() => Int)
-  statusId: number;
+  @Field(() => Int, { nullable: true })
+  statusId: number | null;
 
   @IsOptional()
   @IsNumber()

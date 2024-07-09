@@ -1,7 +1,7 @@
 import { graphql } from '@/gql-types';
 
 export const PRODUCT_BATCH_LIST_QUERY = graphql(`
-  query productBatchList($productId: Int!) {
+  query productBatchList($productId: Int) {
     productBatchList(productId: $productId) {
       ...ProductBatch
     }

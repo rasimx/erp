@@ -29,20 +29,14 @@ export class ProductBatchGroupResolver {
   ): Promise<ProductBatchGroupDto[]> {
     return this.service.productBatchGroupList(productId);
   }
-  //
-  // @Mutation('updateProductBatch')
-  // async updateProductBatch(
-  //   @Args('input') input: UpdateProductBatchInput,
-  // ): Promise<ProductBatch[]> {
-  //   return this.service.updateProductBatch(input);
-  // }
 
-  @Mutation(() => [ProductBatchGroupDto])
+  @Mutation(() => CommandResponse)
   async createProductBatchGroup(
     @Args('dto', { type: () => CreateProductBatchGroupDto })
     dto: CreateProductBatchGroupDto,
-  ): Promise<ProductBatchGroupDto[]> {
-    return this.service.createProductBatchGroup(dto);
+  ): Promise<CommandResponse> {
+    await this.service.createProductBatchGroup(dto);
+    return { success: true };
   }
 
   @Mutation(() => CommandResponse)

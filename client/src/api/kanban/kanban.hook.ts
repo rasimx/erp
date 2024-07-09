@@ -21,7 +21,7 @@ import {
 
 export type KanbanCard = ProductBatchFragment | ProductBatchGroupFragment;
 
-export const useKanban = (productId: number) => {
+export const useKanban = (productId?: number) => {
   const [kanbanCards, setKanbanCards] = useState<KanbanCard[]>([]);
   console.log(kanbanCards);
 

@@ -1,4 +1,5 @@
 import { ApolloProvider } from '@apollo/client';
+import NiceModal from '@ebay/nice-modal-react';
 import { createTheme, ThemeProvider } from '@mui/material';
 import CssBaseline from '@mui/material/CssBaseline';
 import { SnackbarProvider } from 'notistack';
@@ -15,20 +16,20 @@ type Props = {
   basename?: string;
 };
 
-const theme = createTheme({
-  components: {
-    MuiCssBaseline: {
-      styleOverrides: {
-        body: {
-          boxSizing: 'border-box',
-        },
-        '*, *::before, *::after': {
-          boxSizing: 'inherit',
-        },
-      },
-    },
-  },
-});
+// const theme = createTheme({
+//   components: {
+//     MuiCssBaseline: {
+//       styleOverrides: {
+//         body: {
+//           boxSizing: 'border-box',
+//         },
+//         '*, *::before, *::after': {
+//           boxSizing: 'inherit',
+//         },
+//       },
+//     },
+//   },
+// });
 
 const App: FC<Props> = ({ basename }) => {
   return (
@@ -36,10 +37,12 @@ const App: FC<Props> = ({ basename }) => {
       <CookiesProvider defaultSetOptions={{ path: '/graphql' }}>
         <SnackbarProvider maxSnack={3}>
           <ReduxProvider store={reduxStore}>
-            <ThemeProvider theme={theme}>
+            {/*<ThemeProvider theme={theme}>*/}
+            <NiceModal.Provider>
               <CssBaseline />
               <RouterProvider router={createRouter(basename)} />
-            </ThemeProvider>
+            </NiceModal.Provider>
+            {/*</ThemeProvider>*/}
           </ReduxProvider>
         </SnackbarProvider>
       </CookiesProvider>

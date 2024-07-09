@@ -23,7 +23,7 @@ export const MOVE_PRODUCT_BATCH_GROUP_MUTATION = graphql(`
 export const CREATE_PRODUCT_BATCH_GROUP_MUTATION = graphql(`
   mutation createProductBatchGroup($dto: CreateProductBatchGroupDto!) {
     createProductBatchGroup(dto: $dto) {
-      ...ProductBatchGroup
+      success
     }
   }
 `);

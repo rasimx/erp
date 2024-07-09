@@ -25,6 +25,9 @@ importers:
       '@dnd-kit/utilities':
         specifier: ^3.2.2
         version: 3.2.2(react@18.3.1)
+      '@ebay/nice-modal-react':
+        specifier: ^1.2.13
+        version: 1.2.13(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@emotion/react':
         specifier: ^11.11.4
         version: 11.11.4(@types/react@18.2.31)(react@18.3.1)
@@ -1195,6 +1198,12 @@ packages:
     resolution: {integrity: sha512-+MKAJEOfaBe5SmV6t34p80MMKhjvUz0vRrvVJbPT0WElzaOJ/1xs+D+KDv+tD/NE5ujfrChEcshd4fLn0wpiqg==}
     peerDependencies:
       react: '>=16.8.0'
+
+  '@ebay/nice-modal-react@1.2.13':
+    resolution: {integrity: sha512-jx8xIWe/Up4tpNuM02M+rbnLoxdngTGk3Y8LjJsLGXXcSoKd/+eZStZcAlIO/jwxyz/bhPZnpqPJZWAmhOofuA==}
+    peerDependencies:
+      react: '>16.8.0'
+      react-dom: '>16.8.0'
 
   '@emotion/babel-plugin@11.11.0':
     resolution: {integrity: sha512-m4HEDZleaaCH+XgDDsPF15Ht6wTLsgDTeR3WYj9Q/k76JtWhrJjcP4+/XlG8LGT/Rol9qUfOIztXeA84ATpqPQ==}
@@ -8634,6 +8643,11 @@ snapshots:
     dependencies:
       react: 18.3.1
       tslib: 2.6.3
+
+  '@ebay/nice-modal-react@1.2.13(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
+    dependencies:
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
 
   '@emotion/babel-plugin@11.11.0':
     dependencies:

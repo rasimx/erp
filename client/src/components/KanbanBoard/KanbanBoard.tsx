@@ -56,7 +56,7 @@ export type Props<
 > = {
   columnItems: Column[];
   moveColumn: (active: Column, over: Column) => void;
-  getColumnTitle: (column: Column) => string;
+  getColumnHeader: (column: Column) => ReactElement;
   isGroup: (item: Group | Card) => boolean;
   isInGroup: (item: Card) => boolean;
   getGroupTitle: (group: Group) => string;
@@ -89,7 +89,7 @@ const KanbanBoard = <
 >({
   columnItems,
   moveColumn,
-  getColumnTitle,
+  getColumnHeader,
   getColumnId,
   getGroupId,
   setGroupId,
@@ -242,18 +242,6 @@ const KanbanBoard = <
               }
 
               if (activeGroup && activeGroup.id == overGroup?.id) {
-                // если over - следующий за active - return
-                const nextIndexOfActiveInGroup =
-                  existsIndex(activeIndexInGroup) &&
-                  getGroupItems(overGroup).findIndex(
-                    (card, index) => index > activeIndexInGroup,
-                  );
-                if (
-                  existsIndex(overIndexInGroup) &&
-                  overIndexInGroup == nextIndexOfActiveInGroup
-                ) {
-                  return;
-                }
                 if (
                   !(
                     existsIndex(activeIndexInGroup) &&
@@ -261,6 +249,13 @@ const KanbanBoard = <
                   )
                 )
                   throw new Error('activeIndexInGroup or overIndexInGroup');
+                // если over - следующий за active - return
+                const nextIndexOfActiveInGroup = getGroupItems(
+                  overGroup,
+                ).findIndex((card, index) => index > activeIndexInGroup);
+                if (overIndexInGroup == nextIndexOfActiveInGroup) {
+                  return;
+                }
 
                 // если перемещается в конец в текущей группе - меняем order на предыдущего
                 if (overIndexInGroup > activeIndexInGroup) {
@@ -682,7 +677,7 @@ const KanbanBoard = <
                 <KanbanColumn
                   column={column}
                   isForbiddenMove={isForbiddenMove}
-                  getTitle={getColumnTitle}
+                  getColumnHeader={getColumnHeader}
                   getGroupTitle={getGroupTitle}
                   getGroupItems={getGroupItems}
                   isGroup={isGroup}
@@ -701,7 +696,7 @@ const KanbanBoard = <
               <KanbanColumn
                 isActive
                 column={activeColumn}
-                getTitle={getColumnTitle}
+                getColumnHeader={getColumnHeader}
                 getGroupTitle={getGroupTitle}
                 getGroupItems={getGroupItems}
                 isGroup={isGroup}
