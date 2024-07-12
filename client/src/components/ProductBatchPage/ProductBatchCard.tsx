@@ -1,15 +1,20 @@
+import MoreVertIcon from '@mui/icons-material/MoreVert';
 import {
   Card,
   CardContent,
   CircularProgress,
+  IconButton,
   List,
   ListItem,
   ListItemText,
+  Menu,
+  MenuItem,
   Typography,
 } from '@mui/material';
 import Box from '@mui/material/Box';
 import React from 'react';
 
+import { useProductBatch } from '../../api/product-batch/product-batch.hook';
 import { ProductBatchFragment } from '../../gql-types/graphql';
 
 const Preloader = () => {
@@ -31,10 +36,29 @@ const Preloader = () => {
 
 export interface Props {
   card: ProductBatchFragment;
+  refetch: () => void;
   loading?: boolean;
 }
 
-export const ProductBatchCard = React.memo<Props>(({ card, loading }) => {
+export const ProductBatchCard = React.memo<Props>(props => {
+  const { card, loading, refetch } = props;
+  const { deleteProductBatch } = useProductBatch();
+
+  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+  const open = Boolean(anchorEl);
+  const handleClick = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
+  const handleDelete = () => {
+    deleteProductBatch(card.id).then(() => {
+      handleClose();
+      refetch();
+    });
+  };
+
   return (
     <>
       <Card
@@ -47,6 +71,29 @@ export const ProductBatchCard = React.memo<Props>(({ card, loading }) => {
         }}
       >
         {loading && <Preloader />}
+        <>
+          <IconButton
+            aria-label="more"
+            id="long-button"
+            aria-controls={open ? 'long-menu' : undefined}
+            aria-expanded={open ? 'true' : undefined}
+            aria-haspopup="true"
+            onClick={handleClick}
+          >
+            <MoreVertIcon />
+          </IconButton>
+          <Menu
+            id="long-menu"
+            MenuListProps={{
+              'aria-labelledby': 'long-button',
+            }}
+            anchorEl={anchorEl}
+            open={open}
+            onClose={handleClose}
+          >
+            <MenuItem onClick={handleDelete}>Удалить</MenuItem>
+          </Menu>
+        </>
         <CardContent>
           <strong>{card.name}</strong>
           {/*<strong>{card.order}</strong>*/}

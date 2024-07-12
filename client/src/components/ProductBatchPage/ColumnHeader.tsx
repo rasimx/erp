@@ -52,7 +52,7 @@ export const ColumnHeader = React.memo<Props>(props => {
           });
       },
     });
-    setAnchorEl(null);
+    handleClose();
   }, [status]);
   const createProductBatchModal = useModal(CreateProductBatchForm);
   const showCreateProductBatchModal = useCallback(() => {
@@ -72,7 +72,7 @@ export const ColumnHeader = React.memo<Props>(props => {
           });
       },
     });
-    setAnchorEl(null);
+    handleClose();
   }, [status]);
 
   return (

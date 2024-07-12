@@ -10,12 +10,14 @@ import {
 } from '../../gql-types/graphql';
 import {
   CREATE_PRODUCT_BATCH_MUTATION,
+  DELETE_PRODUCT_BATCH_MUTATION,
   MOVE_PRODUCT_BATCH_MUTATION,
 } from './product-batch.gql';
 
 export type KanbanCard = ProductBatchFragment | ProductBatchGroupFragment;
 
 export const useProductBatch = () => {
+  const { enqueueSnackbar } = useSnackbar();
   const [create] = useMutation(CREATE_PRODUCT_BATCH_MUTATION);
   const createProductBatch = useCallback(
     (variables: {
@@ -42,9 +44,6 @@ export const useProductBatch = () => {
     [],
   );
   const [moveBatch] = useMutation(MOVE_PRODUCT_BATCH_MUTATION);
-
-  const { enqueueSnackbar } = useSnackbar();
-
   const moveProductBatch = useCallback((dto: MoveProductBatchDto) => {
     moveBatch({ variables: { dto } })
       .then(res => {})
@@ -58,5 +57,21 @@ export const useProductBatch = () => {
       });
   }, []);
 
-  return { moveProductBatch, createProductBatch };
+  const [deleteBatch] = useMutation(DELETE_PRODUCT_BATCH_MUTATION);
+  const deleteProductBatch = useCallback(
+    (id: number) =>
+      deleteBatch({ variables: { id } })
+        .then(res => {})
+        .catch(err => {
+          // todo: обработать ошику
+          enqueueSnackbar(err.message, {
+            variant: 'error',
+            anchorOrigin: { vertical: 'bottom', horizontal: 'left' },
+          });
+          // setKanbanCards([...kanbanCards]);
+        }),
+    [],
+  );
+
+  return { moveProductBatch, createProductBatch, deleteProductBatch };
 };

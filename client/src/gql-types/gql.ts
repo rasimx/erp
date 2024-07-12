@@ -21,7 +21,7 @@ const documents = {
     "\n  fragment ProductBatch on ProductBatchDto {\n    id\n    name\n    groupId\n    product {\n      sku\n      name\n    }\n    parentId\n    statusId\n    status {\n      id\n      title\n      order\n    }\n    count\n    costPricePerUnit\n    operationsPricePerUnit\n    date\n    order\n  }\n": types.ProductBatchFragmentDoc,
     "\n  mutation moveProductBatch($dto: MoveProductBatchDto!) {\n    moveProductBatch(dto: $dto) {\n      success\n    }\n  }\n": types.MoveProductBatchDocument,
     "\n  mutation createProductBatch(\n    $dto: CreateProductBatchDto!\n    $statusId: Int\n    $groupId: Int\n  ) {\n    createProductBatch(dto: $dto, statusId: $statusId, groupId: $groupId) {\n      success\n    }\n  }\n": types.CreateProductBatchDocument,
-    "\n  mutation deleteProductBatch($id: Int!) {\n    deleteProductBatch(id: $id)\n  }\n": types.DeleteProductBatchDocument,
+    "\n  mutation deleteProductBatch($id: Int!) {\n    deleteProductBatch(id: $id) {\n      success\n    }\n  }\n": types.DeleteProductBatchDocument,
     "\n  fragment Product on ProductDto {\n    id\n    name\n    sku\n  }\n": types.ProductFragmentDoc,
     "\n  query productList {\n    productList {\n      items {\n        ...Product\n      }\n    }\n  }\n": types.ProductListDocument,
     "\n  fragment Status on StatusDto {\n    id\n    title\n    type\n    order\n  }\n": types.StatusFragmentDoc,
@@ -79,7 +79,7 @@ export function graphql(source: "\n  mutation createProductBatch(\n    $dto: Cre
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  mutation deleteProductBatch($id: Int!) {\n    deleteProductBatch(id: $id)\n  }\n"): (typeof documents)["\n  mutation deleteProductBatch($id: Int!) {\n    deleteProductBatch(id: $id)\n  }\n"];
+export function graphql(source: "\n  mutation deleteProductBatch($id: Int!) {\n    deleteProductBatch(id: $id) {\n      success\n    }\n  }\n"): (typeof documents)["\n  mutation deleteProductBatch($id: Int!) {\n    deleteProductBatch(id: $id) {\n      success\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

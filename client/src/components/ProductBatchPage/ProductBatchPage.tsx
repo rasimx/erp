@@ -118,7 +118,10 @@ export const ProductBatchPage: FC = () => {
         isForbiddenMove={isForbiddenMove}
         modifiers={modifiers}
         renderCard={card => (
-          <ProductBatchCard card={card as ProductBatchFragment} />
+          <ProductBatchCard
+            card={card as ProductBatchFragment}
+            refetch={refetch}
+          />
         )}
       />
     </div>

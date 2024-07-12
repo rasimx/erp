@@ -57,6 +57,8 @@ export const CREATE_PRODUCT_BATCH_MUTATION = graphql(`
 
 export const DELETE_PRODUCT_BATCH_MUTATION = graphql(`
   mutation deleteProductBatch($id: Int!) {
-    deleteProductBatch(id: $id)
+    deleteProductBatch(id: $id) {
+      success
+    }
   }
 `);

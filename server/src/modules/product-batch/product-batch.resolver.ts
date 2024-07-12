@@ -4,6 +4,7 @@ import { Args, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
 
 import { UserInterceptor } from '@/auth/user.interceptor.js';
 import { CreateProductBatchCommand } from '@/product-batch/commands/impl/create-product-batch.command.js';
+import { DeleteProductBatchCommand } from '@/product-batch/commands/impl/delete-product-batch.command.js';
 import { MoveProductBatchCommand } from '@/product-batch/commands/impl/move-product-batch.command.js';
 import { CreateProductBatchDto } from '@/product-batch/dtos/create-product-batch.dto.js';
 import { MoveProductBatchDto } from '@/product-batch/dtos/move-product-batch.dto.js';
@@ -59,10 +60,11 @@ export class ProductBatchResolver {
     return { success: true };
   }
 
-  @Mutation(() => Int)
+  @Mutation(() => CommandResponse)
   async deleteProductBatch(
     @Args('id', { type: () => Int }) id: number,
-  ): Promise<void> {
-    return this.service.deleteProductBatchGroup(id);
+  ): Promise<CommandResponse> {
+    await this.commandBus.execute(new DeleteProductBatchCommand(id));
+    return { success: true };
   }
 }
