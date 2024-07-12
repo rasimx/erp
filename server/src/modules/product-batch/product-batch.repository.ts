@@ -11,7 +11,15 @@ import { ProductBatchGroupEntity } from '@/product-batch-group/product-batch-gro
 import { StatusEntity } from '@/status/status.entity.js';
 
 export class ProductBatchRepository extends Repository<ProductBatchEntity> {
-  async createFromDto(dto: CreateProductBatchDto) {
+  async createFromDto({
+    dto,
+    statusId,
+    groupId,
+  }: {
+    dto: CreateProductBatchDto;
+    statusId: number | null;
+    groupId: number | null;
+  }) {
     /*
      * если создается в новой колонке то order - последний
      * если создается в той же партии
@@ -34,23 +42,34 @@ export class ProductBatchRepository extends Repository<ProductBatchEntity> {
       await this.save(parent);
     }
 
-    const lastOrder = await this.getLastOrder(dto.statusId);
-    const order = lastOrder ? lastOrder + 1 : 1;
+    let order = 1;
+    if (groupId) {
+      const lastBatch = await this.findOne({
+        where: { groupId },
+        order: { order: 'DESC' },
+      });
+      if (lastBatch) {
+        order = lastBatch.order + 1;
+      }
+    } else if (statusId) {
+      const lastOrderInStatus = await this.getLastOrderInStatus(statusId);
+      if (lastOrderInStatus) {
+        order = lastOrderInStatus + 1;
+      }
+    }
 
     let newEntity = new ProductBatchEntity();
-    Object.assign(newEntity, dto, { order, operationsPricePerUnit: 0 });
-    if (parent) {
-      Object.assign(newEntity, omit(parent, ['id', 'order', 'count']), {
-        parent: parent,
-        count: dto.count,
-        order,
-      });
-    }
+    Object.assign(newEntity, dto, {
+      order,
+      operationsPricePerUnit: 0,
+      statusId,
+      groupId,
+    });
     newEntity = await this.save(newEntity);
     return newEntity;
   }
 
-  async getLastOrder(statusId: number): Promise<number | null> {
+  async getLastOrderInStatus(statusId: number): Promise<number | null> {
     const lastItems: (ProductBatchEntity | ProductBatchGroupEntity)[] = [];
     const lastUngroupedBatch = await this.findOne({
       where: { statusId: statusId, groupId: IsNull() },
@@ -251,7 +270,7 @@ export class ProductBatchRepository extends Repository<ProductBatchEntity> {
           groupId == batch.groupId ? lastBatch.order : lastBatch.order + 1;
       }
     } else if (statusId) {
-      const lastOrderInStatus = await this.getLastOrder(statusId);
+      const lastOrderInStatus = await this.getLastOrderInStatus(statusId);
       if (lastOrderInStatus) {
         lastOrder =
           statusId == batch.statusId

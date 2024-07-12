@@ -1,3 +1,4 @@
+import { Active, Over } from '@dnd-kit/core';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Button, Card } from '@mui/material';
@@ -15,6 +16,7 @@ export interface Props<
   render: (data: Card) => ReactElement;
   isForbiddenMove?: IsForbiddenFunc<Column, Group, Card>;
   getGroupId: (card: Card) => number | null;
+  onChangeStyles?: (active: Active, over: Over) => void;
 }
 
 export const getCardSortId = (item: SortableType) => `card_${item.id}`;
@@ -63,12 +65,16 @@ const KanbanCard = <
     const groupId = getGroupId(card);
     const activeIsCard = active?.data.current?.type == DraggableType.Card;
     const onlyCardInGroup = activeIsCard || (!activeIsCard && !groupId);
+
+    const isNotNextItem =
+      (overIndex != -1 && activeIndex != -1 && overIndex - activeIndex != 1) ||
+      overIndex == -1 ||
+      activeIndex == -1;
+
     return (
       isOver &&
       onlyCardInGroup &&
-      ((overIndex != -1 && activeIndex != -1 && overIndex - activeIndex != 1) ||
-        overIndex == -1 ||
-        activeIndex == -1) &&
+      isNotNextItem &&
       !(
         isForbiddenMove &&
         isForbiddenMove({

@@ -5,6 +5,11 @@ export const PRODUCT_BATCH_GROUP_FRAGMENT = graphql(`
     id
     name
     statusId
+    status {
+      id
+      title
+      order
+    }
     order
     productBatchList {
       ...ProductBatch

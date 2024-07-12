@@ -1,9 +1,11 @@
 import { SortableContext, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import styled from '@emotion/styled';
+import styled, { CreateStyled } from '@emotion/styled';
 import { Card, CircularProgress, Paper, Stack } from '@mui/material';
 import Box from '@mui/material/Box';
 import React, { ReactElement, useMemo } from 'react';
+
+import { transientOptions } from '@/utils';
 
 import KanbanCard, { getCardSortId } from './KanbanCard';
 import KanbanGroup, { getGroupSortId } from './KanbanGroup';
@@ -26,15 +28,16 @@ const Preloader = () => {
   );
 };
 
-const Column = styled(Box)<{ showAfter: boolean }>`
+const Column = styled(Box, transientOptions)<{ $showAfter: boolean }>`
   height: 100%;
   overflow: auto;
   flex-grow: 1;
   background-color: rgba(0, 0, 0, 0.1);
+  width: 300px;
   position: relative;
   &::after {
     content: '';
-    display: ${props => (props.showAfter ? 'block' : 'none')};
+    display: ${props => (props.$showAfter ? 'block' : 'none')};
     position: absolute;
     //background: rgba(0, 0, 0, 0.5);
     opacity: 0.2;
@@ -189,7 +192,7 @@ const KanbanColumn = <
         {getColumnHeader(column)}
         {loading && <Preloader />}
       </Box>
-      <Column showAfter={showAfter}>
+      <Column $showAfter={showAfter}>
         <Stack spacing={2} sx={{ p: 1 }}>
           <SortableContext items={itemsIds}>
             {items.map(item =>

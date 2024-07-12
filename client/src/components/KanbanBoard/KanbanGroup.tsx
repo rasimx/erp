@@ -1,10 +1,13 @@
-import { Active, Over } from '@dnd-kit/core';
+import { Active, DragMoveEvent, Over, useDndMonitor } from '@dnd-kit/core';
 import { SortableContext, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import styled from '@emotion/styled';
 import { Card, CircularProgress, Paper, Stack } from '@mui/material';
 import Box from '@mui/material/Box';
+import throttle from 'lodash/throttle';
 import React, { ReactElement, useMemo } from 'react';
+
+import { transientOptions } from '@/utils';
 
 import KanbanCard, { getCardSortId } from './KanbanCard';
 import { DraggableType, IsForbiddenFunc, SortableType } from './types';
@@ -26,7 +29,7 @@ const Preloader = () => {
   );
 };
 
-const Group = styled(Card)<{ showAfter: boolean }>`
+const Group = styled(Card, transientOptions)<{ $showAfter: boolean }>`
   height: 100%;
   overflow: auto;
   flex-grow: 1;
@@ -34,7 +37,7 @@ const Group = styled(Card)<{ showAfter: boolean }>`
   position: relative;
   &::after {
     content: '';
-    display: ${props => (props.showAfter ? 'block' : 'none')};
+    display: ${props => (props.$showAfter ? 'block' : 'none')};
     position: absolute;
     //background: rgba(0, 0, 0, 0.5);
     opacity: 0.2;
@@ -56,11 +59,10 @@ export const isInsteadGroup = (active: Active | null, over: Over | null) => {
   if (!(active && over)) return;
   const overRect = over.rect;
   const activeTranslated = active?.rect.current.translated;
-  return (
+  return !!(
     overRect &&
     activeTranslated &&
-    Math.abs(overRect.top - activeTranslated.top) <=
-      Math.abs(overRect.bottom - activeTranslated.bottom)
+    activeTranslated.top < overRect.top + 10
   );
 };
 
@@ -90,7 +92,6 @@ const KanbanGroup = <
   getGroupTitle,
   getGroupItems,
   loading,
-  isActive,
   renderCard,
   isForbiddenMove,
   getGroupId,
@@ -98,6 +99,7 @@ const KanbanGroup = <
   const items = getGroupItems(group);
   const itemsIds = items.map(item => getCardSortId(item));
   const id = getGroupSortId(group);
+  const [isInstead, setIsInstead] = React.useState<boolean | undefined>(false);
 
   const {
     setNodeRef,
@@ -112,7 +114,6 @@ const KanbanGroup = <
     over,
     overIndex,
     activeIndex,
-    rect,
   } = useSortable({
     id,
     data: {
@@ -121,7 +122,25 @@ const KanbanGroup = <
     },
   });
 
-  const show = useMemo(() => {
+  // todo: поправить время сработки
+  useDndMonitor({
+    onDragMove: throttle((event: DragMoveEvent) => {
+      if (isOver) {
+        const isInstead = isInsteadGroup(event.active, over);
+        setIsInstead(isInstead);
+      }
+    }, 300),
+  });
+
+  const showPrev = useMemo(() => {
+    const isNotNextItem =
+      (overIndex != -1 && activeIndex != -1 && overIndex - activeIndex != 1) ||
+      overIndex == -1 ||
+      activeIndex == -1;
+    return isOver && isInstead === true && isNotNextItem;
+  }, [isOver, isInstead, overIndex, activeIndex]);
+
+  const showOver = useMemo(() => {
     const lastCardId = items?.length
       ? getCardSortId(items[items.length - 1])
       : undefined;
@@ -141,37 +160,14 @@ const KanbanGroup = <
         },
       });
 
-    return isOver && activeIsCard && lastCardId != active?.id && !forbidden;
-  }, [isOver, items, over, isForbiddenMove]);
-
-  const showPrev = useMemo(() => {
-    console.log(isOver, isInsteadGroup(active, over));
-    return isOver && isInsteadGroup(active, over);
-  }, [show, active, over]);
-  const showInEnd = useMemo(() => {
-    return show && !isInsteadGroup(active, over);
-  }, [show, active, over]);
-  // const showPrev = useMemo(() => {
-  //   const forbidden =
-  //     isForbiddenMove &&
-  //     isForbiddenMove({
-  //       active: {
-  //         type: active?.data.current?.type,
-  //         data: active?.data.current?.data,
-  //       },
-  //       over: {
-  //         type: over?.data.current?.type,
-  //         data: over?.data.current?.data,
-  //       },
-  //     });
-  //   return (
-  //     isOver &&
-  //     ((overIndex != -1 && activeIndex != -1 && overIndex - activeIndex != 1) ||
-  //       overIndex == -1 ||
-  //       activeIndex == -1) &&
-  //     !forbidden
-  //   );
-  // }, [isOver, overIndex, activeIndex, isForbiddenMove, active, over]);
+    return (
+      isOver &&
+      activeIsCard &&
+      lastCardId != active?.id &&
+      !forbidden &&
+      isInstead === false
+    );
+  }, [isOver, isForbiddenMove, isInstead]);
 
   const style = {
     transition,
@@ -204,9 +200,7 @@ const KanbanGroup = <
         ></Card>
       )}
       <Group
-        showAfter={showInEnd}
-        // component={isActive ? Paper : Box}
-        // component={Card}
+        $showAfter={showOver}
         elevation={3}
         variant="elevation"
         ref={setNodeRef}
@@ -217,9 +211,6 @@ const KanbanGroup = <
           minHeight: '250px',
           display: 'flex',
           flexDirection: 'column',
-          backgroundColor: showInEnd
-            ? `rgba(0, 255, 0, 0.6)`
-            : 'rgba(0,255,0,.1)',
         }}
       >
         <Box
@@ -248,16 +239,6 @@ const KanbanGroup = <
                 />
               ))}
             </SortableContext>
-
-            {/*{showInEnd && (*/}
-            {/*  <Card*/}
-            {/*    elevation={3}*/}
-            {/*    sx={{*/}
-            {/*      height: 5,*/}
-            {/*      backgroundColor: 'rgba(0,255,0,.5)',*/}
-            {/*    }}*/}
-            {/*  ></Card>*/}
-            {/*)}*/}
           </Stack>
         </Box>
       </Group>

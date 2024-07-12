@@ -29,7 +29,7 @@ export class CreateProductBatchHandler
         this.productBatchRepository,
       );
 
-      const entity = await productBatchRepository.createFromDto(dto);
+      const entity = await productBatchRepository.createFromDto(command);
       await this.productBatchEventStore.createProductBatch(entity.id, dto);
       if (dto.parentId) {
         // todo: если вдруг второй ивент упадет с ошибкой. нужно предыдущее отменить

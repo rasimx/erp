@@ -1,11 +1,5 @@
 import { Field, InputType, Int } from '@nestjs/graphql';
-import {
-  IsNotEmpty,
-  IsNumber,
-  IsOptional,
-  IsString,
-  ValidateIf,
-} from 'class-validator';
+import { IsNotEmpty, IsNumber, IsOptional } from 'class-validator';
 
 @InputType()
 export class CreateProductBatchDto {
@@ -14,38 +8,24 @@ export class CreateProductBatchDto {
   @Field(() => Int)
   count: number;
 
-  @IsNumber()
-  @Field(() => Int, { nullable: true })
-  statusId: number | null;
-
   @IsOptional()
   @IsNumber()
   @Field(() => Int, { nullable: true })
   parentId?: number | null;
 
-  @ValidateIf((o: CreateProductBatchDto) => !o.parentId)
-  @IsNumber(
-    {},
-    { message: 'productId is required if parentId is not provided' },
-  )
-  @Field(() => Int, { nullable: true })
-  productId?: number | null;
+  @IsNumber()
+  @Field(() => Int)
+  productId: number;
 
-  @ValidateIf((o: CreateProductBatchDto) => !o.parentId)
-  @IsNotEmpty({ message: 'date is required if parentId is not provided' })
-  @Field(() => String, { nullable: true })
-  date?: string | null;
+  @IsNotEmpty()
+  @Field(() => String)
+  date: string;
 
-  @ValidateIf((o: CreateProductBatchDto) => !o.parentId)
-  @IsNotEmpty({ message: 'name is required if parentId is not provided' })
-  @Field(() => String, { nullable: true })
-  name?: string | null;
+  @IsNotEmpty()
+  @Field(() => String)
+  name: string;
 
-  @ValidateIf((o: CreateProductBatchDto) => !o.parentId)
-  @IsNumber(
-    {},
-    { message: 'costPricePerUnit is required if parentId is not provided' },
-  )
-  @Field(() => Int, { nullable: true })
-  costPricePerUnit?: number | null;
+  @IsNumber()
+  @Field(() => Int)
+  costPricePerUnit: number;
 }

@@ -1,6 +1,6 @@
 import { useMutation, useQuery } from '@apollo/client';
 import { useSnackbar } from 'notistack';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { getFragmentData } from '../../gql-types';
 import {
@@ -23,7 +23,6 @@ export type KanbanCard = ProductBatchFragment | ProductBatchGroupFragment;
 
 export const useKanban = (productId?: number) => {
   const [kanbanCards, setKanbanCards] = useState<KanbanCard[]>([]);
-  console.log(kanbanCards);
 
   const [moveBatch] = useMutation(MOVE_PRODUCT_BATCH_MUTATION);
   const [moveGroup] = useMutation(MOVE_PRODUCT_BATCH_GROUP_MUTATION);
@@ -89,5 +88,5 @@ export const useKanban = (productId?: number) => {
     [kanbanCards],
   );
 
-  return { kanbanCards, moveProductBatch, moveProductBatchGroup };
+  return { kanbanCards, moveProductBatch, moveProductBatchGroup, refetch };
 };

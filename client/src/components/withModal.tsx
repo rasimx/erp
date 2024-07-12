@@ -16,7 +16,7 @@ export default function withModal<P extends object>(
       >
         {/* тут нужен <>Fragment, иначе ошибка ootRef.current.contains*/}
         <>
-          <WrappedComponent {...props} />
+          <WrappedComponent {...props} closeModal={() => modal.hide()} />
         </>
       </Modal>
     );

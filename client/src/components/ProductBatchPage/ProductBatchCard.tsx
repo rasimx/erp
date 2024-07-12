@@ -42,7 +42,7 @@ export const ProductBatchCard = React.memo<Props>(({ card, loading }) => {
         sx={{
           cursor: 'grab',
           position: 'relative',
-          height: 180,
+          height: 280,
           backgroundColor: 'rgba(0,0,255,.1)',
         }}
       >
@@ -77,20 +77,18 @@ export const ProductBatchCard = React.memo<Props>(({ card, loading }) => {
             {/*    secondary={card.product.name}*/}
             {/*  />*/}
             {/*</ListItem>*/}
-            {/*<ListItem*/}
-            {/*  disableGutters*/}
-            {/*  secondaryAction={<Typography>{card.count}</Typography>}*/}
-            {/*>*/}
-            {/*  <ListItemText primary="количество" />*/}
-            {/*</ListItem>*/}
-            {/*<ListItem*/}
-            {/*  disableGutters*/}
-            {/*  secondaryAction={*/}
-            {/*    <Typography>{(card.costPrice / 100).toFixed(2)}</Typography>*/}
-            {/*  }*/}
-            {/*>*/}
-            {/*  <ListItemText primary="цена закупки" />*/}
-            {/*</ListItem>*/}
+            <ListItem
+              disableGutters
+              secondaryAction={<Typography>{card.count}</Typography>}
+            >
+              <ListItemText primary="количество" />
+            </ListItem>
+            <ListItem
+              disableGutters
+              secondaryAction={<Typography>150 р</Typography>}
+            >
+              <ListItemText primary="цена закупки" />
+            </ListItem>
             {/*<ListItem*/}
             {/*  disableGutters*/}
             {/*  secondaryAction={*/}
@@ -99,14 +97,12 @@ export const ProductBatchCard = React.memo<Props>(({ card, loading }) => {
             {/*>*/}
             {/*  <ListItemText primary="с/с единицы" />*/}
             {/*</ListItem>*/}
-            {/*<ListItem*/}
-            {/*  disableGutters*/}
-            {/*  secondaryAction={*/}
-            {/*    <Typography>{(card.fullPrice / 100).toFixed(2)}</Typography>*/}
-            {/*  }*/}
-            {/*>*/}
-            {/*  <ListItemText primary="с/с партии" />*/}
-            {/*</ListItem>*/}
+            <ListItem
+              disableGutters
+              secondaryAction={<Typography>241 р</Typography>}
+            >
+              <ListItemText primary="с/с партии" />
+            </ListItem>
           </List>
         </CardContent>
       </Card>

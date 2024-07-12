@@ -26,9 +26,8 @@ export const ProductBatchPage: FC = () => {
     loading: statusListLoading,
   } = useStatus();
 
-  const { kanbanCards, moveProductBatch, moveProductBatchGroup } = useKanban(
-    Number(productId),
-  );
+  const { kanbanCards, moveProductBatch, moveProductBatchGroup, refetch } =
+    useKanban(Number(productId));
 
   const cards = useMemo(() => [...kanbanCards], [kanbanCards]);
 
@@ -88,7 +87,9 @@ export const ProductBatchPage: FC = () => {
     <div>
       <KanbanBoard
         columnItems={statusList}
-        getColumnHeader={status => <ColumnHeader status={status} />}
+        getColumnHeader={status => (
+          <ColumnHeader status={status} refetch={refetch} />
+        )}
         moveColumn={moveStatus}
         setColumnId={(item, newColumnId) => (item.statusId = newColumnId)}
         setGroupId={(item, newGroupId) => (item.groupId = newGroupId)}

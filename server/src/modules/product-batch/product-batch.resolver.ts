@@ -3,6 +3,7 @@ import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { Args, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
 
 import { UserInterceptor } from '@/auth/user.interceptor.js';
+import { CreateProductBatchCommand } from '@/product-batch/commands/impl/create-product-batch.command.js';
 import { MoveProductBatchCommand } from '@/product-batch/commands/impl/move-product-batch.command.js';
 import { CreateProductBatchDto } from '@/product-batch/dtos/create-product-batch.dto.js';
 import { MoveProductBatchDto } from '@/product-batch/dtos/move-product-batch.dto.js';
@@ -34,12 +35,19 @@ export class ProductBatchResolver {
   //   return this.service.updateProductBatch(input);
   // }
 
-  @Mutation(() => [ProductBatchDto])
+  @Mutation(() => CommandResponse)
   async createProductBatch(
     @Args('dto', { type: () => CreateProductBatchDto })
     dto: CreateProductBatchDto,
-  ): Promise<ProductBatchDto[]> {
-    return this.service.createProductBatchGroup(dto);
+    @Args('statusId', { type: () => Int, nullable: true })
+    statusId: number | null,
+    @Args('groupId', { type: () => Int, nullable: true })
+    groupId: number | null,
+  ): Promise<CommandResponse> {
+    await this.commandBus.execute(
+      new CreateProductBatchCommand(dto, statusId, groupId),
+    );
+    return { success: true };
   }
 
   @Mutation(() => CommandResponse)

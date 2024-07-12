@@ -1,7 +1,9 @@
+import { BadRequestException } from '@nestjs/common';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { IsNull, Repository } from 'typeorm';
+import { In, IsNull, Repository } from 'typeorm';
 
 import { ProductBatchEntity } from '@/product-batch/product-batch.entity.js';
+import { ProductBatchRepository } from '@/product-batch/product-batch.repository.js';
 import type { CreateProductBatchGroupDto } from '@/product-batch-group/dtos/create-product-batch-group.dto.js';
 import type { MoveProductBatchGroupDto } from '@/product-batch-group/dtos/move-product-batch-group.dto.js';
 import { ProductBatchGroupEntity } from '@/product-batch-group/product-batch-group.entity.js';
@@ -34,6 +36,47 @@ export class ProductBatchGroupRepository extends Repository<ProductBatchGroupEnt
     let newEntity = new ProductBatchGroupEntity();
     Object.assign(newEntity, dto, { order });
     newEntity = await this.save(newEntity);
+
+    if (dto.existProductBatchIds.length) {
+      const existProductBatches = await this.manager.find(ProductBatchEntity, {
+        where: { id: In(dto.existProductBatchIds) },
+      });
+      const existIds = existProductBatches.map(({ id }) => id);
+      const notFoundIds = dto.existProductBatchIds.filter(
+        id => !existIds.includes(id),
+      );
+      if (notFoundIds.length) {
+        throw new BadRequestException(
+          `not found batches: ${notFoundIds.join(',')}`,
+        );
+      }
+      newEntity.productBatchList = existProductBatches;
+    }
+    if (dto.newProductBatches.length) {
+      const productBatchRepository = new ProductBatchRepository(
+        ProductBatchEntity,
+        this.manager,
+        this.queryRunner,
+      );
+      const items: ProductBatchEntity[] = [];
+      for (const item of dto.newProductBatches) {
+        items.push(
+          await productBatchRepository.createFromDto({
+            dto: item,
+            groupId: newEntity.id,
+          }),
+        );
+      }
+
+      newEntity.productBatchList = [
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+        ...(newEntity.productBatchList || []),
+        ...items,
+      ];
+    }
+
+    newEntity = await this.save(newEntity);
+
     return newEntity;
   }
 

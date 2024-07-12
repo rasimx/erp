@@ -1,9 +1,11 @@
 import {
+  Active,
   ClientRect,
   DndContext,
   DragEndEvent,
   DragOverlay,
   DragStartEvent,
+  DroppableContainer,
   MeasuringConfiguration,
   MeasuringStrategy,
   PointerSensor,
@@ -12,11 +14,7 @@ import {
   useSensor,
   useSensors,
 } from '@dnd-kit/core';
-import type {
-  Active,
-  DroppableContainer,
-  RectMap,
-} from '@dnd-kit/core/dist/store';
+import { RectMap } from '@dnd-kit/core/dist/store';
 import { arrayMove, SortableContext } from '@dnd-kit/sortable';
 import { Coordinates } from '@dnd-kit/utilities';
 import { Box, Divider, Stack } from '@mui/material';
@@ -427,7 +425,7 @@ const KanbanBoard = <
               }
 
               setColumnId(activeCard, overColumn.id);
-              if (activeIndex) {
+              if (existsIndex(activeIndex)) {
                 setCards(arrayMove(cards, activeIndex, lastIndexOnColumn + 1));
               } else {
                 setCards([...cards, activeCard]);

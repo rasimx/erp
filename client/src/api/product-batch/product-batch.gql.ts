@@ -22,6 +22,11 @@ export const PRODUCT_BATCH_FRAGMENT = graphql(`
     }
     parentId
     statusId
+    status {
+      id
+      title
+      order
+    }
     count
     costPricePerUnit
     operationsPricePerUnit
@@ -39,9 +44,13 @@ export const MOVE_PRODUCT_BATCH_MUTATION = graphql(`
 `);
 
 export const CREATE_PRODUCT_BATCH_MUTATION = graphql(`
-  mutation createProductBatch($dto: CreateProductBatchDto!) {
-    createProductBatch(dto: $dto) {
-      ...ProductBatch
+  mutation createProductBatch(
+    $dto: CreateProductBatchDto!
+    $statusId: Int
+    $groupId: Int
+  ) {
+    createProductBatch(dto: $dto, statusId: $statusId, groupId: $groupId) {
+      success
     }
   }
 `);
