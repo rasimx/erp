@@ -104,7 +104,7 @@ const Form: FC<Props & FormikProps<FormValues>> = props => {
       >
         Добавить новую партию
       </Button>
-      {props.values.newProductBatches?.length && (
+      {!!props.values.newProductBatches?.length && (
         <TableContainer component={Paper}>
           <Table sx={{ minWidth: 650 }} aria-label="simple table">
             <TableHead>
@@ -187,7 +187,7 @@ const Form: FC<Props & FormikProps<FormValues>> = props => {
       >
         Добавить существующую партию
       </Button>
-      {props.values.existProductBatches?.length && (
+      {!!props.values.existProductBatches?.length && (
         <TableContainer component={Paper}>
           <Table sx={{ minWidth: 650 }} aria-label="simple table">
             <TableHead>

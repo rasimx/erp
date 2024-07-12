@@ -11,6 +11,10 @@ export type CreateProductBatchGroupEvent = JSONEventType<
   'CreateProductBatchGroup',
   JSONCompatible<CreateProductBatchGroupDto>
 >;
+export type DeleteProductBatchGroupEvent = JSONEventType<
+  'DeleteProductBatchGroup',
+  JSONCompatible<{ id: number }>
+>;
 export type MoveProductBatchGroupEvent = JSONEventType<
   'MoveProductBatchGroup',
   JSONCompatible<MoveProductBatchGroupDto>
@@ -24,6 +28,16 @@ export class ProductBatchGroupEventStore {
     const event = jsonEvent<CreateProductBatchGroupEvent>({
       type: 'CreateProductBatchGroup',
       data: dto,
+    });
+
+    const STREAM_NAME = `ProductBatchGroup-${id.toString()}`;
+
+    await this.eventStoreService.appendToStream(STREAM_NAME, event);
+  }
+  async deleteProductBatchGroup(id: number) {
+    const event = jsonEvent<DeleteProductBatchGroupEvent>({
+      type: 'DeleteProductBatchGroup',
+      data: { id },
     });
 
     const STREAM_NAME = `ProductBatchGroup-${id.toString()}`;

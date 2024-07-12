@@ -1,5 +1,6 @@
 import {
   Column,
+  DeleteDateColumn,
   Entity,
   JoinColumn,
   ManyToOne,
@@ -40,4 +41,7 @@ export class ProductBatchGroupEntity {
 
   @OneToMany(() => ProductBatchEntity, entity => entity.group)
   productBatchList: ProductBatchEntity[];
+
+  @DeleteDateColumn({ nullable: true })
+  deletedDate: Date | null;
 }

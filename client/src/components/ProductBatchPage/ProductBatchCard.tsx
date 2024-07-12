@@ -132,7 +132,9 @@ export const ProductBatchCard = React.memo<Props>(props => {
             </ListItem>
             <ListItem
               disableGutters
-              secondaryAction={<Typography>150 р</Typography>}
+              secondaryAction={
+                <Typography>{card.costPricePerUnit} р</Typography>
+              }
             >
               <ListItemText primary="цена закупки" />
             </ListItem>

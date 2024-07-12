@@ -9,6 +9,7 @@ import { ProductBatchModule } from '@/product-batch/product-batch.module.js';
 import { StatusModule } from '@/status/status.module.js';
 
 import { CreateProductBatchGroupHandler } from './commands/handlers/create-product-batch-group.handler.js';
+import { DeleteProductBatchGroupHandler } from './commands/handlers/delete-product-batch-group.handler.js';
 import { MoveProductBatchGroupHandler } from './commands/handlers/move-product-batch-group.handler.js';
 import { ProductBatchGroupEventStore } from './prodict-batch-group.eventstore.js';
 import { ProductBatchGroupEntity } from './product-batch-group.entity.js';
@@ -34,6 +35,7 @@ import { GetProductBatchGroupListHandler } from './queries/handlers/get-product-
     GetProductBatchGroupListHandler,
     CreateProductBatchGroupHandler,
     MoveProductBatchGroupHandler,
+    DeleteProductBatchGroupHandler,
     ProductBatchGroupRepositoryProvider,
   ],
   exports: [ProductBatchGroupService, ProductBatchGroupRepositoryProvider],

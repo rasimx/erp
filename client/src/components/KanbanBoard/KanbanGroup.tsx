@@ -72,7 +72,7 @@ export type Props<
   Card extends SortableType,
 > = {
   group: Group;
-  getGroupTitle: (group: Group) => string;
+  renderGroupTitle: (group: Group) => ReactElement;
   getGroupItems: (group: Group) => Card[];
   loading?: boolean;
   renderCard: (data: Card) => ReactElement;
@@ -89,7 +89,7 @@ const KanbanGroup = <
   Card extends SortableType,
 >({
   group,
-  getGroupTitle,
+  renderGroupTitle,
   getGroupItems,
   loading,
   renderCard,
@@ -223,7 +223,7 @@ const KanbanGroup = <
           {...attributes}
           {...listeners}
         >
-          {getGroupTitle(group)}
+          {renderGroupTitle(group)}
           {loading && <Preloader />}
         </Box>
         <Box>

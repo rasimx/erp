@@ -13,6 +13,7 @@ import {
   StatusType,
 } from '../../gql-types/graphql';
 import ColumnHeader from './ColumnHeader';
+import GroupHeader from './GroupHeader';
 // import CreateProductBatchGroupForm from '../CreateProductBatchGroup/CreateProductBatchGroupForm';
 import { ProductBatchCard } from './ProductBatchCard';
 // import ProductBatchGroupCard from './ProductBatchGroupCard';
@@ -105,7 +106,9 @@ export const ProductBatchPage: FC = () => {
           });
         }}
         isGroup={item => item.__typename == 'ProductBatchGroupDto'}
-        getGroupTitle={group => `${group.name}_${group.order}`}
+        renderGroupTitle={group => (
+          <GroupHeader group={group} refetch={refetch} />
+        )}
         getGroupItems={item => item.productBatchList}
         setGroupItems={(group, items) => (group.productBatchList = items)}
         moveGroup={data => {

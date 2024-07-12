@@ -40,19 +40,19 @@ export class ProductBatchService {
     return this.queryBus.execute(new GetProductBatchListQuery(productId));
   }
 
-  async createProductBatchGroup(dto: CreateProductBatchDto) {
-    await this.commandBus.execute(new CreateProductBatchCommand(dto));
-    return this.queryBus.execute(new GetProductBatchListQuery());
-  }
-  async moveProductBatchGroup(dto: MoveProductBatchDto) {
-    await this.commandBus.execute(new MoveProductBatchCommand(dto));
-    return this.queryBus.execute(new GetProductBatchListQuery());
-  }
-
-  async deleteProductBatchGroup(id: number) {
-    // await this.commandBus.execute(new MoveProductBatchCommand(dto));
-    // return this.queryBus.execute(new GetProductBatchListQuery());
-  }
+  // async createProductBatchGroup(dto: CreateProductBatchDto) {
+  //   await this.commandBus.execute(new CreateProductBatchCommand(dto));
+  //   return this.queryBus.execute(new GetProductBatchListQuery());
+  // }
+  // async moveProductBatchGroup(dto: MoveProductBatchDto) {
+  //   await this.commandBus.execute(new MoveProductBatchCommand(dto));
+  //   return this.queryBus.execute(new GetProductBatchListQuery());
+  // }
+  //
+  // async deleteProductBatchGroup(id: number) {
+  //   // await this.commandBus.execute(new MoveProductBatchCommand(dto));
+  //   // return this.queryBus.execute(new GetProductBatchListQuery());
+  // }
 
   // async getProductBatchesMapByStatusId(
   //   productBatches: {

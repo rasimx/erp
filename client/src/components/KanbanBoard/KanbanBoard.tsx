@@ -57,7 +57,7 @@ export type Props<
   getColumnHeader: (column: Column) => ReactElement;
   isGroup: (item: Group | Card) => boolean;
   isInGroup: (item: Card) => boolean;
-  getGroupTitle: (group: Group) => string;
+  renderGroupTitle: (group: Group) => ReactElement;
   getGroupItems: (group: Group) => Card[];
   setGroupItems: (group: Group, items: Card[]) => Group;
   moveGroup: (data: { id: number; columnId: number; order?: number }) => void;
@@ -91,7 +91,7 @@ const KanbanBoard = <
   getColumnId,
   getGroupId,
   setGroupId,
-  getGroupTitle,
+  renderGroupTitle,
   isGroup,
   getGroupItems,
   setGroupItems,
@@ -562,12 +562,7 @@ const KanbanBoard = <
               if (activeIndex == lastIndexOnColumn) return; // уже последний в этой колонке
 
               setColumnId(activeGroup, overColumn.id);
-              if (activeIndex) {
-                setCards(arrayMove(cards, activeIndex, lastIndexOnColumn + 1));
-              } else {
-                setCards([...cards, activeGroup]);
-              }
-
+              setCards(arrayMove(cards, activeIndex, lastIndexOnColumn + 1));
               moveGroup({ id: activeGroup.id, columnId: overColumn.id });
 
               break;
@@ -676,7 +671,7 @@ const KanbanBoard = <
                   column={column}
                   isForbiddenMove={isForbiddenMove}
                   getColumnHeader={getColumnHeader}
-                  getGroupTitle={getGroupTitle}
+                  renderGroupTitle={renderGroupTitle}
                   getGroupItems={getGroupItems}
                   isGroup={isGroup}
                   items={cards.filter(card => getColumnId(card) == column.id)}
@@ -695,7 +690,7 @@ const KanbanBoard = <
                 isActive
                 column={activeColumn}
                 getColumnHeader={getColumnHeader}
-                getGroupTitle={getGroupTitle}
+                renderGroupTitle={renderGroupTitle}
                 getGroupItems={getGroupItems}
                 isGroup={isGroup}
                 getGroupId={getGroupId}
@@ -718,7 +713,7 @@ const KanbanBoard = <
                 group={activeGroup}
                 renderCard={renderCard}
                 getGroupItems={getGroupItems}
-                getGroupTitle={getGroupTitle}
+                renderGroupTitle={renderGroupTitle}
               />
             )}
           </DragOverlay>,

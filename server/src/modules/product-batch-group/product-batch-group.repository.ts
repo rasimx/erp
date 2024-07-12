@@ -64,6 +64,7 @@ export class ProductBatchGroupRepository extends Repository<ProductBatchGroupEnt
           await productBatchRepository.createFromDto({
             dto: item,
             groupId: newEntity.id,
+            statusId: null,
           }),
         );
       }
@@ -261,13 +262,15 @@ export class ProductBatchGroupRepository extends Repository<ProductBatchGroupEnt
     };
   }
 
-  async findItems() {
+  // todo: productId
+  async findItems(productId?: number) {
     return this.createQueryBuilder('pbg')
       .leftJoinAndSelect('pbg.productBatchList', 'productBatchList')
       .leftJoinAndSelect('productBatchList.product', 'product')
       .leftJoinAndSelect('pbg.status', 'status')
       .orderBy('pbg.order', 'ASC')
       .orderBy('productBatchList.order', 'ASC')
+      .where('deleted_date is null')
       .getMany();
   }
 }

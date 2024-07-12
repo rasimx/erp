@@ -63,7 +63,7 @@ export type Props<
   items: (Card | Group)[];
   column: Column;
   getColumnHeader: (column: Column) => ReactElement;
-  getGroupTitle: (group: Group) => string;
+  renderGroupTitle: (group: Group) => ReactElement;
   getGroupItems: (group: Group) => Card[];
   getGroupId: (card: Card) => number | null;
   isGroup: (cardOrGroup: Card | Group) => boolean;
@@ -83,7 +83,7 @@ const KanbanColumn = <
   items,
   column,
   getColumnHeader,
-  getGroupTitle,
+  renderGroupTitle,
   getGroupItems,
   getGroupId,
   isGroup,
@@ -200,7 +200,7 @@ const KanbanColumn = <
                 <KanbanGroup
                   group={item as Group}
                   isForbiddenMove={isForbiddenMove}
-                  getGroupTitle={getGroupTitle}
+                  renderGroupTitle={renderGroupTitle}
                   getGroupItems={getGroupItems}
                   key={`group_${item.id}`}
                   renderCard={renderCard}
