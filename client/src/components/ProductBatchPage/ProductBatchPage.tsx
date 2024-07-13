@@ -6,6 +6,8 @@ import KanbanBoard from '@/components/KanbanBoard/KanbanBoard';
 import { MoveOptions } from '@/components/KanbanBoard/types';
 
 import { useKanban } from '../../api/kanban/kanban.hook';
+import { PRODUCT_BATCH_FRAGMENT } from '../../api/product-batch/product-batch.gql';
+import { getFragmentData } from '../../gql-types';
 import {
   ProductBatchFragment,
   ProductBatchGroupFragment,
@@ -14,9 +16,7 @@ import {
 } from '../../gql-types/graphql';
 import ColumnHeader from './ColumnHeader';
 import GroupHeader from './GroupHeader';
-// import CreateProductBatchGroupForm from '../CreateProductBatchGroup/CreateProductBatchGroupForm';
 import { ProductBatchCard } from './ProductBatchCard';
-// import ProductBatchGroupCard from './ProductBatchGroupCard';
 
 export const ProductBatchPage: FC = () => {
   const { productId } = useParams();
@@ -94,8 +94,8 @@ export const ProductBatchPage: FC = () => {
         moveColumn={moveStatus}
         setColumnId={(item, newColumnId) => (item.statusId = newColumnId)}
         setGroupId={(item, newGroupId) => (item.groupId = newGroupId)}
-        getColumnId={item => item.statusId}
-        getGroupId={item => item.groupId}
+        getColumnId={item => item.statusId ?? null}
+        getGroupId={item => item.groupId ?? null}
         cardItems={cards}
         moveCard={data => {
           moveProductBatch({
@@ -109,7 +109,9 @@ export const ProductBatchPage: FC = () => {
         renderGroupTitle={group => (
           <GroupHeader group={group} refetch={refetch} />
         )}
-        getGroupItems={item => item.productBatchList}
+        getGroupItems={item =>
+          getFragmentData(PRODUCT_BATCH_FRAGMENT, item.productBatchList)
+        }
         setGroupItems={(group, items) => (group.productBatchList = items)}
         moveGroup={data => {
           moveProductBatchGroup({

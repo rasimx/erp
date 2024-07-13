@@ -56,10 +56,9 @@ export type Props<
   moveColumn: (active: Column, over: Column) => void;
   getColumnHeader: (column: Column) => ReactElement;
   isGroup: (item: Group | Card) => boolean;
-  isInGroup: (item: Card) => boolean;
   renderGroupTitle: (group: Group) => ReactElement;
   getGroupItems: (group: Group) => Card[];
-  setGroupItems: (group: Group, items: Card[]) => Group;
+  setGroupItems: (group: Group, items: Card[]) => void;
   moveGroup: (data: { id: number; columnId: number; order?: number }) => void;
   moveCard: (data: {
     id: number;

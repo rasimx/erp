@@ -17,11 +17,9 @@ import {
 import TextField from '@mui/material/TextField';
 import { FormikErrors, FormikProps, withFormik } from 'formik';
 import { FormikBag } from 'formik/dist/withFormik';
-import omit from 'lodash/omit';
 import React, { FC } from 'react';
 import { array, number, object, ObjectSchema, string } from 'yup';
 
-import { createProductBatchGroup } from '../../api/product-batch-group/product-batch-group.api';
 import {
   CreateProductBatchGroupDto,
   StatusFragment,
@@ -50,10 +48,13 @@ const style = {
   p: 2,
 };
 
-interface FormValues extends CreateProductBatchGroupDto {
+type FormValues = Omit<
+  CreateProductBatchGroupDto,
+  'existProductBatchIds' | 'newProductBatches'
+> & {
   existProductBatches: SelectProductBatchFormValues[];
   newProductBatches: CreateProductBatchFormValues[];
-}
+};
 type Props = {
   groupStatus: StatusFragment;
   closeModal: () => void;
@@ -278,6 +279,7 @@ const CreateProductBatchGroupForm = withFormik<Props, FormValues>({
   },
   mapPropsToValues: props => {
     return {
+      name: '',
       statusId: props.groupStatus.id,
       existProductBatches: [],
       newProductBatches: [],

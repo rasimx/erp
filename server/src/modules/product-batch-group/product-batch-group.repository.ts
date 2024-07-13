@@ -270,7 +270,7 @@ export class ProductBatchGroupRepository extends Repository<ProductBatchGroupEnt
       .leftJoinAndSelect('pbg.status', 'status')
       .orderBy('pbg.order', 'ASC')
       .orderBy('productBatchList.order', 'ASC')
-      .where('deleted_date is null')
+      .where('pbg.deleted_date is null')
       .getMany();
   }
 }
