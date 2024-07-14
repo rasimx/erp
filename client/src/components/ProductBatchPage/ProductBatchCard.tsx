@@ -67,7 +67,9 @@ export const ProductBatchCard = React.memo<Props>(props => {
   const operationFormModal = useModal(OperationForm);
   const showOperationFormModal = useCallback(() => {
     operationFormModal.show({
-      groupId: null,
+      initialValues: {
+        groupId: null,
+      },
       productBatches: [card],
       onSubmit: async values => {
         createOperation(values)

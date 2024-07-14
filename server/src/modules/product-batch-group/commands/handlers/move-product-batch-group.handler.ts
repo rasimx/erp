@@ -1,6 +1,7 @@
 import { CommandHandler, type ICommandHandler } from '@nestjs/cqrs';
 import { InjectDataSource } from '@nestjs/typeorm';
 
+import { ContextService } from '@/context/context.service.js';
 import type { CustomDataSource } from '@/database/custom.data-source.js';
 import { ProductBatchRepository } from '@/product-batch/product-batch.repository.js';
 import { MoveProductBatchGroupCommand } from '@/product-batch-group/commands/impl/move-product-batch-group.command.js';
@@ -17,17 +18,18 @@ export class MoveProductBatchGroupHandler
     private readonly productBatchGroupEventStore: ProductBatchGroupEventStore,
     @InjectDataSource()
     private dataSource: CustomDataSource,
+    private readonly contextService: ContextService,
   ) {}
 
   async execute(command: MoveProductBatchGroupCommand) {
+    const requestId = this.contextService.requestId;
+    if (!requestId) throw new Error('requestId was not defined');
     const queryRunner = this.dataSource.createQueryRunner();
 
     await queryRunner.connect();
     await queryRunner.startTransaction();
     try {
       const { dto } = command;
-
-      await this.productBatchGroupEventStore.moveProductBatchGroup(dto);
 
       const productBatchGroupRepository = queryRunner.manager.withRepository(
         this.productBatchGroupRepository,
@@ -40,6 +42,11 @@ export class MoveProductBatchGroupHandler
         oldStatusId,
         order,
         oldOrder,
+      });
+
+      await this.productBatchGroupEventStore.moveProductBatchGroup({
+        eventId: requestId,
+        dto,
       });
 
       await queryRunner.commitTransaction();

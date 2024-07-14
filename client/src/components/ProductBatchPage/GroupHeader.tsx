@@ -40,7 +40,9 @@ export const GroupHeader = React.memo<Props>(props => {
   const operationFormModal = useModal(OperationForm);
   const showOperationFormModal = useCallback(() => {
     operationFormModal.show({
-      groupId: group.id,
+      initialValues: {
+        groupId: group.id,
+      },
       productBatches: getFragmentData(
         PRODUCT_BATCH_FRAGMENT,
         group.productBatchList,

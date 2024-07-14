@@ -4,12 +4,19 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { CreateOperationHandler } from '@/operation/commands/handlers/create-operation.handler.js';
 import { OperationResolver } from '@/operation/operation.resolver.js';
+import { ProductBatchModule } from '@/product-batch/product-batch.module.js';
+import { ProductBatchGroupModule } from '@/product-batch-group/product-batch-group.module.js';
 
 import { OperationEntity } from './operation.entity.js';
 import { OperationService } from './operation.service.js';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([OperationEntity]), CqrsModule],
+  imports: [
+    TypeOrmModule.forFeature([OperationEntity]),
+    CqrsModule,
+    ProductBatchModule,
+    ProductBatchGroupModule,
+  ],
   providers: [OperationService, CreateOperationHandler, OperationResolver],
 })
 export class OperationModule {}

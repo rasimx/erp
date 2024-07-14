@@ -1,10 +1,10 @@
 import { CommandHandler, type ICommandHandler } from '@nestjs/cqrs';
-import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
+import { InjectDataSource } from '@nestjs/typeorm';
 
+import { ContextService } from '@/context/context.service.js';
 import type { CustomDataSource } from '@/database/custom.data-source.js';
 import { CreateProductBatchCommand } from '@/product-batch/commands/impl/create-product-batch.command.js';
-import { ProductBatchEventStore } from '@/product-batch/prodict-batch.eventstore.js';
-import { ProductBatchEntity } from '@/product-batch/product-batch.entity.js';
+import { ProductBatchEventStore } from '@/product-batch/product-batch.eventstore.js';
 import { ProductBatchRepository } from '@/product-batch/product-batch.repository.js';
 
 @CommandHandler(CreateProductBatchCommand)
@@ -12,13 +12,17 @@ export class CreateProductBatchHandler
   implements ICommandHandler<CreateProductBatchCommand>
 {
   constructor(
-    private readonly productBatchRepository: ProductBatchRepository,
-    private readonly productBatchEventStore: ProductBatchEventStore,
     @InjectDataSource()
     private dataSource: CustomDataSource,
+    private readonly productBatchRepository: ProductBatchRepository,
+    private readonly productBatchEventStore: ProductBatchEventStore,
+    private readonly contextService: ContextService,
   ) {}
 
   async execute(command: CreateProductBatchCommand) {
+    const requestId = this.contextService.requestId;
+    if (!requestId) throw new Error('requestId was not defined');
+
     const queryRunner = this.dataSource.createQueryRunner();
 
     await queryRunner.connect();
@@ -30,13 +34,20 @@ export class CreateProductBatchHandler
       );
 
       const entity = await productBatchRepository.createFromDto(command);
-      await this.productBatchEventStore.createProductBatch(entity.id, dto);
+      await this.productBatchEventStore.createProductBatch({
+        eventId: requestId,
+        productBatchId: entity.id,
+        dto,
+      });
       if (dto.parentId) {
         // todo: если вдруг второй ивент упадет с ошибкой. нужно предыдущее отменить
         await this.productBatchEventStore.moveProductBatchItems({
-          donorId: dto.parentId,
-          count: dto.count,
-          recipientId: entity.id,
+          eventId: requestId,
+          dto: {
+            donorId: dto.parentId,
+            count: dto.count,
+            recipientId: entity.id,
+          },
         });
       }
 

@@ -1,9 +1,10 @@
 import { CommandHandler, type ICommandHandler } from '@nestjs/cqrs';
 import { InjectDataSource } from '@nestjs/typeorm';
 
+import { ContextService } from '@/context/context.service.js';
 import type { CustomDataSource } from '@/database/custom.data-source.js';
 import { MoveProductBatchCommand } from '@/product-batch/commands/impl/move-product-batch.command.js';
-import { ProductBatchEventStore } from '@/product-batch/prodict-batch.eventstore.js';
+import { ProductBatchEventStore } from '@/product-batch/product-batch.eventstore.js';
 import { ProductBatchRepository } from '@/product-batch/product-batch.repository.js';
 import { ProductBatchGroupRepository } from '@/product-batch-group/product-batch-group.repository.js';
 
@@ -12,14 +13,18 @@ export class MoveProductBatchHandler
   implements ICommandHandler<MoveProductBatchCommand>
 {
   constructor(
+    @InjectDataSource()
+    private dataSource: CustomDataSource,
     private readonly productBatchRepository: ProductBatchRepository,
     private readonly productBatchGroupRepository: ProductBatchGroupRepository,
     private readonly productBatchEventStore: ProductBatchEventStore,
-    @InjectDataSource()
-    private dataSource: CustomDataSource,
+    private readonly contextService: ContextService,
   ) {}
 
   async execute(command: MoveProductBatchCommand) {
+    const requestId = this.contextService.requestId;
+    if (!requestId) throw new Error('requestId was not defined');
+
     const queryRunner = this.dataSource.createQueryRunner();
 
     await queryRunner.connect();
@@ -27,7 +32,6 @@ export class MoveProductBatchHandler
     try {
       const { dto } = command;
 
-      await this.productBatchEventStore.moveProductBatch(dto);
       const productBatchRepository = queryRunner.manager.withRepository(
         this.productBatchRepository,
       );
@@ -46,6 +50,11 @@ export class MoveProductBatchHandler
           oldOrder,
         });
       }
+
+      await this.productBatchEventStore.moveProductBatch({
+        eventId: requestId,
+        dto,
+      });
 
       await queryRunner.commitTransaction();
     } catch (err) {

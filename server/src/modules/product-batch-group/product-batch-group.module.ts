@@ -2,6 +2,7 @@ import { forwardRef, Module } from '@nestjs/common';
 import { CqrsModule } from '@nestjs/cqrs';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
+import { ContextModule } from '@/context/context.module.js';
 import { EventStoreModule } from '@/event-store/event-store.module.js';
 import { Microservices } from '@/microservices/microservices.js';
 import { ProductModule } from '@/product/product.module.js';
@@ -26,6 +27,7 @@ import { GetProductBatchGroupListHandler } from './queries/handlers/get-product-
     forwardRef(() => ProductBatchModule),
     StatusModule,
     CqrsModule,
+    ContextModule,
     EventStoreModule,
   ],
   providers: [
@@ -38,6 +40,10 @@ import { GetProductBatchGroupListHandler } from './queries/handlers/get-product-
     DeleteProductBatchGroupHandler,
     ProductBatchGroupRepositoryProvider,
   ],
-  exports: [ProductBatchGroupService, ProductBatchGroupRepositoryProvider],
+  exports: [
+    ProductBatchGroupService,
+    ProductBatchGroupEventStore,
+    ProductBatchGroupRepositoryProvider,
+  ],
 })
 export class ProductBatchGroupModule {}

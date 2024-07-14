@@ -3,6 +3,7 @@ import { Injectable } from '@nestjs/common';
 
 import type { JSONCompatible } from '@/common/helpers/utils.js';
 import { EventStoreService } from '@/event-store/event-store.service.js';
+import type { CreateOperationDto } from '@/operation/dtos/create-operation.dto.js';
 
 import type { CreateProductBatchGroupDto } from './dtos/create-product-batch-group.dto.js';
 import type { MoveProductBatchGroupDto } from './dtos/move-product-batch-group.dto.js';
@@ -20,37 +21,86 @@ export type MoveProductBatchGroupEvent = JSONEventType<
   JSONCompatible<MoveProductBatchGroupDto>
 >;
 
+export type CreateOperationEvent = JSONEventType<
+  'CreateOperation',
+  JSONCompatible<CreateOperationDto>
+>;
+
 @Injectable()
 export class ProductBatchGroupEventStore {
   constructor(private readonly eventStoreService: EventStoreService) {}
 
-  async createProductBatchGroup(id: number, dto: CreateProductBatchGroupDto) {
+  async createProductBatchGroup({
+    eventId,
+    productBatchGroupId,
+    dto,
+  }: {
+    eventId: string;
+    productBatchGroupId: number;
+    dto: CreateProductBatchGroupDto;
+  }) {
     const event = jsonEvent<CreateProductBatchGroupEvent>({
+      id: eventId,
       type: 'CreateProductBatchGroup',
       data: dto,
     });
 
-    const STREAM_NAME = `ProductBatchGroup-${id.toString()}`;
+    const STREAM_NAME = `ProductBatchGroup-${productBatchGroupId.toString()}`;
 
     await this.eventStoreService.appendToStream(STREAM_NAME, event);
   }
-  async deleteProductBatchGroup(id: number) {
+
+  async deleteProductBatchGroup({
+    eventId,
+    productBatchGroupId,
+  }: {
+    eventId: string;
+    productBatchGroupId: number;
+  }) {
     const event = jsonEvent<DeleteProductBatchGroupEvent>({
+      id: eventId,
       type: 'DeleteProductBatchGroup',
-      data: { id },
+      data: { id: productBatchGroupId },
     });
 
-    const STREAM_NAME = `ProductBatchGroup-${id.toString()}`;
+    const STREAM_NAME = `ProductBatchGroup-${productBatchGroupId.toString()}`;
 
     await this.eventStoreService.appendToStream(STREAM_NAME, event);
   }
-  async moveProductBatchGroup(dto: MoveProductBatchGroupDto) {
+  async moveProductBatchGroup({
+    eventId,
+    dto,
+  }: {
+    eventId: string;
+    dto: MoveProductBatchGroupDto;
+  }) {
     const event = jsonEvent<MoveProductBatchGroupEvent>({
+      id: eventId,
       type: 'MoveProductBatchGroup',
       data: dto,
     });
 
     const STREAM_NAME = `ProductBatchGroup-${dto.id.toString()}`;
+
+    await this.eventStoreService.appendToStream(STREAM_NAME, event);
+  }
+
+  async createOperation({
+    eventId,
+    productBatchGroupId,
+    dto,
+  }: {
+    eventId: string;
+    productBatchGroupId: number;
+    dto: CreateOperationDto;
+  }) {
+    const event = jsonEvent<CreateOperationEvent>({
+      id: eventId,
+      type: 'CreateOperation',
+      data: dto,
+    });
+
+    const STREAM_NAME = `ProductBatchGroup-${productBatchGroupId.toString()}`;
 
     await this.eventStoreService.appendToStream(STREAM_NAME, event);
   }

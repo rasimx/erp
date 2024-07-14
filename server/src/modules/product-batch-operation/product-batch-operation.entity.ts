@@ -21,7 +21,7 @@ export class ProductBatchOperationEntity {
   })
   userId: number;
 
-  @Column('float')
+  @Column({ type: 'float' })
   proportion: number;
 
   @Column()

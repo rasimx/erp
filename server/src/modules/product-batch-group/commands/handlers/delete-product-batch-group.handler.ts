@@ -1,6 +1,7 @@
 import { CommandBus, CommandHandler, type ICommandHandler } from '@nestjs/cqrs';
 import { InjectDataSource } from '@nestjs/typeorm';
 
+import { ContextService } from '@/context/context.service.js';
 import type { CustomDataSource } from '@/database/custom.data-source.js';
 import { DeleteProductBatchCommand } from '@/product-batch/commands/impl/delete-product-batch.command.js';
 import { DeleteProductBatchGroupCommand } from '@/product-batch-group/commands/impl/delete-product-batch-group.command.js';
@@ -17,9 +18,12 @@ export class DeleteProductBatchGroupHandler
     private commandBus: CommandBus,
     @InjectDataSource()
     private dataSource: CustomDataSource,
+    private readonly contextService: ContextService,
   ) {}
 
   async execute(command: DeleteProductBatchGroupCommand) {
+    const requestId = this.contextService.requestId;
+    if (!requestId) throw new Error('requestId was not defined');
     const queryRunner = this.dataSource.createQueryRunner();
 
     await queryRunner.connect();
@@ -41,7 +45,10 @@ export class DeleteProductBatchGroupHandler
       }
 
       await productBatchGroupRepository.softDelete({ id });
-      await this.productBatchGroupEventStore.deleteProductBatchGroup(entity.id);
+      await this.productBatchGroupEventStore.deleteProductBatchGroup({
+        eventId: requestId,
+        productBatchGroupId: entity.id,
+      });
 
       await queryRunner.commitTransaction();
     } catch (err) {

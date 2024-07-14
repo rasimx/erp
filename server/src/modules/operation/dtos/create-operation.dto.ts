@@ -6,8 +6,10 @@ import { ProportionType } from '@/operation/dtos/operation.dto.js';
 export class ProductBatchOperationInput {
   @Field(() => Int)
   productBatchId: number;
+
   @Field(() => Float)
   proportion: number;
+
   @Field(() => Int)
   cost: number;
 }

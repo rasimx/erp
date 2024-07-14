@@ -21,6 +21,7 @@ import {
   ProductFragment,
   StatusFragment,
 } from '../../gql-types/graphql';
+import { fromRouble } from '../../utils';
 import withModal from '../withModal';
 import SelectProductBatch from './SelectProductBatch';
 
@@ -368,9 +369,14 @@ const CreateProductBatchForm = withFormik<Props, FormValues>({
   },
 
   handleSubmit: (values, formikBag) => {
-    return formikBag.props.onSubmit(values, formikBag).then(() => {
-      formikBag.props.closeModal();
-    });
+    return formikBag.props
+      .onSubmit(
+        { ...values, costPricePerUnit: fromRouble(values.costPricePerUnit) },
+        formikBag,
+      )
+      .then(() => {
+        formikBag.props.closeModal();
+      });
   },
 })(Form);
 

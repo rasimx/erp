@@ -1,8 +1,9 @@
 import { CommandHandler, type ICommandHandler } from '@nestjs/cqrs';
 import { InjectDataSource } from '@nestjs/typeorm';
 
+import { ContextService } from '@/context/context.service.js';
 import type { CustomDataSource } from '@/database/custom.data-source.js';
-import { ProductBatchEventStore } from '@/product-batch/prodict-batch.eventstore.js';
+import { ProductBatchEventStore } from '@/product-batch/product-batch.eventstore.js';
 import { ProductBatchRepository } from '@/product-batch/product-batch.repository.js';
 
 import { DeleteProductBatchCommand } from '../impl/delete-product-batch.command.js';
@@ -12,13 +13,17 @@ export class DeleteProductBatchHandler
   implements ICommandHandler<DeleteProductBatchCommand>
 {
   constructor(
-    private readonly productBatchRepository: ProductBatchRepository,
-    private readonly productBatchEventStore: ProductBatchEventStore,
     @InjectDataSource()
     private dataSource: CustomDataSource,
+    private readonly productBatchRepository: ProductBatchRepository,
+    private readonly productBatchEventStore: ProductBatchEventStore,
+    private readonly contextService: ContextService,
   ) {}
 
   async execute(command: DeleteProductBatchCommand) {
+    const requestId = this.contextService.requestId;
+    if (!requestId) throw new Error('requestId was not defined');
+
     const queryRunner = this.dataSource.createQueryRunner();
 
     await queryRunner.connect();
@@ -31,7 +36,10 @@ export class DeleteProductBatchHandler
 
       await productBatchRepository.softDelete({ id });
 
-      await this.productBatchEventStore.deleteProductBatch(id);
+      await this.productBatchEventStore.deleteProductBatch({
+        eventId: requestId,
+        productBatchId: id,
+      });
 
       await queryRunner.commitTransaction();
     } catch (err) {

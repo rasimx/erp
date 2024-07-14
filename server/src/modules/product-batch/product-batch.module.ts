@@ -8,9 +8,9 @@ import { ProductModule } from '@/product/product.module.js';
 import { CreateProductBatchHandler } from '@/product-batch/commands/handlers/create-product-batch.handler.js';
 import { DeleteProductBatchHandler } from '@/product-batch/commands/handlers/delete-product-batch.handler.js';
 import { MoveProductBatchHandler } from '@/product-batch/commands/handlers/move-product-batch.handler.js';
-import { ProductBatchEventStore } from '@/product-batch/prodict-batch.eventstore.js';
 import { ProductBatchController } from '@/product-batch/product-batch.controller.js';
 import { ProductBatchEntity } from '@/product-batch/product-batch.entity.js';
+import { ProductBatchEventStore } from '@/product-batch/product-batch.eventstore.js';
 import { ProductBatchRepositoryProvider } from '@/product-batch/product-batch.repository.js';
 import { ProductBatchResolver } from '@/product-batch/product-batch.resolver.js';
 import { GetProductBatchListHandler } from '@/product-batch/queries/handlers/get-product-batch-list.handler.js';
@@ -40,6 +40,10 @@ import { ProductBatchService } from './product-batch.service.js';
     ProductBatchRepositoryProvider,
   ],
   controllers: [ProductBatchController],
-  exports: [ProductBatchService, ProductBatchRepositoryProvider],
+  exports: [
+    ProductBatchService,
+    ProductBatchEventStore,
+    ProductBatchRepositoryProvider,
+  ],
 })
 export class ProductBatchModule {}

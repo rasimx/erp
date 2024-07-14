@@ -36,7 +36,7 @@ import {
   ProductBatchFragment,
   ProportionType,
 } from '../../gql-types/graphql';
-import { toRouble } from '../../utils';
+import { fromRouble, toRouble } from '../../utils';
 import withModal from '../withModal';
 
 const style = {
@@ -114,7 +114,6 @@ const Value = styled('div')`
 `;
 
 export interface Props {
-  groupId: number | null;
   productBatches: ProductBatchFragment[];
   closeModal: () => void;
   initialValues: Partial<CreateOperationDto>;
@@ -443,7 +442,8 @@ const OperationForm = withFormik<Props, CreateOperationDto>({
   validationSchema: () => createOperationValidationSchema(),
   mapPropsToValues: props => {
     return {
-      proportionType: ProportionType.equal,
+      proportionType:
+        props.productBatches.length == 1 ? ProportionType.equal : undefined,
       ...props.initialValues,
     } as CreateOperationDto;
   },
@@ -460,9 +460,11 @@ const OperationForm = withFormik<Props, CreateOperationDto>({
   },
 
   handleSubmit: (values, formikBag) => {
-    return formikBag.props.onSubmit(values, formikBag).then(() => {
-      formikBag.props.closeModal();
-    });
+    return formikBag.props
+      .onSubmit({ ...values, cost: fromRouble(values.cost) }, formikBag)
+      .then(() => {
+        formikBag.props.closeModal();
+      });
   },
 })(Form);
 

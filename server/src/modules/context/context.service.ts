@@ -10,6 +10,9 @@ import { USER_ID } from './context.constants.js';
 export class ContextService {
   constructor(private readonly clsService: ClsService) {}
 
+  get requestId(): string {
+    return this.clsService.getId();
+  }
   get userId(): number {
     const userId = this.clsService.get(USER_ID);
     if (!userId) throw new ContextVarNotFound('user id not found');

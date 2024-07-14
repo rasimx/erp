@@ -33,52 +33,9 @@ export class ProductBatchGroupRepository extends Repository<ProductBatchGroupEnt
     const lastOrder = await this.getLastOrder(dto.statusId);
     const order = lastOrder ? lastOrder + 1 : 1;
 
-    let newEntity = new ProductBatchGroupEntity();
+    const newEntity = new ProductBatchGroupEntity();
     Object.assign(newEntity, dto, { order });
-    newEntity = await this.save(newEntity);
-
-    if (dto.existProductBatchIds.length) {
-      const existProductBatches = await this.manager.find(ProductBatchEntity, {
-        where: { id: In(dto.existProductBatchIds) },
-      });
-      const existIds = existProductBatches.map(({ id }) => id);
-      const notFoundIds = dto.existProductBatchIds.filter(
-        id => !existIds.includes(id),
-      );
-      if (notFoundIds.length) {
-        throw new BadRequestException(
-          `not found batches: ${notFoundIds.join(',')}`,
-        );
-      }
-      newEntity.productBatchList = existProductBatches;
-    }
-    if (dto.newProductBatches.length) {
-      const productBatchRepository = new ProductBatchRepository(
-        ProductBatchEntity,
-        this.manager,
-        this.queryRunner,
-      );
-      const items: ProductBatchEntity[] = [];
-      for (const item of dto.newProductBatches) {
-        items.push(
-          await productBatchRepository.createFromDto({
-            dto: item,
-            groupId: newEntity.id,
-            statusId: null,
-          }),
-        );
-      }
-
-      newEntity.productBatchList = [
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-        ...(newEntity.productBatchList || []),
-        ...items,
-      ];
-    }
-
-    newEntity = await this.save(newEntity);
-
-    return newEntity;
+    return this.save(newEntity);
   }
 
   async moveOthersInOld({
