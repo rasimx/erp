@@ -1,5 +1,13 @@
 import NiceModal from '@ebay/nice-modal-react';
-import { Autocomplete, Box, Button, Typography } from '@mui/material';
+import {
+  Autocomplete,
+  Box,
+  Button,
+  FormControl,
+  FormHelperText,
+  InputLabel,
+  Typography,
+} from '@mui/material';
 import Step from '@mui/material/Step';
 import StepLabel from '@mui/material/StepLabel';
 import Stepper from '@mui/material/Stepper';
@@ -8,6 +16,7 @@ import Grid from '@mui/material/Unstable_Grid2';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { Compact } from '@uiw/react-color';
 import { format, parse } from 'date-fns';
 import { FormikErrors, FormikProps, withFormik } from 'formik';
 import { FormikBag } from 'formik/dist/withFormik';
@@ -21,7 +30,7 @@ import {
   ProductFragment,
   StatusFragment,
 } from '../../gql-types/graphql';
-import { fromRouble } from '../../utils';
+import { fromRouble, toRouble } from '../../utils';
 import withModal from '../withModal';
 import SelectProductBatch from './SelectProductBatch';
 
@@ -55,18 +64,16 @@ export const createProductBatchValidationSchema =
     return object().shape({
       parentId: number(),
       count: number().required(),
-      // name: string().when('parentId', {
-      //   is: (val: number | null) => !val,
-      //   then: schema => schema.required(),
-      // }),
       name: string().required(),
       productId: number().required(),
       costPricePerUnit: number().required(),
       date: string().required(),
+      color: string().required(),
     });
   };
 
 const Form: FC<Props & FormikProps<FormValues>> = ({
+  initialValues,
   setFieldValue,
   handleSubmit,
   values,
@@ -88,12 +95,13 @@ const Form: FC<Props & FormikProps<FormValues>> = ({
       setFieldValue('parentId', parent.id);
       setFieldValue('date', parent.date);
       setFieldValue('name', parent.name);
-      setFieldValue('costPricePerUnit', parent.costPricePerUnit);
+      setFieldValue('costPricePerUnit', toRouble(parent.costPricePerUnit));
+      setFieldValue('color', parent.color);
     } else {
       setFieldValue('parentId', undefined);
-      setFieldValue('date', undefined);
-      setFieldValue('name', undefined);
-      setFieldValue('costPricePerUnit', undefined);
+      setFieldValue('date', values.date ?? undefined);
+      setFieldValue('name', values.name ?? undefined);
+      setFieldValue('costPricePerUnit', values.costPricePerUnit ?? undefined);
     }
   }, [parent]);
 
@@ -109,6 +117,7 @@ const Form: FC<Props & FormikProps<FormValues>> = ({
       handleChange('productId');
       setFieldValue('productId', product.id);
       setFieldValue('product', product);
+      setFieldValue('name', product.name);
     }
   }, [product]);
 
@@ -160,7 +169,7 @@ const Form: FC<Props & FormikProps<FormValues>> = ({
   console.log(errors);
 
   return (
-    <Box sx={style}>
+    <Box sx={{ ...style }}>
       <Typography id="modal-modal-title" variant="h6" component="h2">
         Добавить новую партию
       </Typography>
@@ -312,6 +321,22 @@ const Form: FC<Props & FormikProps<FormValues>> = ({
                         onChange={handleChange}
                         error={touched.count && Boolean(errors.count)}
                       />
+                      <InputLabel htmlFor="my-input" sx={{ pt: 2 }}>
+                        Цвет карточки
+                      </InputLabel>
+                      <FormHelperText id="my-helper-text">
+                        Поможет легче ориентироваться на дашборде.
+                      </FormHelperText>
+                      <Compact
+                        color={values.color}
+                        style={{
+                          boxShadow:
+                            'rgb(0 0 0 / 15%) 0px 0px 0px 1px, rgb(0 0 0 / 15%) 0px 8px 16px',
+                        }}
+                        onChange={color => {
+                          setFieldValue('color', color.hex);
+                        }}
+                      />
                     </Grid>
                     <Grid xs={6}>
                       Вы должны выбрать товар, который хотите добавить в группу
@@ -349,7 +374,7 @@ const Form: FC<Props & FormikProps<FormValues>> = ({
   );
 };
 
-const CreateProductBatchForm = withFormik<Props, FormValues>({
+const ProductBatchForm = withFormik<Props, FormValues>({
   validationSchema: () => createProductBatchValidationSchema(),
   mapPropsToValues: props => {
     return {
@@ -380,4 +405,4 @@ const CreateProductBatchForm = withFormik<Props, FormValues>({
   },
 })(Form);
 
-export default NiceModal.create(withModal(CreateProductBatchForm));
+export default NiceModal.create(withModal(ProductBatchForm));

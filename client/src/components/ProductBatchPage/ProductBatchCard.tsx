@@ -1,8 +1,11 @@
+import { SyntheticListenerMap } from '@dnd-kit/core/dist/hooks/utilities/useSyntheticListeners';
 import { useModal } from '@ebay/nice-modal-react';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
+import OpenWithIcon from '@mui/icons-material/OpenWith';
 import {
   Card,
   CardContent,
+  CardHeader,
   CircularProgress,
   IconButton,
   List,
@@ -20,6 +23,8 @@ import { useProductBatch } from '../../api/product-batch/product-batch.hook';
 import { ProductBatchFragment } from '../../gql-types/graphql';
 import { toRouble } from '../../utils';
 import OperationForm from '../OperationForm/OperationForm';
+import ProductBatchInfo from './ProductBatchInfo';
+import productBatchInfo from './ProductBatchInfo';
 
 const Preloader = () => {
   return (
@@ -42,10 +47,14 @@ export interface Props {
   card: ProductBatchFragment;
   refetch: () => void;
   loading?: boolean;
+  sortableData?: {
+    listeners?: SyntheticListenerMap;
+    setActivatorNodeRef: (element: HTMLElement | null) => void;
+  };
 }
 
 export const ProductBatchCard = React.memo<Props>(props => {
-  const { card, loading, refetch } = props;
+  const { card, loading, refetch, sortableData } = props;
 
   const { deleteProductBatch } = useProductBatch();
   const { createOperation } = useOperation();
@@ -84,122 +93,123 @@ export const ProductBatchCard = React.memo<Props>(props => {
     handleClose();
   }, [handleClose, card]);
 
+  const productBatchInfoDrawer = useModal(ProductBatchInfo);
+  const showProductBatchInfoDrawer = useCallback(() => {
+    console.log('aaa');
+    productBatchInfoDrawer.show({
+      productBatchId: card.id,
+    });
+  }, [productBatchInfoDrawer, card]);
+
+  const listItems = [
+    { label: 'SKU', value: card.product.sku },
+    { label: 'количество, шт', value: card.count },
+    { label: 'цена закупки 1 шт, р.', value: toRouble(card.costPricePerUnit) },
+    {
+      label: 'сопутствующие траты за 1шт, р.',
+      value: toRouble(card.operationsPricePerUnit),
+    },
+    {
+      label: 'себестоимость за 1шт, р.',
+      value: toRouble(card.operationsPricePerUnit + card.costPricePerUnit),
+    },
+    {
+      label: 'себестоимость партии, р.',
+      value: toRouble(
+        (card.operationsPricePerUnit + card.costPricePerUnit) * card.count,
+      ),
+    },
+  ];
+
   return (
     <>
       <Card
         elevation={3}
         sx={{
-          cursor: 'grab',
           position: 'relative',
-          height: 380,
-          backgroundColor: 'rgba(0,0,255,.1)',
+          // height: 380,
+          // backgroundColor: card.color,
         }}
       >
+        <Box
+          sx={{
+            position: 'absolute',
+            left: 0,
+            right: 0,
+            bottom: 0,
+            top: 0,
+            backgroundColor: card.color,
+            opacity: 0.2,
+          }}
+        ></Box>
         {loading && <Preloader />}
-        <>
-          <IconButton
-            aria-label="more"
-            id="long-button"
-            aria-controls={open ? 'long-menu' : undefined}
-            aria-expanded={open ? 'true' : undefined}
-            aria-haspopup="true"
-            onClick={handleClick}
-          >
-            <MoreVertIcon />
-          </IconButton>
-          <Menu
-            id="long-menu"
-            MenuListProps={{
-              'aria-labelledby': 'long-button',
+        <Box>
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              position: 'relative',
+              backgroundColor: 'rgba(0,0,0,.1)',
             }}
-            anchorEl={anchorEl}
-            open={open}
-            onClose={handleClose}
           >
-            <MenuItem onClick={showOperationFormModal}>
-              Добавить операцию
-            </MenuItem>
-            <MenuItem onClick={handleDelete}>Удалить</MenuItem>
-          </Menu>
-        </>
-        <CardContent>
-          <strong>{card.name}</strong>
-          {/*<strong>{card.order}</strong>*/}
+            <IconButton
+              size="small"
+              ref={sortableData?.setActivatorNodeRef}
+              {...sortableData?.listeners}
+              sx={{
+                cursor: 'grab',
+              }}
+            >
+              <OpenWithIcon sx={{ fontSize: 20 }} />
+            </IconButton>
+            <Box
+              onClick={showProductBatchInfoDrawer}
+              sx={{ cursor: 'pointer', fontWeight: 600, fontSize: 12 }}
+            >
+              {card.name}
+            </Box>
 
-          <List dense>
-            <ListItem
-              disableGutters
-              secondaryAction={<Typography>{card.id}</Typography>}
+            <IconButton
+              aria-label="more"
+              id="long-button"
+              aria-controls={open ? 'long-menu' : undefined}
+              aria-expanded={open ? 'true' : undefined}
+              aria-haspopup="true"
+              onClick={handleClick}
             >
-              <ListItemText primary="id" />
-            </ListItem>
-            <ListItem
-              disableGutters
-              secondaryAction={<Typography>{card.statusId}</Typography>}
+              <MoreVertIcon />
+            </IconButton>
+            <Menu
+              id="long-menu"
+              MenuListProps={{
+                'aria-labelledby': 'long-button',
+              }}
+              anchorEl={anchorEl}
+              open={open}
+              onClose={handleClose}
             >
-              <ListItemText primary="statusId" />
-            </ListItem>
-            <ListItem
-              disableGutters
-              secondaryAction={<Typography>{card.order}</Typography>}
-            >
-              <ListItemText primary="order" />
-            </ListItem>
-
-            {/*<ListItem disableGutters>*/}
-            {/*  <ListItemText*/}
-            {/*    primary={card.product.sku}*/}
-            {/*    secondary={card.product.name}*/}
-            {/*  />*/}
-            {/*</ListItem>*/}
-            <ListItem
-              disableGutters
-              secondaryAction={<Typography>{card.count}</Typography>}
-            >
-              <ListItemText primary="количество" />
-            </ListItem>
-            <ListItem
-              disableGutters
-              secondaryAction={
-                <Typography>{toRouble(card.costPricePerUnit)} р</Typography>
-              }
-            >
-              <ListItemText primary="цена закупки" />
-            </ListItem>
-            <ListItem
-              disableGutters
-              secondaryAction={
-                <Typography>
-                  {toRouble(card.operationsPricePerUnit)} р
-                </Typography>
-              }
-            >
-              <ListItemText primary="операции за одну" />
-            </ListItem>
-            {/*<ListItem*/}
-            {/*  disableGutters*/}
-            {/*  secondaryAction={*/}
-            {/*    <Typography>{(card.pricePerUnit / 100).toFixed(2)}</Typography>*/}
-            {/*  }*/}
-            {/*>*/}
-            {/*  <ListItemText primary="с/с единицы" />*/}
-            {/*</ListItem>*/}
-            <ListItem
-              disableGutters
-              secondaryAction={
-                <Typography>
-                  {toRouble(
-                    (card.operationsPricePerUnit + card.costPricePerUnit) *
-                      card.count,
-                  )}{' '}
-                  р
-                </Typography>
-              }
-            >
-              <ListItemText primary="с/с партии" />
-            </ListItem>
-          </List>
-        </CardContent>
+              <MenuItem onClick={showOperationFormModal}>
+                Добавить операцию
+              </MenuItem>
+              <MenuItem onClick={handleDelete}>Удалить</MenuItem>
+            </Menu>
+          </Box>
+          <CardContent>
+            <Box sx={{ fontWeight: 600, pb: 2 }}>{card.product.name}</Box>
+            <Box sx={{ fontSize: 12 }}>
+              {listItems.map((item, index) => (
+                <Box
+                  sx={{ display: 'flex', justifyContent: 'space-between' }}
+                  key={index}
+                >
+                  <Box>{item.label}</Box>
+                  <Box>{item.value}</Box>
+                </Box>
+              ))}
+            </Box>
+          </CardContent>
+        </Box>
       </Card>
     </>
   );

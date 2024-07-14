@@ -80,8 +80,8 @@ export class ProductBatchRepository extends Repository<ProductBatchEntity> {
     Object.assign(newEntity, dto, {
       order,
       costPricePerUnit: dto.costPricePerUnit,
-      operationsPricePerUnit: 0,
-      operationsPrice: 0,
+      operationsPricePerUnit: parent?.operationsPricePerUnit ?? 0,
+      operationsPrice: parent?.operationsPrice ?? 0,
       statusId,
       groupId,
     });

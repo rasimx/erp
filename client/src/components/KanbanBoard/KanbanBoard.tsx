@@ -14,6 +14,7 @@ import {
   useSensor,
   useSensors,
 } from '@dnd-kit/core';
+import { SyntheticListenerMap } from '@dnd-kit/core/dist/hooks/utilities/useSyntheticListeners';
 import { RectMap } from '@dnd-kit/core/dist/store';
 import { arrayMove, SortableContext } from '@dnd-kit/sortable';
 import { Coordinates } from '@dnd-kit/utilities';
@@ -52,9 +53,21 @@ export type Props<
 > = {
   columnItems: Column[];
   moveColumn: (active: Column, over: Column) => void;
-  getColumnHeader: (column: Column) => ReactElement;
+  getColumnHeader: (
+    column: Column,
+    sortableData?: {
+      listeners?: SyntheticListenerMap;
+      setActivatorNodeRef: (element: HTMLElement | null) => void;
+    },
+  ) => ReactElement;
   isGroup: (item: Group | Card) => boolean;
-  renderGroupTitle: (group: Group) => ReactElement;
+  renderGroupTitle: (
+    group: Group,
+    sortableData?: {
+      listeners?: SyntheticListenerMap;
+      setActivatorNodeRef: (element: HTMLElement | null) => void;
+    },
+  ) => ReactElement;
   getGroupItems: (group: Group) => Card[];
   setGroupItems: (group: Group, items: Card[]) => void;
   moveGroup: (data: { id: number; columnId: number; order?: number }) => void;
@@ -69,7 +82,13 @@ export type Props<
   getGroupId: (card: Card) => number | null;
   setColumnId: (card: Group | Card, newColumnId: number | null) => void;
   setGroupId: (card: Card, newGroupId: number | null) => void;
-  renderCard: (data: Card) => ReactElement;
+  renderCard: (
+    data: Card,
+    sortableData?: {
+      listeners?: SyntheticListenerMap;
+      setActivatorNodeRef: (element: HTMLElement | null) => void;
+    },
+  ) => ReactElement;
   isForbiddenMove?: IsForbiddenFunc<Column, Group, Card>;
   modifiers?: ModifiersFunc<Column, Group, Card>;
 };
@@ -329,32 +348,32 @@ const KanbanBoard = <
               ) as Column;
               const overIndex = cards.indexOf(overGroup);
 
-              let order: number | undefined = overGroup.order;
-
               const isInstead = isInsteadGroup(active, over);
 
-              if (
-                activeColumn &&
-                activeColumn.id == overColumn.id &&
-                isInstead
-              ) {
-                if (!existsIndex(activeIndex))
-                  throw new Error('activeIndex is undefined');
-                // если over - следующий за active - return
-                const nextIndexOfActiveInColumn = cards.findIndex(
-                  (card, index) =>
-                    getColumnId(card) == overColumnId && index > activeIndex,
-                );
-                if (overIndex == nextIndexOfActiveInColumn) {
-                  return;
-                }
+              let order: number | undefined;
 
-                if (overIndex > activeIndex) {
-                  const prevIndexOfOverInColumn = cards.findLast(
+              if (isInstead) {
+                order = overGroup.order;
+
+                if (activeColumn && activeColumn.id == overColumn.id) {
+                  if (!existsIndex(activeIndex))
+                    throw new Error('activeIndex is undefined');
+                  // если over - следующий за active - return
+                  const nextIndexOfActiveInColumn = cards.findIndex(
                     (card, index) =>
-                      getColumnId(card) == overColumnId && index < overIndex,
+                      getColumnId(card) == overColumnId && index > activeIndex,
                   );
-                  order = prevIndexOfOverInColumn?.order;
+                  if (overIndex == nextIndexOfActiveInColumn) {
+                    return;
+                  }
+
+                  if (overIndex > activeIndex) {
+                    const prevIndexOfOverInColumn = cards.findLast(
+                      (card, index) =>
+                        getColumnId(card) == overColumnId && index < overIndex,
+                    );
+                    order = prevIndexOfOverInColumn?.order;
+                  }
                 }
               }
 
@@ -532,21 +551,22 @@ const KanbanBoard = <
               }
 
               const isInstead = isInsteadGroup(active, over);
-
-              if (
-                isInstead &&
-                existsIndex(activeIndex) &&
-                existsIndex(overIndex)
-              ) {
-                setColumnId(activeGroup, overColumn.id);
-                if (activeIndex > overIndex) {
-                  setCards(arrayMove(cards, activeIndex, overIndex));
-                } else {
-                  setCards(arrayMove(cards, activeIndex, overIndex - 1));
+              if (isInstead) {
+                if (existsIndex(activeIndex) && existsIndex(overIndex)) {
+                  setColumnId(activeGroup, overColumn.id);
+                  if (activeIndex > overIndex) {
+                    setCards(arrayMove(cards, activeIndex, overIndex));
+                  } else {
+                    setCards(arrayMove(cards, activeIndex, overIndex - 1));
+                  }
                 }
-              }
 
-              moveGroup({ id: activeGroup.id, columnId: overColumn.id, order });
+                moveGroup({
+                  id: activeGroup.id,
+                  columnId: overColumn.id,
+                  order,
+                });
+              }
 
               break;
             }

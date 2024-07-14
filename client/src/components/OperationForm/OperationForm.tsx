@@ -187,6 +187,7 @@ const Form: FC<Props & FormikProps<CreateOperationDto>> = props => {
     touched,
     errors,
   } = props;
+  console.log(errors);
 
   const percentages = useCallback(
     (
@@ -427,7 +428,7 @@ export const createOperationValidationSchema =
           is: (val: number | null) => !!val,
           then: schema => schema.required(),
         }),
-      groupId: number(),
+      groupId: number().nullable(),
       productBatchProportions: array(
         object().shape({
           productBatchId: number().required(),

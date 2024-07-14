@@ -49,4 +49,7 @@ export class ProductBatchDto {
 
   @Field(() => Int, { nullable: true, defaultValue: null })
   parentId?: number | null;
+
+  @Field(() => String)
+  color: string;
 }

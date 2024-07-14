@@ -34,6 +34,7 @@ export const PRODUCT_BATCH_FRAGMENT = graphql(`
     order
     volume
     weight
+    color
   }
 `);
 

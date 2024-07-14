@@ -1,5 +1,7 @@
+import { SyntheticListenerMap } from '@dnd-kit/core/dist/hooks/utilities/useSyntheticListeners';
 import NiceModal, { useModal } from '@ebay/nice-modal-react';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
+import OpenWithIcon from '@mui/icons-material/OpenWith';
 import { IconButton, Menu, MenuItem, Typography } from '@mui/material';
 import Box from '@mui/material/Box';
 import omit from 'lodash/omit';
@@ -8,18 +10,22 @@ import React, { useCallback } from 'react';
 import { useProductBatch } from '../../api/product-batch/product-batch.hook';
 import { useProductBatchGroup } from '../../api/product-batch-group/product-batch-group.hook';
 import { StatusFragment } from '../../gql-types/graphql';
-import CreateProductBatchForm from '../CreateProductBatch/CreateProductBatchForm';
-import CreateProductBatchGroupForm from '../CreateProductBatchGroup/CreateProductBatchGroupForm';
+import CreateProductBatchForm from '../CreateProductBatch/ProductBatchForm';
+import CreateProductBatchGroupForm from '../CreateProductBatchGroup/ProductBatchGroupForm';
 
 export interface Props {
   status: StatusFragment;
+  sortableData?: {
+    listeners?: SyntheticListenerMap;
+    setActivatorNodeRef: (element: HTMLElement | null) => void;
+  };
   refetch: () => void;
 }
 
 export const ColumnHeader = React.memo<Props>(props => {
   const { createProductBatchGroup } = useProductBatchGroup();
   const { createProductBatch } = useProductBatch();
-  const { status, refetch } = props;
+  const { status, refetch, sortableData } = props;
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
@@ -83,9 +89,19 @@ export const ColumnHeader = React.memo<Props>(props => {
         alignItems: 'center',
       }}
     >
+      <IconButton
+        ref={sortableData?.setActivatorNodeRef}
+        {...sortableData?.listeners}
+        sx={{
+          cursor: 'grab',
+        }}
+      >
+        <OpenWithIcon />
+      </IconButton>
       <Typography
         id="modal-modal-title"
         variant="h6"
+        fontSize={14}
         component="h2"
         sx={{ flexGrow: 1 }}
       >

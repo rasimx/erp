@@ -28,4 +28,8 @@ export class CreateProductBatchDto {
   @IsNumber()
   @Field(() => Int)
   costPricePerUnit: number;
+
+  @IsNotEmpty()
+  @Field(() => String)
+  color: string;
 }

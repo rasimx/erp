@@ -1,4 +1,5 @@
 import { Active, DragMoveEvent, Over, useDndMonitor } from '@dnd-kit/core';
+import { SyntheticListenerMap } from '@dnd-kit/core/dist/hooks/utilities/useSyntheticListeners';
 import { SortableContext, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import styled from '@emotion/styled';
@@ -72,10 +73,22 @@ export type Props<
   Card extends SortableType,
 > = {
   group: Group;
-  renderGroupTitle: (group: Group) => ReactElement;
+  renderGroupTitle: (
+    group: Group,
+    sortableData?: {
+      listeners?: SyntheticListenerMap;
+      setActivatorNodeRef: (element: HTMLElement | null) => void;
+    },
+  ) => ReactElement;
   getGroupItems: (group: Group) => Card[];
   loading?: boolean;
-  renderCard: (data: Card) => ReactElement;
+  renderCard: (
+    data: Card,
+    sortableData?: {
+      listeners?: SyntheticListenerMap;
+      setActivatorNodeRef: (element: HTMLElement | null) => void;
+    },
+  ) => ReactElement;
   isActive?: boolean;
   isForbiddenMove?: IsForbiddenFunc<Column, Group, Card>;
   getGroupId: (card: Card) => number | null;
@@ -103,6 +116,7 @@ const KanbanGroup = <
 
   const {
     setNodeRef,
+    setActivatorNodeRef,
     attributes,
     listeners,
     transform,
@@ -218,12 +232,10 @@ const KanbanGroup = <
             background: '#FAFAFA',
             // p: 1,
             textAlign: 'center',
-            cursor: 'grab',
           }}
           {...attributes}
-          {...listeners}
         >
-          {renderGroupTitle(group)}
+          {renderGroupTitle(group, { setActivatorNodeRef, listeners })}
           {loading && <Preloader />}
         </Box>
         <Box>

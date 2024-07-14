@@ -84,6 +84,9 @@ export class ProductBatchEntity {
   @Column('date')
   date: string;
 
+  @Column({ default: '#fff' })
+  color: string;
+
   @CreateDateColumn()
   createdAt: Date;
 

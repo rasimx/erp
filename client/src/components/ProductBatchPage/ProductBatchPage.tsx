@@ -88,8 +88,12 @@ export const ProductBatchPage: FC = () => {
     <div>
       <KanbanBoard
         columnItems={statusList}
-        getColumnHeader={status => (
-          <ColumnHeader status={status} refetch={refetch} />
+        getColumnHeader={(status, sortableData) => (
+          <ColumnHeader
+            status={status}
+            refetch={refetch}
+            sortableData={sortableData}
+          />
         )}
         moveColumn={moveStatus}
         setColumnId={(item, newColumnId) => (item.statusId = newColumnId)}
@@ -106,8 +110,12 @@ export const ProductBatchPage: FC = () => {
           });
         }}
         isGroup={item => item.__typename == 'ProductBatchGroupDto'}
-        renderGroupTitle={group => (
-          <GroupHeader group={group} refetch={refetch} />
+        renderGroupTitle={(group, sortableData) => (
+          <GroupHeader
+            group={group}
+            refetch={refetch}
+            sortableData={sortableData}
+          />
         )}
         getGroupItems={item =>
           getFragmentData(PRODUCT_BATCH_FRAGMENT, item.productBatchList)
@@ -122,9 +130,10 @@ export const ProductBatchPage: FC = () => {
         }}
         isForbiddenMove={isForbiddenMove}
         modifiers={modifiers}
-        renderCard={card => (
+        renderCard={(card, sortableData) => (
           <ProductBatchCard
             card={card as ProductBatchFragment}
+            sortableData={sortableData}
             refetch={refetch}
           />
         )}

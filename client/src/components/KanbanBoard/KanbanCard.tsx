@@ -1,4 +1,5 @@
 import { Active, Over } from '@dnd-kit/core';
+import { SyntheticListenerMap } from '@dnd-kit/core/dist/hooks/utilities/useSyntheticListeners';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Button, Card } from '@mui/material';
@@ -13,7 +14,13 @@ export interface Props<
   Card extends SortableType,
 > {
   card: Card;
-  render: (data: Card) => ReactElement;
+  render: (
+    data: Card,
+    sortableData?: {
+      listeners?: SyntheticListenerMap;
+      setActivatorNodeRef: (element: HTMLElement | null) => void;
+    },
+  ) => ReactElement;
   isForbiddenMove?: IsForbiddenFunc<Column, Group, Card>;
   getGroupId: (card: Card) => number | null;
   onChangeStyles?: (active: Active, over: Over) => void;
@@ -116,18 +123,8 @@ const KanbanCard = <
           }}
         ></Card>
       )}
-      <Card
-        ref={setNodeRef}
-        {...listeners}
-        {...attributes}
-        style={style}
-        elevation={3}
-        // sx={{ backgroundColor: 'rgba(0,0,0,.1)', p: 1 }}
-      >
-        {/*<Button ref={setActivatorNodeRef} {...listeners}>*/}
-        {/*  AAAA*/}
-        {/*</Button>*/}
-        {render(card)}
+      <Card ref={setNodeRef} {...attributes} style={style} elevation={3}>
+        {render(card, { listeners, setActivatorNodeRef })}
       </Card>
     </React.Fragment>
   );

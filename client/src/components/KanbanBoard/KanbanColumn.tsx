@@ -1,7 +1,15 @@
+import { SyntheticListenerMap } from '@dnd-kit/core/dist/hooks/utilities/useSyntheticListeners';
 import { SortableContext, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import styled, { CreateStyled } from '@emotion/styled';
-import { Card, CircularProgress, Paper, Stack } from '@mui/material';
+import OpenWithIcon from '@mui/icons-material/OpenWith';
+import {
+  Card,
+  CircularProgress,
+  IconButton,
+  Paper,
+  Stack,
+} from '@mui/material';
 import Box from '@mui/material/Box';
 import React, { ReactElement, useMemo } from 'react';
 
@@ -62,13 +70,31 @@ export type Props<
 > = {
   items: (Card | Group)[];
   column: Column;
-  getColumnHeader: (column: Column) => ReactElement;
-  renderGroupTitle: (group: Group) => ReactElement;
+  getColumnHeader: (
+    column: Column,
+    sortableData?: {
+      listeners?: SyntheticListenerMap;
+      setActivatorNodeRef: (element: HTMLElement | null) => void;
+    },
+  ) => ReactElement;
+  renderGroupTitle: (
+    group: Group,
+    sortableData?: {
+      listeners?: SyntheticListenerMap;
+      setActivatorNodeRef: (element: HTMLElement | null) => void;
+    },
+  ) => ReactElement;
   getGroupItems: (group: Group) => Card[];
   getGroupId: (card: Card) => number | null;
   isGroup: (cardOrGroup: Card | Group) => boolean;
   loading?: boolean;
-  renderCard: (data: Card) => ReactElement;
+  renderCard: (
+    data: Card,
+    sortableData?: {
+      listeners?: SyntheticListenerMap;
+      setActivatorNodeRef: (element: HTMLElement | null) => void;
+    },
+  ) => ReactElement;
   isActive?: boolean;
   isForbiddenMove?: IsForbiddenFunc<Column, Group, Card>;
 };
@@ -104,6 +130,7 @@ const KanbanColumn = <
 
   const {
     setNodeRef,
+    setActivatorNodeRef,
     attributes,
     listeners,
     transform,
@@ -184,12 +211,15 @@ const KanbanColumn = <
           background: '#FAFAFA',
           // p: 1,
           textAlign: 'center',
-          cursor: 'grab',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
         }}
         {...attributes}
-        {...listeners}
       >
-        {getColumnHeader(column)}
+        <Box sx={{ flexGrow: 1 }}>
+          {getColumnHeader(column, { listeners, setActivatorNodeRef })}
+        </Box>
         {loading && <Preloader />}
       </Box>
       <Column $showAfter={showAfter}>
