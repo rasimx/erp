@@ -3,12 +3,8 @@ import {
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
-  JoinColumn,
-  ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
-  type Relation,
-  RelationId,
   UpdateDateColumn,
 } from 'typeorm';
 
@@ -25,6 +21,12 @@ export class OperationEntity {
     default: () => "(current_setting('rls.user_id'))",
   })
   userId: number;
+
+  @Column({
+    type: 'integer',
+    nullable: true,
+  })
+  groupId: number | null;
 
   @Column()
   name: string;

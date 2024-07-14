@@ -1,0 +1,150 @@
+type Product {
+  id: Int!
+  sku: String!
+  name: String!
+}
+
+type ProductList {
+  items: [Product!]!
+  totalCount: Int!
+}
+
+type Status {
+  id: Int!
+  title: String!
+  order: Int!
+  type: StatusType!
+  storeId: Int
+}
+
+type ProductBatch {
+  id: Int!
+  name: String!
+  productId: Int!
+  product: Product!
+  count: Int!
+  costPrice: Int!
+  pricePerUnit: Float!
+  fullPrice: Float!
+  date: String!
+  weight: Int!
+  volume: Float!
+  order: Int!
+  statusId: Int!
+  status: Status!
+  parentId: Int
+}
+
+type Operation {
+  id: Int!
+  name: String!
+  cost: Int!
+  date: String!
+}
+
+
+type OperationList {
+  items: [Operation!]!
+  totalCount: Int!
+}
+
+type StoreByProduct {
+  product: Product!
+  productBatches: [ProductBatch!]!
+  salesCount: Int!
+  inStoreCount: Int!
+}
+
+type Store {
+  id: Int!
+  items: [StoreByProduct!]!
+}
+
+
+
+type Query {
+  productList: ProductList!
+  statusList: [Status!]!
+  productBatchList(productId: Int!): [ProductBatch!]!
+  operationList(productBatchId: Int!): OperationList!
+  storeState(productId: Int, statusId: Int): [Store!]!
+}
+
+
+input CreateProductInput {
+  sku: String!
+  name: String!
+}
+type CreateProductResponse {
+  success: Boolean!
+}
+
+
+input UpdateProductBatchInput {
+  id: Int!
+  statusId: Int!
+  order: Int
+}
+input CreateProductBatchInput {
+  count: Int!
+  statusId: Int!
+  parentId: Int
+  productId: Int
+  date: String
+  name: String
+  costPrice: Int
+  order: Int
+}
+
+input ProductBatchOperationInput {
+  productBatchId: Int!
+  proportion: Float!
+  cost: Int! # в копейках
+}
+
+enum ProportionType {
+  equal
+  manual
+  weight
+  volume
+  costPrice
+}
+
+enum StatusType {
+  custom
+  ozon
+  wb
+}
+
+input CreateOperationInput {
+  name: String!
+  cost: Int! # в копейках
+  proportionType: ProportionType!
+  productBatchProportions: [ProductBatchOperationInput!]!
+  date: String!
+}
+
+type CreateOperationResponse {
+  success: Boolean!
+}
+
+#input MergeProductBatchInput {
+#  sourceProductBatchId: Int!
+#  targetProductBatchId: Int!
+#}
+#type MergeProductBatchResponse {
+#  productBatch: ProductBatch!
+#}
+
+type Mutation {
+  createOperation(input: CreateOperationInput!): CreateOperationResponse!
+  createProduct(input: CreateProductInput!): CreateProductResponse!
+  createProductBatch(input: CreateProductBatchInput!): [ProductBatch!]
+  updateProductBatch(input: UpdateProductBatchInput!): [ProductBatch!]!
+  deleteProductBatch(id: Int!): Int!
+  createStatus(title: String!): [Status!]!
+  deleteStatus(id: Int!): [Status!]!
+  moveStatus(id: Int!, order: Int!): [Status!]!
+}
+
+

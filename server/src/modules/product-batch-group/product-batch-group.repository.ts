@@ -264,7 +264,7 @@ export class ProductBatchGroupRepository extends Repository<ProductBatchGroupEnt
 
   // todo: productId
   async findItems(productId?: number) {
-    return this.createQueryBuilder('pbg')
+    const items = await this.createQueryBuilder('pbg')
       .leftJoinAndSelect('pbg.productBatchList', 'productBatchList')
       .leftJoinAndSelect('productBatchList.product', 'product')
       .leftJoinAndSelect('pbg.status', 'status')
@@ -272,6 +272,15 @@ export class ProductBatchGroupRepository extends Repository<ProductBatchGroupEnt
       .orderBy('productBatchList.order', 'ASC')
       .where('pbg.deleted_date is null')
       .getMany();
+
+    return items.map(item => ({
+      ...item,
+      productBatchList: item.productBatchList.map(batch => ({
+        ...batch,
+        volume: batch.volume,
+        weight: batch.weight,
+      })),
+    }));
   }
 }
 

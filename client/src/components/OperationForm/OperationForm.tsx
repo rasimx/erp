@@ -1,3 +1,4 @@
+import NiceModal from '@ebay/nice-modal-react';
 import styled from '@emotion/styled';
 import {
   Box,
@@ -16,12 +17,41 @@ import {
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { format } from 'date-fns';
-import _ from 'lodash';
-import React, { type FC, useCallback, useMemo, useState } from 'react';
+import { format, parse } from 'date-fns';
+import { FormikErrors, FormikProps, withFormik } from 'formik';
+import { FormikBag } from 'formik/dist/withFormik';
+import pick from 'lodash/pick';
+import React, {
+  type FC,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
+import { array, mixed, number, object, ObjectSchema, string } from 'yup';
 
 // import { ProportionType } from '@/gql-types/graphql';
-import { useAppSelector } from '@/hooks';
+import {
+  CreateOperationDto,
+  ProductBatchFragment,
+  ProportionType,
+} from '../../gql-types/graphql';
+import { toRouble } from '../../utils';
+import withModal from '../withModal';
+
+const style = {
+  display: 'flex',
+  flexDirection: 'column',
+  position: 'absolute' as const,
+  top: '50%',
+  left: '50%',
+  transform: 'translate(-50%, -50%)',
+  width: 800,
+  bgcolor: 'background.paper',
+  border: '2px solid #000',
+  boxShadow: 24,
+  p: 2,
+};
 
 // import {
 //   ProductBatchStateItem,
@@ -45,7 +75,7 @@ const Value = styled('div')`
     box-sizing: border-box;
     padding: 0 15px;
 
-    &:nth-child(1) {
+    &:nth-of-type(1) {
       background: antiquewhite;
       position: relative;
       padding-right: 10px;
@@ -61,7 +91,7 @@ const Value = styled('div')`
       }
     }
 
-    &:nth-child(2) {
+    &:nth-of-type(2) {
       background: #eede93;
       position: relative;
 
@@ -76,7 +106,7 @@ const Value = styled('div')`
       }
     }
 
-    &:nth-child(3) {
+    &:nth-of-type(3) {
       font-weight: bold;
       background: #efefef;
     }
@@ -84,7 +114,14 @@ const Value = styled('div')`
 `;
 
 export interface Props {
-  onSubmit: () => void;
+  groupId: number | null;
+  productBatches: ProductBatchFragment[];
+  closeModal: () => void;
+  initialValues: Partial<CreateOperationDto>;
+  onSubmit: (
+    values: CreateOperationDto,
+    formikBag: FormikBag<Props, CreateOperationDto>,
+  ) => Promise<unknown>;
 }
 
 export type ProductBatchOperationInputItem = {
@@ -106,7 +143,7 @@ type B = {
 
 type DataCellProps = {
   type: ProportionType;
-  // row: ProductBatchStateItem;
+  row: ProductBatchFragment;
   items: B;
   label: string;
   getValue?: (value: number) => number;
@@ -133,37 +170,42 @@ const DataCell: FC<DataCellProps> = ({ type, row, items, label, getValue }) => {
             {getValue ? getValue(item.value) : item.value} {label}
           </div>
           <div>{item.proportion} %</div>
-          <div>{(item.cost / 100).toFixed(2)} р</div>
+          <div>{Number.isNaN(item.cost) ? '—' : toRouble(item.cost)} р</div>
         </Value>
       </Tooltip>
     </TableCell>
   );
 };
 
-const AddOperationForm: FC<Props> = ({ onSubmit }) => {
-  const [name, setName] = React.useState<string>('');
-  const [cost, setCost] = React.useState<number>(0);
-  const [date, setDate] = React.useState<Date | null>(null);
-  // const selectedProductBatches = useAppSelector(selectCheckedProductBatchList);
-  const [proportionType, setProportionType] = useState<ProportionType>(
-    ProportionType.equal,
-  );
+const Form: FC<Props & FormikProps<CreateOperationDto>> = props => {
+  const {
+    productBatches,
+    setFieldValue,
+    handleSubmit,
+    values,
+    handleChange,
+    handleBlur,
+    touched,
+    errors,
+  } = props;
 
   const percentages = useCallback(
     (
       field: keyof Pick<
-        ProductBatchStateItem,
-        'volume' | 'weight' | 'costPrice'
+        ProductBatchFragment,
+        'volume' | 'weight' | 'costPricePerUnit'
       >,
     ) => {
-      const getValue = (item: ProductBatchStateItem) =>
-        field == 'costPrice' ? item.costPrice * item.count : item[field];
-      const totalSum = selectedProductBatches.reduce(
+      const getValue = (item: ProductBatchFragment) =>
+        field == 'costPricePerUnit'
+          ? Number(toRouble(item.costPricePerUnit * item.count))
+          : item[field];
+      const totalSum = productBatches.reduce(
         (acc, item) => acc + getValue(item),
         0,
       );
 
-      const percentages = selectedProductBatches.map(item => ({
+      const percentages = productBatches.map(item => ({
         ...item,
         proportion: Math.floor((getValue(item) / totalSum) * 1000) / 10,
       }));
@@ -186,62 +228,51 @@ const AddOperationForm: FC<Props> = ({ onSubmit }) => {
           {
             productBatchId: item.id,
             proportion: item.proportion,
-            cost: Number((cost * item.proportion).toFixed(0)),
+            cost: Number((values.cost * item.proportion).toFixed(0)),
             value: getValue(item),
           },
         ]),
       );
     },
-    [selectedProductBatches, cost],
+    [productBatches, values.cost],
   );
 
   const items = useMemo<B>(() => {
     return {
       [ProportionType.weight]: percentages('weight'),
       [ProportionType.volume]: percentages('volume'),
-      [ProportionType.costPrice]: percentages('costPrice'),
-      [ProportionType.manual]: percentages('costPrice'), // временно
+      [ProportionType.costPrice]: percentages('costPricePerUnit'),
+      [ProportionType.manual]: percentages('costPricePerUnit'), // временно
       [ProportionType.equal]: new Map(
-        selectedProductBatches.map(item => [
+        productBatches.map(item => [
           item.id,
           {
             productBatchId: item.id,
             proportion: 100,
-            cost: Number((cost * 100).toFixed(0)),
-            value: cost,
+            cost: Number((values.cost * 100).toFixed(0)),
+            value: values.cost,
           },
         ]),
       ), // временно
     };
-  }, [percentages]);
+  }, [percentages, values.cost]);
 
-  const onClickCreateBtn = useCallback(async () => {
-    if (!name || !cost || !date) {
-      throw new Error('invalid');
+  useEffect(() => {
+    if (items && values.proportionType) {
+      setFieldValue(
+        'productBatchProportions',
+        [...items[values.proportionType].values()].map(item =>
+          pick(item, ['productBatchId', 'proportion', 'cost']),
+        ),
+      );
     }
-    await createOperation({
-      name,
-      proportionType,
-      productBatchProportions: [...items[proportionType].values()].map(item =>
-        _.pick(item, ['productBatchId', 'proportion', 'cost']),
-      ),
-      cost,
-      date: format(date, 'yyyy-MM-dd'),
-    });
-
-    onSubmit();
-  }, [name, cost, date, proportionType]);
-
-  const handleRadio = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setProportionType(event.target.value as ProportionType);
-  };
+  }, [items, values.proportionType]);
 
   return (
     <Box
+      sx={style}
       component="form"
-      sx={{
-        '& .MuiTextField-root': { m: 1, width: '40ch' },
-      }}
+      onSubmit={handleSubmit}
       noValidate
       autoComplete="off"
     >
@@ -249,35 +280,46 @@ const AddOperationForm: FC<Props> = ({ onSubmit }) => {
         required
         id="outlined-required"
         label="Название"
-        value={name}
-        onChange={event => {
-          setName(event.target.value);
-        }}
+        name="name"
+        value={values.name}
+        onBlur={handleBlur}
+        onChange={handleChange}
+        error={touched.name && Boolean(errors.name)}
       />
 
       <TextField
         required
         id="outlined-required"
+        sx={{ mt: 1 }}
         type="number"
         label="стоимость за партию"
-        value={cost}
-        onChange={event => {
-          setCost(Number(event.target.value));
-        }}
+        name="cost"
+        value={values.cost || ''}
+        onBlur={handleBlur}
+        onChange={handleChange}
+        error={touched.cost && Boolean(errors.cost)}
       />
 
       <LocalizationProvider dateAdapter={AdapterDateFns}>
         <DatePicker
-          value={date}
           format="yyyy-MM-dd"
+          sx={{ mt: 1 }}
+          value={
+            values.date ? parse(values.date, 'yyyy-MM-dd', new Date()) : null
+          }
+          // error={touched.date && Boolean(errors.date)}
+          // onBlur={handleBlur}
           onChange={value => {
-            setDate(value);
+            setFieldValue(
+              'date',
+              value ? format(value, 'yyyy-MM-dd') : undefined,
+            );
           }}
         />
       </LocalizationProvider>
       <div>
-        {selectedProductBatches.length > 1 && (
-          <TableContainer component={Paper}>
+        {productBatches.length > 1 && (
+          <TableContainer component={Paper} sx={{ mt: 2 }}>
             <Table
               sx={{ minWidth: 650 }}
               size="small"
@@ -289,27 +331,35 @@ const AddOperationForm: FC<Props> = ({ onSubmit }) => {
                   <TableCell>
                     <Radio
                       size="small"
-                      checked={proportionType == ProportionType.weight}
-                      onChange={handleRadio}
+                      name="proportionType"
+                      checked={values.proportionType == ProportionType.weight}
                       value={ProportionType.weight}
+                      onBlur={handleBlur}
+                      onChange={handleChange}
                     />
                     <span>По весу</span>
                   </TableCell>
                   <TableCell>
                     <Radio
                       size="small"
-                      checked={proportionType == ProportionType.volume}
-                      onChange={handleRadio}
+                      name="proportionType"
+                      checked={values.proportionType == ProportionType.volume}
                       value={ProportionType.volume}
+                      onBlur={handleBlur}
+                      onChange={handleChange}
                     />
                     <span>По объему</span>
                   </TableCell>
                   <TableCell>
                     <Radio
                       size="small"
-                      checked={proportionType == ProportionType.costPrice}
-                      onChange={handleRadio}
+                      name="proportionType"
+                      checked={
+                        values.proportionType == ProportionType.costPrice
+                      }
                       value={ProportionType.costPrice}
+                      onBlur={handleBlur}
+                      onChange={handleChange}
                     />
                     <span>По с/с</span>
                   </TableCell>
@@ -325,7 +375,7 @@ const AddOperationForm: FC<Props> = ({ onSubmit }) => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {selectedProductBatches.map(row => (
+                {productBatches.map(row => (
                   <TableRow key={row.id}>
                     <TableCell component="th" scope="row">
                       {row.id}
@@ -358,111 +408,62 @@ const AddOperationForm: FC<Props> = ({ onSubmit }) => {
             </Table>
           </TableContainer>
         )}
-        {/*{false && (
-          <Table>
-            <div>
-              <div>
-                <Radio
-                  checked={proportionType == ProportionType.manual}
-                  onChange={handleRadio}
-                  value={ProportionType.manual}
-                />
-                По весу
-              </div>
-              {percentages(selectedProductBatches, 'weight').map(item => (
-                <div>
-                  <TextField
-                    required
-                    id="outlined-required"
-                    label={item.productBatchId}
-                    key={item.productBatchId}
-                    value={item.proportion}
-                    onChange={handleA(item.productBatchId)}
-                  />
-                </div>
-              ))}
-            </div>
-            <div>
-              <div>
-                <Radio
-                  checked={proportionType == ProportionType.weight}
-                  onChange={handleRadio}
-                  value={ProportionType.weight}
-                />
-                По весу
-              </div>
-              {items[ProportionType.weight].map(item => (
-                <div key={item.productBatchId}>
-                  <FormControl variant="standard">
-                    <InputLabel htmlFor="input-with-icon-adornment">
-                      {item.productBatchId}
-                    </InputLabel>
-                    <Input
-                      id="input-with-icon-adornment"
-                      value={item.cost}
-                      onChange={handleA(item.productBatchId)}
-                      startAdornment={
-                        <InputAdornment position="start">
-                          {item.proportion}%
-                        </InputAdornment>
-                      }
-                    />
-                  </FormControl>
-                </div>
-              ))}
-            </div>
-            <div>
-              <div>
-                <Radio
-                  checked={proportionType == ProportionType.volume}
-                  onChange={handleRadio}
-                  value={ProportionType.volume}
-                />
-                По объему
-              </div>
-              {percentages(selectedProductBatches, 'volume').map(item => (
-                <div>
-                  <TextField
-                    required
-                    id="outlined-required"
-                    label={item.productBatchId}
-                    key={item.productBatchId}
-                    value={item.cost}
-                    onChange={handleA(item.productBatchId)}
-                  />
-                </div>
-              ))}
-            </div>
-            <div>
-              <div>
-                <Radio
-                  checked={proportionType == ProportionType.costPrice}
-                  onChange={handleRadio}
-                  value={ProportionType.costPrice}
-                />
-                По себестоимости
-              </div>
-              {percentages(selectedProductBatches, 'costPrice').map(item => (
-                <div>
-                  <TextField
-                    required
-                    id="outlined-required"
-                    label={item.productBatchId}
-                    key={item.productBatchId}
-                    value={item.cost}
-                    onChange={handleA(item.productBatchId)}
-                  />
-                </div>
-              ))}
-            </div>
-          </Table>
-        )}*/}
       </div>
-      <Button variant="contained" onClick={onClickCreateBtn}>
+      <Button variant="contained" type="submit" sx={{ mt: 1 }}>
         Добавить
       </Button>
     </Box>
   );
 };
 
-export default AddOperationForm;
+export const createOperationValidationSchema =
+  (): ObjectSchema<CreateOperationDto> => {
+    return object().shape({
+      name: string().required(),
+      cost: number().required(),
+      date: string().required(),
+      proportionType: mixed<ProportionType>()
+        .oneOf(Object.values(ProportionType))
+        .when('groupId', {
+          is: (val: number | null) => !!val,
+          then: schema => schema.required(),
+        }),
+      groupId: number(),
+      productBatchProportions: array(
+        object().shape({
+          productBatchId: number().required(),
+          cost: number().required(),
+          proportion: number().required(),
+        }),
+      ).required(),
+    });
+  };
+
+const OperationForm = withFormik<Props, CreateOperationDto>({
+  validationSchema: () => createOperationValidationSchema(),
+  mapPropsToValues: props => {
+    return {
+      proportionType: ProportionType.equal,
+      ...props.initialValues,
+    } as CreateOperationDto;
+  },
+
+  // Add a custom validation function (this can be async too!)
+  validate: (values: CreateOperationDto) => {
+    const errors: FormikErrors<CreateOperationDto> = {};
+    // if (!values.email) {
+    //   errors.email = 'Required';
+    // } else if (!isValidEmail(values.email)) {
+    //   errors.email = 'Invalid email address';
+    // }
+    return errors;
+  },
+
+  handleSubmit: (values, formikBag) => {
+    return formikBag.props.onSubmit(values, formikBag).then(() => {
+      formikBag.props.closeModal();
+    });
+  },
+})(Form);
+
+export default NiceModal.create(withModal(OperationForm));

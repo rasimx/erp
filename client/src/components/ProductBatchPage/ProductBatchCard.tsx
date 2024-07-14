@@ -1,3 +1,4 @@
+import { useModal } from '@ebay/nice-modal-react';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import {
   Card,
@@ -12,10 +13,13 @@ import {
   Typography,
 } from '@mui/material';
 import Box from '@mui/material/Box';
-import React from 'react';
+import React, { useCallback } from 'react';
 
+import { useOperation } from '../../api/operation/operation.hooks';
 import { useProductBatch } from '../../api/product-batch/product-batch.hook';
 import { ProductBatchFragment } from '../../gql-types/graphql';
+import { toRouble } from '../../utils';
+import OperationForm from '../OperationForm/OperationForm';
 
 const Preloader = () => {
   return (
@@ -42,7 +46,9 @@ export interface Props {
 
 export const ProductBatchCard = React.memo<Props>(props => {
   const { card, loading, refetch } = props;
+
   const { deleteProductBatch } = useProductBatch();
+  const { createOperation } = useOperation();
 
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
@@ -58,6 +64,23 @@ export const ProductBatchCard = React.memo<Props>(props => {
       refetch();
     });
   };
+  const operationFormModal = useModal(OperationForm);
+  const showOperationFormModal = useCallback(() => {
+    operationFormModal.show({
+      groupId: null,
+      productBatches: [card],
+      onSubmit: async values => {
+        createOperation(values)
+          .then(result => {
+            refetch();
+          })
+          .catch(err => {
+            alert('ERROR');
+          });
+      },
+    });
+    handleClose();
+  }, [handleClose, card]);
 
   return (
     <>
@@ -66,7 +89,7 @@ export const ProductBatchCard = React.memo<Props>(props => {
         sx={{
           cursor: 'grab',
           position: 'relative',
-          height: 280,
+          height: 380,
           backgroundColor: 'rgba(0,0,255,.1)',
         }}
       >
@@ -91,6 +114,9 @@ export const ProductBatchCard = React.memo<Props>(props => {
             open={open}
             onClose={handleClose}
           >
+            <MenuItem onClick={showOperationFormModal}>
+              Добавить операцию
+            </MenuItem>
             <MenuItem onClick={handleDelete}>Удалить</MenuItem>
           </Menu>
         </>
@@ -133,10 +159,20 @@ export const ProductBatchCard = React.memo<Props>(props => {
             <ListItem
               disableGutters
               secondaryAction={
-                <Typography>{card.costPricePerUnit} р</Typography>
+                <Typography>{toRouble(card.costPricePerUnit)} р</Typography>
               }
             >
               <ListItemText primary="цена закупки" />
+            </ListItem>
+            <ListItem
+              disableGutters
+              secondaryAction={
+                <Typography>
+                  {toRouble(card.operationsPricePerUnit)} р
+                </Typography>
+              }
+            >
+              <ListItemText primary="операции за одну" />
             </ListItem>
             {/*<ListItem*/}
             {/*  disableGutters*/}
@@ -148,7 +184,15 @@ export const ProductBatchCard = React.memo<Props>(props => {
             {/*</ListItem>*/}
             <ListItem
               disableGutters
-              secondaryAction={<Typography>241 р</Typography>}
+              secondaryAction={
+                <Typography>
+                  {toRouble(
+                    (card.operationsPricePerUnit + card.costPricePerUnit) *
+                      card.count,
+                  )}{' '}
+                  р
+                </Typography>
+              }
             >
               <ListItemText primary="с/с партии" />
             </ListItem>

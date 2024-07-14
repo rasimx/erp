@@ -32,6 +32,8 @@ export const PRODUCT_BATCH_FRAGMENT = graphql(`
     operationsPricePerUnit
     date
     order
+    volume
+    weight
   }
 `);
 

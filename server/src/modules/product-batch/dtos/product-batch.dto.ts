@@ -1,4 +1,4 @@
-import { Field, Int, ObjectType } from '@nestjs/graphql';
+import { Field, Float, Int, ObjectType } from '@nestjs/graphql';
 
 import { ProductDto } from '@/product/dtos/product.dto.js';
 import { StatusDto } from '@/status/dtos/status.dto.js';
@@ -34,6 +34,12 @@ export class ProductBatchDto {
 
   @Field(() => Int)
   order: number;
+
+  @Field(() => Float)
+  volume: number;
+
+  @Field(() => Int)
+  weight: number;
 
   @Field(() => ProductDto)
   product: ProductDto;

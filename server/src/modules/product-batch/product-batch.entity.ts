@@ -78,6 +78,9 @@ export class ProductBatchEntity {
   @Column()
   operationsPricePerUnit: number;
 
+  @Column()
+  operationsPrice: number;
+
   @Column('date')
   date: string;
 

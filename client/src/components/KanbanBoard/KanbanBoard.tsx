@@ -28,8 +28,6 @@ import React, {
 } from 'react';
 import { createPortal } from 'react-dom';
 
-import AddOperation from '@/components/AddOperation/AddOperation';
-
 import KanbanCard from './KanbanCard';
 import KanbanColumn from './KanbanColumn';
 import KanbanGroup, { isInsteadGroup } from './KanbanGroup';
@@ -637,9 +635,6 @@ const KanbanBoard = <
       {/*>*/}
       {/*  <CircularProgress color="inherit" />*/}
       {/*</Backdrop>*/}
-      <Box>
-        <AddOperation />
-      </Box>
 
       <DndContext
         measuring={measuring}

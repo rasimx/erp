@@ -11,6 +11,24 @@ import { ProductBatchGroupEntity } from '@/product-batch-group/product-batch-gro
 import { StatusEntity } from '@/status/status.entity.js';
 
 export class ProductBatchRepository extends Repository<ProductBatchEntity> {
+  async productBatchList(): Promise<ProductBatchEntity[]> {
+    const items = await this.createQueryBuilder('pb')
+      // .select([
+      //   '*',
+      //   'product.volume * pb.count as volume',
+      //   'product.weight * pb.count as weight',
+      // ])
+      .leftJoinAndSelect('pb.product', 'product')
+      .leftJoinAndSelect('pb.status', 'status')
+      .orderBy('pb.order', 'ASC')
+      .where('pb.deleted_date is null')
+      .getMany();
+    return items.map(item => ({
+      ...item,
+      volume: item.volume,
+      weight: item.weight,
+    }));
+  }
   async createFromDto({
     dto,
     statusId,
@@ -61,7 +79,9 @@ export class ProductBatchRepository extends Repository<ProductBatchEntity> {
     let newEntity = new ProductBatchEntity();
     Object.assign(newEntity, dto, {
       order,
+      costPricePerUnit: dto.costPricePerUnit,
       operationsPricePerUnit: 0,
+      operationsPrice: 0,
       statusId,
       groupId,
     });
