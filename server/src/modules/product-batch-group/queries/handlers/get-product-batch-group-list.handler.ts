@@ -1,7 +1,5 @@
 import { type IQueryHandler, QueryHandler } from '@nestjs/cqrs';
-import { InjectRepository } from '@nestjs/typeorm';
 
-import { ProductBatchGroupEntity } from '../../product-batch-group.entity.js';
 import { ProductBatchGroupRepository } from '../../product-batch-group.repository.js';
 import { GetProductBatchGroupListQuery } from '../impl/get-product-batch-group-list.query.js';
 
@@ -14,6 +12,6 @@ export class GetProductBatchGroupListHandler
   ) {}
 
   async execute(query: GetProductBatchGroupListQuery) {
-    return this.productBatchGroupRepository.findItems();
+    return this.productBatchGroupRepository.findItems(query.dto);
   }
 }

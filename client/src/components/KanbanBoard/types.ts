@@ -1,6 +1,8 @@
 import { Modifier } from '@dnd-kit/core';
+import { SyntheticListenerMap } from '@dnd-kit/core/dist/hooks/utilities/useSyntheticListeners';
 import { DataRef } from '@dnd-kit/core/dist/store/types';
-import { ReactElement } from 'react';
+import { once } from 'lodash';
+import { createContext, ReactElement, useContext } from 'react';
 
 export enum DraggableType {
   Column = 'column',
@@ -8,47 +10,64 @@ export enum DraggableType {
   Card = 'card',
 }
 
-export type SortableType = { id: number; order: number };
+export type SortableType = { id: number; order?: number };
 
-export type KanbanOptions<
+export type SortableData = {
+  listeners?: SyntheticListenerMap;
+  setActivatorNodeRef: (element: HTMLElement | null) => void;
+};
+
+export type GroupProps<Group> = {
+  group: Group;
+  isActive: boolean;
+  children: ReactElement;
+  sortableData: SortableData;
+};
+
+export type ColumnProps<Column> = {
+  column: Column;
+  children: ReactElement;
+  isActive: boolean;
+  sortableData: SortableData;
+};
+
+export type CardProps<Card> = {
+  card: Card;
+  isActive: boolean;
+  sortableData: SortableData;
+};
+
+export type KanbanBoardProps<
   Column extends SortableType,
   Group extends SortableType,
   Card extends SortableType,
 > = {
-  columns: Column[];
+  columnItems: Column[];
   moveColumn: (active: Column, over: Column) => void;
-  getColumnTitle: (column: Column) => string;
-  isGroup: (item: Group | Card) => boolean;
-  getGroupTitle: (group: Group) => string;
-  getGroupItems: (group: Group) => Card[];
-  moveGroup: (data: { id: number; columnId: number; order?: number }) => void;
-  moveCard: (data: { id: number; columnId: number; order?: number }) => void;
-  items: (Group | Card)[];
-  getColumnId: (card: Group | Card) => number;
-  getGroupId: (card: Card) => number;
-  setColumnId: (card: Group | Card, newColumnId: number) => void;
-  renderCard: (data: Card) => ReactElement;
-};
+  renderColumn: (props: ColumnProps<Column>) => ReactElement;
+  getColumnId: (card: Card | Group) => number | null;
+  setColumnId: (card: Group | Card, newColumnId: number | null) => void;
 
-// export type ColumnOptions<Column extends SortableType> = {
-//   items: Column[];
-//   move: (active: Column, over: Column) => void;
-//   getTitle: (column: Column) => string;
-// };
-//
-// export type CardOptions<
-//   Group extends SortableType,
-//   Card extends SortableType,
-// > = {
-//   items: (Group | Card)[];
-//   isGroup: (item: Group | Card) => boolean;
-//   getGroupTitle: (group: Group) => string;
-//   getGroupItems: (group: Group) => Card[];
-//   move: (data: { id: number; columnId: number; order?: number }) => void;
-//   getColumnId: (card: Group | Card) => number;
-//   setColumnId: (card: Group | Card, newColumnId: number) => void;
-//   renderItem: (data: Card) => ReactElement;
-// };
+  isGroup: (item: Group | Card) => boolean;
+  renderGroup: (props: GroupProps<Group>) => ReactElement;
+  getGroupItems: (group: Group) => Card[];
+  setGroupItems: (group: Group, items: Card[]) => void;
+  moveGroup: (data: { id: number; columnId: number; order?: number }) => void;
+  getGroupId: (card: Card) => number | null;
+  setGroupId: (card: Card, newGroupId: number | null) => void;
+
+  moveCard: (data: {
+    id: number;
+    columnId: number | null;
+    groupId: number | null;
+    order?: number;
+  }) => void;
+  cardItems: (Group | Card)[];
+  renderCard: (props: CardProps<Card>) => ReactElement;
+
+  isForbiddenMove?: IsForbiddenFunc<Column, Group, Card>;
+  modifiers?: ModifiersFunc<Column, Group, Card>;
+};
 
 export type A<Column extends SortableType> = {
   type: DraggableType.Column;
@@ -87,4 +106,18 @@ export type ModifiersFunc<
   Column extends SortableType,
   Group extends SortableType,
   Card extends SortableType,
-> = (options: MoveOptions<Column, Group, Card>) => Modifier[] | undefined;
+> = (
+  active: A<Column> | B<Group> | C<Card> | undefined,
+) => Modifier[] | undefined;
+
+export const createKanbanBoardContext = once(<
+  Column extends SortableType,
+  Group extends SortableType,
+  Card extends SortableType,
+>() => createContext({} as KanbanBoardProps<Column, Group, Card>));
+
+export const useKanbanBoardContext = <
+  Column extends SortableType,
+  Group extends SortableType,
+  Card extends SortableType,
+>() => useContext(createKanbanBoardContext<Column, Group, Card>());

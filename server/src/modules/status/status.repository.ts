@@ -1,7 +1,8 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException } from '@nestjs/common';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { type FindOptionsWhere, In, Repository } from 'typeorm';
 
+import { ProductBatchEntity } from '@/product-batch/product-batch.entity.js';
 import type { CreateStatusDto } from '@/status/dtos/create-status.dto.js';
 import type { MoveStatusDto } from '@/status/dtos/move-status.dto.js';
 import { StatusEntity } from '@/status/status.entity.js';
@@ -50,6 +51,16 @@ export class StatusRepository extends Repository<StatusEntity> {
 
     status.order = newOrder;
     return this.save(status);
+  }
+
+  statusList(ids: number[]) {
+    const where: FindOptionsWhere<StatusEntity> = {};
+    if (ids.length) where.id = In(ids);
+    return this.find({ where });
+  }
+
+  async findByStoreId(storeIds: number[]): Promise<StatusEntity[]> {
+    return this.find({ where: { storeId: In(storeIds) } });
   }
 }
 

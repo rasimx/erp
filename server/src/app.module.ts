@@ -23,7 +23,7 @@ import { ProductBatchModule } from '@/product-batch/product-batch.module.js';
 import { ProductBatchGroupModule } from '@/product-batch-group/product-batch-group.module.js';
 import { ProductBatchOperationModule } from '@/product-batch-operation/product-batch-operation.module.js';
 import { StatusModule } from '@/status/status.module.js';
-import { StoreModule } from '@/store/store.module.js';
+// import { StoreModule } from '@/store/store.module.js';
 import { TransactionModule } from '@/transaction/transaction.module.js';
 
 import { AppService } from './app.service.js';
@@ -53,7 +53,7 @@ import { AppService } from './app.service.js';
     AuthModule,
     AuthConfigModule,
     ContextModule,
-    StoreModule,
+    // StoreModule,
   ],
   controllers: [],
   providers: [

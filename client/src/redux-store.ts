@@ -4,12 +4,8 @@ import {
   type ThunkAction,
 } from '@reduxjs/toolkit';
 
-import statusReducer from './api/status/status.slice';
-
 const reduxStore = configureStore({
-  reducer: {
-    status: statusReducer,
-  },
+  reducer: {},
 });
 
 // export const persistor = persistStore(store);

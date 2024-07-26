@@ -2,6 +2,7 @@ import { BadRequestException } from '@nestjs/common';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { In, IsNull, Repository } from 'typeorm';
 
+import type { GetProductBatchListDto } from '@/product-batch/dtos/get-product-batch-list.dto.js';
 import { ProductBatchEntity } from '@/product-batch/product-batch.entity.js';
 import { ProductBatchRepository } from '@/product-batch/product-batch.repository.js';
 import type { CreateProductBatchGroupDto } from '@/product-batch-group/dtos/create-product-batch-group.dto.js';
@@ -220,14 +221,27 @@ export class ProductBatchGroupRepository extends Repository<ProductBatchGroupEnt
   }
 
   // todo: productId
-  async findItems(productId?: number) {
-    const items = await this.createQueryBuilder('pbg')
+  async findItems({ productIds, statusIds }: GetProductBatchListDto) {
+    let query = this.createQueryBuilder('pbg')
       .leftJoinAndSelect('pbg.productBatchList', 'productBatchList')
       .leftJoinAndSelect('productBatchList.product', 'product')
       .leftJoinAndSelect('pbg.status', 'status')
+      .where('pbg.deleted_date is null');
+
+    if (productIds.length) {
+      query = query.andWhere('product.id in (:...productIds)', {
+        productIds,
+      });
+    }
+    if (statusIds.length) {
+      query = query.andWhere('pbg.statusId in (:...statusIds)', {
+        statusIds,
+      });
+    }
+
+    const items = await query
       .orderBy('pbg.order', 'ASC')
-      .orderBy('productBatchList.order', 'ASC')
-      .where('pbg.deleted_date is null')
+      .addOrderBy('productBatchList.order', 'ASC')
       .getMany();
 
     return items.map(item => ({

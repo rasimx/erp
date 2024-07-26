@@ -1,43 +1,29 @@
 import { Active, Over } from '@dnd-kit/core';
-import { SyntheticListenerMap } from '@dnd-kit/core/dist/hooks/utilities/useSyntheticListeners';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Button, Card } from '@mui/material';
-import Box from '@mui/material/Box';
-import React, { ReactElement, useMemo } from 'react';
+import { Card } from '@mui/material';
+import React, { useMemo } from 'react';
 
-import { DraggableType, IsForbiddenFunc, SortableType } from './types';
+import { DraggableType, SortableType, useKanbanBoardContext } from './types';
 
-export interface Props<
-  Column extends SortableType,
-  Group extends SortableType,
-  Card extends SortableType,
-> {
+export interface Props<Card extends SortableType> {
   card: Card;
-  render: (
-    data: Card,
-    sortableData?: {
-      listeners?: SyntheticListenerMap;
-      setActivatorNodeRef: (element: HTMLElement | null) => void;
-    },
-  ) => ReactElement;
-  isForbiddenMove?: IsForbiddenFunc<Column, Group, Card>;
-  getGroupId: (card: Card) => number | null;
+  isActive?: boolean;
   onChangeStyles?: (active: Active, over: Over) => void;
 }
 
 export const getCardSortId = (item: SortableType) => `card_${item.id}`;
 
-const KanbanCard = <
-  Column extends SortableType,
-  Group extends SortableType,
-  Card extends SortableType,
->({
+const KanbanCard = <Card extends SortableType>({
   card,
-  render,
-  isForbiddenMove,
-  getGroupId,
-}: Props<Column, Group, Card>) => {
+  isActive = false,
+}: Props<Card>) => {
+  const { renderCard, isForbiddenMove, getGroupId } = useKanbanBoardContext<
+    never,
+    never,
+    Card
+  >();
+
   const id = getCardSortId(card);
 
   const {
@@ -71,7 +57,8 @@ const KanbanCard = <
   const showPrev = useMemo(() => {
     const groupId = getGroupId(card);
     const activeIsCard = active?.data.current?.type == DraggableType.Card;
-    const onlyCardInGroup = activeIsCard || (!activeIsCard && !groupId);
+    const activeIsGroup = active?.data.current?.type == DraggableType.Group;
+    const onlyCardInGroup = activeIsCard || (activeIsGroup && !groupId);
 
     const isNotNextItem =
       (overIndex != -1 && activeIndex != -1 && overIndex - activeIndex != 1) ||
@@ -124,7 +111,11 @@ const KanbanCard = <
         ></Card>
       )}
       <Card ref={setNodeRef} {...attributes} style={style} elevation={3}>
-        {render(card, { listeners, setActivatorNodeRef })}
+        {renderCard({
+          card,
+          isActive,
+          sortableData: { listeners, setActivatorNodeRef },
+        })}
       </Card>
     </React.Fragment>
   );

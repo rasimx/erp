@@ -3,8 +3,10 @@ import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { Args, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
 
 import { UserInterceptor } from '@/auth/user.interceptor.js';
+import { GetProductBatchListDto } from '@/product-batch/dtos/get-product-batch-list.dto.js';
 import { DeleteProductBatchGroupCommand } from '@/product-batch-group/commands/impl/delete-product-batch-group.command.js';
 import { MoveProductBatchGroupCommand } from '@/product-batch-group/commands/impl/move-product-batch-group.command.js';
+import { GetProductBatchGroupListQuery } from '@/product-batch-group/queries/impl/get-product-batch-group-list.query.js';
 
 import { CreateProductBatchGroupDto } from './dtos/create-product-batch-group.dto.js';
 import { MoveProductBatchGroupDto } from './dtos/move-product-batch-group.dto.js';
@@ -25,10 +27,10 @@ export class ProductBatchGroupResolver {
 
   @Query(() => [ProductBatchGroupDto])
   async productBatchGroupList(
-    @Args('productId', { type: () => Int, nullable: true })
-    productId: number | null,
+    @Args('dto', { type: () => GetProductBatchListDto })
+    dto: GetProductBatchListDto,
   ): Promise<ProductBatchGroupDto[]> {
-    return this.service.productBatchGroupList(productId);
+    return this.queryBus.execute(new GetProductBatchGroupListQuery(dto));
   }
 
   @Mutation(() => CommandResponse)

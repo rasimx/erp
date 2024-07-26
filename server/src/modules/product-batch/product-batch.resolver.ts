@@ -7,9 +7,11 @@ import { CreateProductBatchCommand } from '@/product-batch/commands/impl/create-
 import { DeleteProductBatchCommand } from '@/product-batch/commands/impl/delete-product-batch.command.js';
 import { MoveProductBatchCommand } from '@/product-batch/commands/impl/move-product-batch.command.js';
 import { CreateProductBatchDto } from '@/product-batch/dtos/create-product-batch.dto.js';
+import { GetProductBatchListDto } from '@/product-batch/dtos/get-product-batch-list.dto.js';
 import { MoveProductBatchDto } from '@/product-batch/dtos/move-product-batch.dto.js';
 import { ProductBatchDto } from '@/product-batch/dtos/product-batch.dto.js';
 import { ProductBatchService } from '@/product-batch/product-batch.service.js';
+import { GetProductBatchListQuery } from '@/product-batch/queries/impl/get-product-batch-list.query.js';
 import { CommandResponse } from '@/product-batch-group/dtos/product-batch-group.dto.js';
 
 @Resolver()
@@ -23,10 +25,10 @@ export class ProductBatchResolver {
 
   @Query(() => [ProductBatchDto])
   async productBatchList(
-    @Args('productId', { type: () => Int, nullable: true })
-    productId: number | null,
+    @Args('dto', { type: () => GetProductBatchListDto })
+    dto: GetProductBatchListDto,
   ): Promise<ProductBatchDto[]> {
-    return this.service.productBatchList(productId);
+    return this.queryBus.execute(new GetProductBatchListQuery(dto));
   }
   //
   // @Mutation('updateProductBatch')
@@ -40,14 +42,8 @@ export class ProductBatchResolver {
   async createProductBatch(
     @Args('dto', { type: () => CreateProductBatchDto })
     dto: CreateProductBatchDto,
-    @Args('statusId', { type: () => Int, nullable: true })
-    statusId: number | null,
-    @Args('groupId', { type: () => Int, nullable: true })
-    groupId: number | null,
   ): Promise<CommandResponse> {
-    await this.commandBus.execute(
-      new CreateProductBatchCommand(dto, statusId, groupId),
-    );
+    await this.commandBus.execute(new CreateProductBatchCommand(dto));
     return { success: true };
   }
 

@@ -9,8 +9,8 @@ export const PRODUCT_FRAGMENT = graphql(`
 `);
 
 export const PRODUCT_LIST_QUERY = graphql(`
-  query productList {
-    productList {
+  query productList($ids: [Int!]) {
+    productList(ids: $ids) {
       items {
         ...Product
       }

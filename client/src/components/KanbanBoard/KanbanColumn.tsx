@@ -1,44 +1,18 @@
-import { SyntheticListenerMap } from '@dnd-kit/core/dist/hooks/utilities/useSyntheticListeners';
 import { SortableContext, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import styled, { CreateStyled } from '@emotion/styled';
-import OpenWithIcon from '@mui/icons-material/OpenWith';
-import {
-  Card,
-  CircularProgress,
-  IconButton,
-  Paper,
-  Stack,
-} from '@mui/material';
+import styled from '@emotion/styled';
+import { Stack } from '@mui/material';
 import Box from '@mui/material/Box';
-import React, { ReactElement, useMemo } from 'react';
+import React, { useMemo } from 'react';
 
 import { transientOptions } from '@/utils';
 
 import KanbanCard, { getCardSortId } from './KanbanCard';
 import KanbanGroup, { getGroupSortId } from './KanbanGroup';
-import { DraggableType, IsForbiddenFunc, SortableType } from './types';
-
-const Preloader = () => {
-  return (
-    <Box
-      sx={{
-        position: 'absolute',
-        left: 0,
-        top: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: 'rgba(255,255,255,.5)',
-      }}
-    >
-      <CircularProgress />
-    </Box>
-  );
-};
+import { DraggableType, SortableType, useKanbanBoardContext } from './types';
 
 const Column = styled(Box, transientOptions)<{ $showAfter: boolean }>`
   height: 100%;
-  overflow: auto;
   flex-grow: 1;
   background-color: rgba(0, 0, 0, 0.1);
   width: 300px;
@@ -70,33 +44,7 @@ export type Props<
 > = {
   items: (Card | Group)[];
   column: Column;
-  getColumnHeader: (
-    column: Column,
-    sortableData?: {
-      listeners?: SyntheticListenerMap;
-      setActivatorNodeRef: (element: HTMLElement | null) => void;
-    },
-  ) => ReactElement;
-  renderGroupTitle: (
-    group: Group,
-    sortableData?: {
-      listeners?: SyntheticListenerMap;
-      setActivatorNodeRef: (element: HTMLElement | null) => void;
-    },
-  ) => ReactElement;
-  getGroupItems: (group: Group) => Card[];
-  getGroupId: (card: Card) => number | null;
-  isGroup: (cardOrGroup: Card | Group) => boolean;
-  loading?: boolean;
-  renderCard: (
-    data: Card,
-    sortableData?: {
-      listeners?: SyntheticListenerMap;
-      setActivatorNodeRef: (element: HTMLElement | null) => void;
-    },
-  ) => ReactElement;
   isActive?: boolean;
-  isForbiddenMove?: IsForbiddenFunc<Column, Group, Card>;
 };
 
 export const getColumnId = (column: SortableType) => `column_${column.id}`;
@@ -108,16 +56,14 @@ const KanbanColumn = <
 >({
   items,
   column,
-  getColumnHeader,
-  renderGroupTitle,
-  getGroupItems,
-  getGroupId,
-  isGroup,
-  loading,
-  isActive,
-  renderCard,
-  isForbiddenMove,
+  isActive = false,
 }: Props<Column, Group, Card>) => {
+  const { isForbiddenMove, isGroup, renderColumn } = useKanbanBoardContext<
+    Column,
+    Group,
+    Card
+  >();
+
   const itemsIds = useMemo(
     () =>
       items.map(item =>
@@ -192,74 +138,31 @@ const KanbanColumn = <
   }
 
   return (
-    <Box
-      component={isActive ? Paper : Box}
-      elevation={3}
-      variant="elevation"
+    <Column
+      $showAfter={showAfter}
       ref={setNodeRef}
+      {...attributes}
       style={style}
-      sx={{
-        width: 300,
-        position: 'relative',
-        height: '100%',
-        display: 'flex',
-        flexDirection: 'column',
-      }}
     >
-      <Box
-        sx={{
-          background: '#FAFAFA',
-          // p: 1,
-          textAlign: 'center',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-        }}
-        {...attributes}
-      >
-        <Box sx={{ flexGrow: 1 }}>
-          {getColumnHeader(column, { listeners, setActivatorNodeRef })}
-        </Box>
-        {loading && <Preloader />}
-      </Box>
-      <Column $showAfter={showAfter}>
-        <Stack spacing={2} sx={{ p: 1 }}>
-          <SortableContext items={itemsIds}>
-            {items.map(item =>
-              isGroup(item) ? (
-                <KanbanGroup
-                  group={item as Group}
-                  isForbiddenMove={isForbiddenMove}
-                  renderGroupTitle={renderGroupTitle}
-                  getGroupItems={getGroupItems}
-                  key={`group_${item.id}`}
-                  renderCard={renderCard}
-                  getGroupId={getGroupId}
-                />
-              ) : (
-                <KanbanCard
-                  card={item as Card}
-                  key={`card_${item.id}`}
-                  isForbiddenMove={isForbiddenMove}
-                  getGroupId={getGroupId}
-                  render={renderCard}
-                />
-              ),
-            )}
-          </SortableContext>
-
-          {/*{showAfter && (*/}
-          {/*  <Card*/}
-          {/*    elevation={3}*/}
-          {/*    sx={{*/}
-          {/*      height: 5,*/}
-          {/*      backgroundColor: 'rgba(0,255,0,.5)',*/}
-          {/*    }}*/}
-          {/*  ></Card>*/}
-          {/*)}*/}
-        </Stack>
-      </Column>
-    </Box>
+      {renderColumn({
+        column,
+        isActive,
+        sortableData: { setActivatorNodeRef, listeners },
+        children: (
+          <Stack spacing={2} sx={{ p: 1 }}>
+            <SortableContext items={itemsIds}>
+              {items.map(item =>
+                isGroup(item) ? (
+                  <KanbanGroup group={item as Group} key={`group_${item.id}`} />
+                ) : (
+                  <KanbanCard card={item as Card} key={`card_${item.id}`} />
+                ),
+              )}
+            </SortableContext>
+          </Stack>
+        ),
+      })}
+    </Column>
   );
 };
 export default KanbanColumn;

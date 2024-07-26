@@ -31,6 +31,21 @@ export default defineConfig({
         'react-use-disclosure',
       ],
     }),
+
+    federation({
+      name: 'app2',
+      remotes: {
+        remoteOzon: 'https://localhost:3003/assets/remoteEntry.js',
+      },
+      shared: [
+        'react',
+        'react-dom',
+        '@apollo/client',
+        '@mui/material',
+        'react-redux',
+        'react-use-disclosure',
+      ],
+    }),
     mkcert(),
   ],
   build: {

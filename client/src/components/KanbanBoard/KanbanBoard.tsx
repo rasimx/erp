@@ -14,28 +14,25 @@ import {
   useSensor,
   useSensors,
 } from '@dnd-kit/core';
-import { SyntheticListenerMap } from '@dnd-kit/core/dist/hooks/utilities/useSyntheticListeners';
+import { Modifiers } from '@dnd-kit/core/dist/modifiers';
 import { RectMap } from '@dnd-kit/core/dist/store';
+import { restrictToHorizontalAxis } from '@dnd-kit/modifiers';
+// import { restrictToHorizontalAxis } from '@dnd-kit/modifiers';
 import { arrayMove, SortableContext } from '@dnd-kit/sortable';
 import { Coordinates } from '@dnd-kit/utilities';
 import { Box, Divider, Stack } from '@mui/material';
+import { over } from 'lodash';
 import cloneDeep from 'lodash/cloneDeep';
-import React, {
-  ReactElement,
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 
 import KanbanCard from './KanbanCard';
 import KanbanColumn from './KanbanColumn';
 import KanbanGroup, { isInsteadGroup } from './KanbanGroup';
 import {
+  createKanbanBoardContext,
   DraggableType,
-  IsForbiddenFunc,
-  ModifiersFunc,
+  KanbanBoardProps,
   SortableItem,
   SortableType,
 } from './types';
@@ -46,53 +43,6 @@ const measuring: MeasuringConfiguration = {
   },
 };
 
-export type Props<
-  Column extends SortableType,
-  Group extends SortableType,
-  Card extends SortableType,
-> = {
-  columnItems: Column[];
-  moveColumn: (active: Column, over: Column) => void;
-  getColumnHeader: (
-    column: Column,
-    sortableData?: {
-      listeners?: SyntheticListenerMap;
-      setActivatorNodeRef: (element: HTMLElement | null) => void;
-    },
-  ) => ReactElement;
-  isGroup: (item: Group | Card) => boolean;
-  renderGroupTitle: (
-    group: Group,
-    sortableData?: {
-      listeners?: SyntheticListenerMap;
-      setActivatorNodeRef: (element: HTMLElement | null) => void;
-    },
-  ) => ReactElement;
-  getGroupItems: (group: Group) => Card[];
-  setGroupItems: (group: Group, items: Card[]) => void;
-  moveGroup: (data: { id: number; columnId: number; order?: number }) => void;
-  moveCard: (data: {
-    id: number;
-    columnId: number | null;
-    groupId: number | null;
-    order?: number;
-  }) => void;
-  cardItems: (Group | Card)[];
-  getColumnId: (card: Card | Group) => number | null;
-  getGroupId: (card: Card) => number | null;
-  setColumnId: (card: Group | Card, newColumnId: number | null) => void;
-  setGroupId: (card: Card, newGroupId: number | null) => void;
-  renderCard: (
-    data: Card,
-    sortableData?: {
-      listeners?: SyntheticListenerMap;
-      setActivatorNodeRef: (element: HTMLElement | null) => void;
-    },
-  ) => ReactElement;
-  isForbiddenMove?: IsForbiddenFunc<Column, Group, Card>;
-  modifiers?: ModifiersFunc<Column, Group, Card>;
-};
-
 const existsIndex = (index: number | null | undefined): index is number =>
   index !== null && index !== undefined && index >= 0;
 
@@ -100,25 +50,27 @@ const KanbanBoard = <
   Column extends SortableType,
   Group extends SortableType,
   Card extends SortableType,
->({
-  columnItems,
-  moveColumn,
-  getColumnHeader,
-  getColumnId,
-  getGroupId,
-  setGroupId,
-  renderGroupTitle,
-  isGroup,
-  getGroupItems,
-  setGroupItems,
-  setColumnId,
-  cardItems,
-  moveCard,
-  moveGroup,
-  renderCard,
-  isForbiddenMove,
-  modifiers,
-}: Props<Column, Group, Card>) => {
+>(
+  props: KanbanBoardProps<Column, Group, Card>,
+) => {
+  const {
+    columnItems,
+    moveColumn,
+    getColumnId,
+    getGroupId,
+    setGroupId,
+    isGroup,
+    getGroupItems,
+    setGroupItems,
+    setColumnId,
+    cardItems,
+    moveCard,
+    moveGroup,
+    isForbiddenMove,
+  } = props;
+
+  const KanbanBoardContext = createKanbanBoardContext<Column, Group, Card>();
+
   const [columns, setColumns] = useState<Column[]>(columnItems);
   useEffect(() => {
     setColumns(columnItems);
@@ -590,13 +542,14 @@ const KanbanBoard = <
         case DraggableType.Column: {
           const activeColumn = activeData.data;
           const overColumn = overData.data as Column;
+          console.log('aaaaa');
+          if (!overColumn) return;
 
           setColumns(items => {
             const activeIndex = items.indexOf(activeColumn);
             const overIndex = items.indexOf(overColumn);
             return arrayMove(items, activeIndex, overIndex);
           });
-
           moveColumn(activeColumn, overColumn);
           break;
         }
@@ -605,14 +558,15 @@ const KanbanBoard = <
     [cards, moveColumn, moveGroup, moveCard],
   );
 
-  // const modifiers = useMemo(() => {
-  //   const modifiers = [];
-  //   if (active && active.data.current?.modifiers?.length)
-  //     modifiers.push(...(active.data.current?.modifiers ?? []));
-  //   return modifiers;
-  // }, [active]);
+  const allModifiers = useMemo(() => {
+    const modifiersList: Modifiers = [];
+    // if (modifiers) modifiers(active?.data.current as );
 
-  // console.log(cards);
+    if (active && active?.data.current?.type == DraggableType.Column)
+      modifiersList.push(restrictToHorizontalAxis);
+    return modifiersList;
+  }, [active, over]);
+
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -646,95 +600,62 @@ const KanbanBoard = <
   }
 
   return (
-    <Box
-      sx={{ p: 2, height: '90vh', display: 'flex', flexDirection: 'column' }}
-    >
-      {/*<Backdrop*/}
-      {/*  sx={{ color: '#fff', zIndex: theme => theme.zIndex.drawer + 1 }}*/}
-      {/*  open={statusListLoading || productBatchListLoading}*/}
-      {/*>*/}
-      {/*  <CircularProgress color="inherit" />*/}
-      {/*</Backdrop>*/}
-
-      <DndContext
-        measuring={measuring}
-        collisionDetection={customCollisionDetectionAlgorithm}
-        sensors={sensors}
-        onDragStart={onDragStart}
-        onDragEnd={onDragEnd}
-        // modifiers={
-        //   modifiers &&
-        //   modifiers({
-        //     activeCard,
-        //     activeColumn,
-        //     overCard,
-        //     overColumn,
-        //   })
-        // }
+    <KanbanBoardContext.Provider value={props}>
+      <Box
+        sx={{ p: 2, height: '90vh', display: 'flex', flexDirection: 'column' }}
       >
-        <Stack
-          direction="row"
-          alignContent="stretch"
-          sx={{ flexGrow: 1, maxHeight: '100%' }}
+        {/*<Backdrop*/}
+        {/*  sx={{ color: '#fff', zIndex: theme => theme.zIndex.drawer + 1 }}*/}
+        {/*  open={statusListLoading || productBatchListLoading}*/}
+        {/*>*/}
+        {/*  <CircularProgress color="inherit" />*/}
+        {/*</Backdrop>*/}
+
+        <DndContext
+          measuring={measuring}
+          collisionDetection={customCollisionDetectionAlgorithm}
+          sensors={sensors}
+          onDragStart={onDragStart}
+          onDragEnd={onDragEnd}
+          modifiers={allModifiers}
         >
-          <SortableContext items={columnsId}>
-            {columns?.map((column, index) => (
-              <React.Fragment key={column.id}>
-                {index != 0 && <Divider orientation="vertical" />}
+          <Stack
+            direction="row"
+            alignContent="stretch"
+            sx={{ flexGrow: 1, maxHeight: '100%' }}
+          >
+            <SortableContext items={columnsId}>
+              {columns?.map((column, index) => (
+                <React.Fragment key={column.id}>
+                  {index != 0 && <Divider orientation="vertical" />}
+                  <KanbanColumn
+                    column={column}
+                    items={cards.filter(card => getColumnId(card) == column.id)}
+                    // loading={column.id === statusInLoadingId}
+                  />
+                </React.Fragment>
+              ))}
+            </SortableContext>
+          </Stack>
+          {createPortal(
+            <DragOverlay>
+              {activeColumn && (
                 <KanbanColumn
-                  column={column}
-                  isForbiddenMove={isForbiddenMove}
-                  getColumnHeader={getColumnHeader}
-                  renderGroupTitle={renderGroupTitle}
-                  getGroupItems={getGroupItems}
-                  isGroup={isGroup}
-                  items={cards.filter(card => getColumnId(card) == column.id)}
-                  // loading={column.id === statusInLoadingId}
-                  getGroupId={getGroupId}
-                  renderCard={renderCard}
+                  isActive
+                  column={activeColumn}
+                  items={cards.filter(
+                    card => getColumnId(card) == activeColumn.id,
+                  )}
                 />
-              </React.Fragment>
-            ))}
-          </SortableContext>
-        </Stack>
-        {createPortal(
-          <DragOverlay>
-            {activeColumn && (
-              <KanbanColumn
-                isActive
-                column={activeColumn}
-                getColumnHeader={getColumnHeader}
-                renderGroupTitle={renderGroupTitle}
-                getGroupItems={getGroupItems}
-                isGroup={isGroup}
-                getGroupId={getGroupId}
-                items={cards.filter(
-                  card => getColumnId(card) == activeColumn.id,
-                )}
-                renderCard={renderCard}
-              />
-            )}
-            {activeCard && (
-              <KanbanCard
-                card={activeCard}
-                render={renderCard}
-                getGroupId={getGroupId}
-              />
-            )}
-            {activeGroup && (
-              <KanbanGroup
-                getGroupId={getGroupId}
-                group={activeGroup}
-                renderCard={renderCard}
-                getGroupItems={getGroupItems}
-                renderGroupTitle={renderGroupTitle}
-              />
-            )}
-          </DragOverlay>,
-          document.body,
-        )}
-      </DndContext>
-    </Box>
+              )}
+              {activeCard && <KanbanCard card={activeCard} isActive />}
+              {activeGroup && <KanbanGroup group={activeGroup} isActive />}
+            </DragOverlay>,
+            document.body,
+          )}
+        </DndContext>
+      </Box>
+    </KanbanBoardContext.Provider>
   );
 };
 

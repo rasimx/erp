@@ -6,12 +6,21 @@ export const STATUS_FRAGMENT = graphql(`
     title
     type
     order
+    storeId
   }
 `);
 
 export const STATUS_LIST_QUERY = graphql(`
-  query statusList {
-    statusList {
+  query statusList($ids: [Int!]) {
+    statusList(ids: $ids) {
+      ...Status
+    }
+  }
+`);
+
+export const GET_STATUS_QUERY = graphql(`
+  query status($id: Int!) {
+    status(id: $id) {
       ...Status
     }
   }

@@ -21,6 +21,9 @@ export class StatusDto {
   @Field(() => Int)
   order: number;
 
+  @Field(() => Int, { nullable: true, defaultValue: null })
+  storeId: number;
+
   @Field(() => StatusType)
   type: StatusType;
 }

@@ -10,7 +10,7 @@ service StateService {
 
 message FullStateItemRequest {
     optional uint32 store_id = 1;
-    optional uint32 base_product_id = 2;
+    repeated uint32 base_product_ids = 2;
 }
 
 message FullStateData {

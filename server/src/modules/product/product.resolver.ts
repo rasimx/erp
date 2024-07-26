@@ -1,5 +1,5 @@
 import { UseInterceptors } from '@nestjs/common';
-import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
+import { Args, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
 
 import { UserInterceptor } from '@/auth/user.interceptor.js';
 import { CreateProductDto } from '@/product/dtos/create-product.dto.js';
@@ -14,8 +14,11 @@ export class ProductResolver {
   constructor(private readonly service: ProductService) {}
 
   @Query(() => ProductListDto)
-  async productList(): Promise<ProductListDto> {
-    return this.service.productList();
+  async productList(
+    @Args('ids', { type: () => [Int], nullable: true, defaultValue: [] })
+    ids: number[],
+  ): Promise<ProductListDto> {
+    return this.service.productList(ids);
   }
   @Mutation(() => ProductDto)
   async createProduct(

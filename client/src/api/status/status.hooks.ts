@@ -7,21 +7,18 @@ import { type StatusDto, StatusFragment } from '@/gql-types/graphql';
 
 import { getFragmentData } from '../../gql-types';
 import {
+  GET_STATUS_QUERY,
   MOVE_STATUS_MUTATION,
   STATUS_FRAGMENT,
   STATUS_LIST_QUERY,
 } from './status.gql';
 
-export const useStatusList = () => {
-  const { data } = useQuery(STATUS_LIST_QUERY);
-  return {
-    statusList:
-      data?.statusList.map(item => getFragmentData(STATUS_FRAGMENT, item)) ??
-      [],
-  };
+export const useStatus = (id: number) => {
+  const { data } = useQuery(GET_STATUS_QUERY, { variables: { id } });
+  return getFragmentData(STATUS_FRAGMENT, data?.status);
 };
 
-export const useStatus = () => {
+export const useStatusList = (ids: number[] = []) => {
   const [statusMap, setStatusMap] = useState<Map<number, StatusFragment>>(
     new Map(),
   );
@@ -39,6 +36,7 @@ export const useStatus = () => {
     loading,
   } = useQuery(STATUS_LIST_QUERY, {
     skip: statusMap.size > 0,
+    variables: { ids },
   });
   useEffect(() => {
     if (statusListData) {

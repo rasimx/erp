@@ -1,12 +1,9 @@
 import { graphql } from '@/gql-types';
 
 export const PRODUCT_BATCH_LIST_QUERY = graphql(`
-  query productBatchList($productId: Int) {
-    productBatchList(productId: $productId) {
+  query productBatchList($dto: GetProductBatchListDto!) {
+    productBatchList(dto: $dto) {
       ...ProductBatch
-    }
-    productBatchGroupList(productId: $productId) {
-      ...ProductBatchGroup
     }
   }
 `);
@@ -16,9 +13,9 @@ export const PRODUCT_BATCH_FRAGMENT = graphql(`
     id
     name
     groupId
+    productId
     product {
-      sku
-      name
+      ...Product
     }
     parentId
     statusId
@@ -35,6 +32,10 @@ export const PRODUCT_BATCH_FRAGMENT = graphql(`
     volume
     weight
     color
+    group {
+      id
+      order
+    }
   }
 `);
 
@@ -47,12 +48,8 @@ export const MOVE_PRODUCT_BATCH_MUTATION = graphql(`
 `);
 
 export const CREATE_PRODUCT_BATCH_MUTATION = graphql(`
-  mutation createProductBatch(
-    $dto: CreateProductBatchDto!
-    $statusId: Int
-    $groupId: Int
-  ) {
-    createProductBatch(dto: $dto, statusId: $statusId, groupId: $groupId) {
+  mutation createProductBatch($dto: CreateProductBatchDto!) {
+    createProductBatch(dto: $dto) {
       success
     }
   }

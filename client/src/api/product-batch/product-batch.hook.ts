@@ -5,8 +5,6 @@ import { useCallback } from 'react';
 import {
   CreateProductBatchDto,
   MoveProductBatchDto,
-  ProductBatchFragment,
-  ProductBatchGroupFragment,
 } from '../../gql-types/graphql';
 import {
   CREATE_PRODUCT_BATCH_MUTATION,
@@ -14,39 +12,14 @@ import {
   MOVE_PRODUCT_BATCH_MUTATION,
 } from './product-batch.gql';
 
-export type KanbanCard = ProductBatchFragment | ProductBatchGroupFragment;
-
-export const useProductBatch = () => {
+export const useProductBatchMutations = () => {
   const { enqueueSnackbar } = useSnackbar();
   const [create] = useMutation(CREATE_PRODUCT_BATCH_MUTATION);
-  const createProductBatch = useCallback(
-    (variables: {
-      dto: CreateProductBatchDto;
-      statusId: number | null;
-      groupId: number | null;
-    }) => {
-      return create({ variables })
-        .then(res => {
-          if (res.errors?.length) throw new Error('AAA');
-        })
-        .catch(err => {
-          // todo: обработать ошику
-          enqueueSnackbar(err.message, {
-            variant: 'error',
-            anchorOrigin: { vertical: 'bottom', horizontal: 'left' },
-          });
-          // setKanbanCards([...kanbanCards]);
-        });
-      // .finally(() => {
-      //   setLoadingId(null);
-      // });
-    },
-    [],
-  );
-  const [moveBatch] = useMutation(MOVE_PRODUCT_BATCH_MUTATION);
-  const moveProductBatch = useCallback((dto: MoveProductBatchDto) => {
-    moveBatch({ variables: { dto } })
-      .then(res => {})
+  const createProductBatch = useCallback((dto: CreateProductBatchDto) => {
+    return create({ variables: { dto } })
+      .then(res => {
+        if (res.errors?.length) throw new Error('AAA');
+      })
       .catch(err => {
         // todo: обработать ошику
         enqueueSnackbar(err.message, {
@@ -55,13 +28,15 @@ export const useProductBatch = () => {
         });
         // setKanbanCards([...kanbanCards]);
       });
+    // .finally(() => {
+    //   setLoadingId(null);
+    // });
   }, []);
-
-  const [deleteBatch] = useMutation(DELETE_PRODUCT_BATCH_MUTATION);
-  const deleteProductBatch = useCallback(
-    (id: number) =>
-      deleteBatch({ variables: { id } })
-        .then(res => {})
+  const [moveBatch] = useMutation(MOVE_PRODUCT_BATCH_MUTATION);
+  const moveProductBatch = useCallback(
+    (dto: MoveProductBatchDto) =>
+      moveBatch({ variables: { dto } })
+        .then(res => res)
         .catch(err => {
           // todo: обработать ошику
           enqueueSnackbar(err.message, {
@@ -73,5 +48,25 @@ export const useProductBatch = () => {
     [],
   );
 
-  return { moveProductBatch, createProductBatch, deleteProductBatch };
+  const [deleteBatch] = useMutation(DELETE_PRODUCT_BATCH_MUTATION);
+  const deleteProductBatch = useCallback(
+    (id: number) =>
+      deleteBatch({ variables: { id } })
+        .then(res => res)
+        .catch(err => {
+          // todo: обработать ошику
+          enqueueSnackbar(err.message, {
+            variant: 'error',
+            anchorOrigin: { vertical: 'bottom', horizontal: 'left' },
+          });
+          // setKanbanCards([...kanbanCards]);
+        }),
+    [],
+  );
+
+  return {
+    moveProductBatch,
+    createProductBatch,
+    deleteProductBatch,
+  };
 };

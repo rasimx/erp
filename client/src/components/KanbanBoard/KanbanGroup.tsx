@@ -1,34 +1,15 @@
 import { Active, DragMoveEvent, Over, useDndMonitor } from '@dnd-kit/core';
-import { SyntheticListenerMap } from '@dnd-kit/core/dist/hooks/utilities/useSyntheticListeners';
 import { SortableContext, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import styled from '@emotion/styled';
-import { Card, CircularProgress, Paper, Stack } from '@mui/material';
-import Box from '@mui/material/Box';
+import { Card, Stack } from '@mui/material';
 import throttle from 'lodash/throttle';
-import React, { ReactElement, useMemo } from 'react';
+import React, { useMemo } from 'react';
 
 import { transientOptions } from '@/utils';
 
 import KanbanCard, { getCardSortId } from './KanbanCard';
-import { DraggableType, IsForbiddenFunc, SortableType } from './types';
-
-const Preloader = () => {
-  return (
-    <Box
-      sx={{
-        position: 'absolute',
-        left: 0,
-        top: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: 'rgba(255,255,255,.5)',
-      }}
-    >
-      <CircularProgress />
-    </Box>
-  );
-};
+import { DraggableType, SortableType, useKanbanBoardContext } from './types';
 
 const Group = styled(Card, transientOptions)<{ $showAfter: boolean }>`
   height: 100%;
@@ -67,48 +48,23 @@ export const isInsteadGroup = (active: Active | null, over: Over | null) => {
   );
 };
 
-export type Props<
-  Column extends SortableType,
-  Group extends SortableType,
-  Card extends SortableType,
-> = {
+export type Props<Group extends SortableType> = {
   group: Group;
-  renderGroupTitle: (
-    group: Group,
-    sortableData?: {
-      listeners?: SyntheticListenerMap;
-      setActivatorNodeRef: (element: HTMLElement | null) => void;
-    },
-  ) => ReactElement;
-  getGroupItems: (group: Group) => Card[];
-  loading?: boolean;
-  renderCard: (
-    data: Card,
-    sortableData?: {
-      listeners?: SyntheticListenerMap;
-      setActivatorNodeRef: (element: HTMLElement | null) => void;
-    },
-  ) => ReactElement;
   isActive?: boolean;
-  isForbiddenMove?: IsForbiddenFunc<Column, Group, Card>;
-  getGroupId: (card: Card) => number | null;
 };
 
 export const getGroupSortId = (column: SortableType) => `group_${column.id}`;
 
-const KanbanGroup = <
-  Column extends SortableType,
-  Group extends SortableType,
-  Card extends SortableType,
->({
+const KanbanGroup = <Group extends SortableType, Card extends SortableType>({
   group,
-  renderGroupTitle,
-  getGroupItems,
-  loading,
-  renderCard,
-  isForbiddenMove,
-  getGroupId,
-}: Props<Column, Group, Card>) => {
+  isActive = false,
+}: Props<Group>) => {
+  const { isForbiddenMove, getGroupItems, renderGroup } = useKanbanBoardContext<
+    never,
+    Group,
+    Card
+  >();
+
   const items = getGroupItems(group);
   const itemsIds = items.map(item => getCardSortId(item));
   const id = getGroupSortId(group);
@@ -151,7 +107,12 @@ const KanbanGroup = <
       (overIndex != -1 && activeIndex != -1 && overIndex - activeIndex != 1) ||
       overIndex == -1 ||
       activeIndex == -1;
-    return isOver && isInstead === true && isNotNextItem;
+    return (
+      active?.data.current?.type != DraggableType.Column &&
+      isOver &&
+      isInstead === true &&
+      isNotNextItem
+    );
   }, [isOver, isInstead, overIndex, activeIndex]);
 
   const showOver = useMemo(() => {
@@ -211,7 +172,7 @@ const KanbanGroup = <
             backgroundColor: 'rgba(0,255,0,.5)',
             marginBottom: 1,
           }}
-        ></Card>
+        />
       )}
       <Group
         $showAfter={showOver}
@@ -226,33 +187,22 @@ const KanbanGroup = <
           display: 'flex',
           flexDirection: 'column',
         }}
+        {...attributes}
       >
-        <Box
-          sx={{
-            background: '#FAFAFA',
-            // p: 1,
-            textAlign: 'center',
-          }}
-          {...attributes}
-        >
-          {renderGroupTitle(group, { setActivatorNodeRef, listeners })}
-          {loading && <Preloader />}
-        </Box>
-        <Box>
-          <Stack spacing={2} sx={{ p: 1 }}>
-            <SortableContext items={itemsIds}>
-              {items.map(card => (
-                <KanbanCard
-                  card={card}
-                  key={card.id}
-                  isForbiddenMove={isForbiddenMove}
-                  getGroupId={getGroupId}
-                  render={renderCard}
-                />
-              ))}
-            </SortableContext>
-          </Stack>
-        </Box>
+        {renderGroup({
+          group,
+          isActive,
+          sortableData: { setActivatorNodeRef, listeners },
+          children: (
+            <Stack spacing={2} sx={{ p: 1 }}>
+              <SortableContext items={itemsIds}>
+                {items.map(card => (
+                  <KanbanCard card={card} key={card.id} />
+                ))}
+              </SortableContext>
+            </Stack>
+          ),
+        })}
       </Group>
     </React.Fragment>
   );

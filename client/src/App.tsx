@@ -16,20 +16,20 @@ type Props = {
   basename?: string;
 };
 
-// const theme = createTheme({
-//   components: {
-//     MuiCssBaseline: {
-//       styleOverrides: {
-//         body: {
-//           boxSizing: 'border-box',
-//         },
-//         '*, *::before, *::after': {
-//           boxSizing: 'inherit',
-//         },
-//       },
-//     },
-//   },
-// });
+const theme = createTheme({
+  components: {
+    MuiCssBaseline: {
+      styleOverrides: {
+        body: {
+          boxSizing: 'border-box',
+        },
+        '*, *::before, *::after': {
+          boxSizing: 'inherit',
+        },
+      },
+    },
+  },
+});
 
 const App: FC<Props> = ({ basename }) => {
   return (
@@ -37,12 +37,12 @@ const App: FC<Props> = ({ basename }) => {
       <CookiesProvider defaultSetOptions={{ path: '/graphql' }}>
         <SnackbarProvider maxSnack={3}>
           <ReduxProvider store={reduxStore}>
-            {/*<ThemeProvider theme={theme}>*/}
-            <NiceModal.Provider>
-              <CssBaseline />
-              <RouterProvider router={createRouter(basename)} />
-            </NiceModal.Provider>
-            {/*</ThemeProvider>*/}
+            <ThemeProvider theme={theme}>
+              <NiceModal.Provider>
+                <CssBaseline />
+                <RouterProvider router={createRouter(basename)} />
+              </NiceModal.Provider>
+            </ThemeProvider>
           </ReduxProvider>
         </SnackbarProvider>
       </CookiesProvider>

@@ -6,10 +6,8 @@ import {
   type CreateStatusResponse,
   type FindLatestRequest,
   type ProductBatchListResponse,
-  type ProductBatchServiceController,
-  ProductBatchServiceControllerMethods,
 } from '@/microservices/proto/erp.pb.js';
-import { ProductBatchService } from '@/product-batch/product-batch.service.js';
+import { ProductBatchRepository } from '@/product-batch/product-batch.repository.js';
 import { StatusService } from '@/status/status.service.js';
 
 @Controller()
@@ -18,28 +16,27 @@ import { StatusService } from '@/status/status.service.js';
 // export class ProductBatchController implements ProductBatchServiceController {
 export class ProductBatchController {
   constructor(
-    private readonly productBatchService: ProductBatchService,
+    private readonly productBatchRepository: ProductBatchRepository,
     private readonly statusService: StatusService,
   ) {}
 
-  // async findLatest(
-  //   request: FindLatestRequest,
-  // ): Promise<ProductBatchListResponse> {
-  //   const items = await this.productBatchService.findLatest(request);
-  //   return { items };
-  // }
-  //
-  // async createStatus(
-  //   request: CreateStatusRequest,
-  // ): Promise<CreateStatusResponse> {
-  //   try {
-  //     // @ts-expect-error StatusType -> string
-  //     await this.statusService.createStatus(request);
-  //   } catch (e: unknown) {
-  //     return { error: (e as Error).message };
-  //   }
-  //   return {};
-  // }
+  async findLatest(
+    request: FindLatestRequest,
+  ): Promise<ProductBatchListResponse> {
+    const items = await this.productBatchRepository.findLatest(request);
+    return { items };
+  }
+
+  async createStatus(
+    request: CreateStatusRequest,
+  ): Promise<CreateStatusResponse> {
+    try {
+      await this.statusService.createStatus(request);
+    } catch (e: unknown) {
+      return { error: (e as Error).message };
+    }
+    return {};
+  }
 
   // async productBatchListByProductId({
   //   productIdList,

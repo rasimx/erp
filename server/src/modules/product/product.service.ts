@@ -1,22 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
-import { In, Repository } from 'typeorm';
+import { type FindOptionsWhere, In, Repository } from 'typeorm';
 
 import type { CustomDataSource } from '@/database/custom.data-source.js';
-import type {
-  CreateProductInput,
-  CreateProductResponse,
-  ProductList,
-} from '@/graphql.schema.js';
-import type { Product } from '@/microservices/proto/erp.pb.js';
-import { OperationEntity } from '@/operation/operation.entity.js';
+import type { CreateProductResponse } from '@/graphql.schema.js';
 import type { CreateProductDto } from '@/product/dtos/create-product.dto.js';
 import { ProductListDto } from '@/product/dtos/product-list.dto.js';
 import {
   ProductEntity,
   type ProductInsertEntity,
 } from '@/product/product.entity.js';
-import { ProductBatchOperationEntity } from '@/product-batch-operation/product-batch-operation.entity.js';
 
 @Injectable()
 export class ProductService {
@@ -85,13 +78,19 @@ export class ProductService {
     });
   }
 
-  async productList(): Promise<ProductListDto> {
-    const [items, totalCount] = await this.repository.findAndCount();
+  async productList(ids: number[] = []): Promise<ProductListDto> {
+    const where: FindOptionsWhere<ProductEntity> = {};
+    if (ids.length) {
+      where.id = In(ids);
+    }
+    const [items, totalCount] = await this.repository.findAndCount({
+      where,
+    });
     return { items, totalCount };
   }
 
-  async createProduct(dto: CreateProductDto): Promise<CreateProductResponse> {
-    // await this.insert([input]);
-    return {};
-  }
+  // async createProduct(dto: CreateProductDto): Promise<CreateProductResponse> {
+  //   // await this.insert([input]);
+  //   return {};
+  // }
 }

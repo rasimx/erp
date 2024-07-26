@@ -12,6 +12,6 @@ export class GetProductBatchListHandler
   ) {}
 
   async execute(query: GetProductBatchListQuery) {
-    return this.productBatchRepository.productBatchList();
+    return this.productBatchRepository.productBatchList(query.dto);
   }
 }

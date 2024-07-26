@@ -1,6 +1,7 @@
 import { Field, Float, Int, ObjectType } from '@nestjs/graphql';
 
 import { ProductDto } from '@/product/dtos/product.dto.js';
+import { ProductBatchGroupDto } from '@/product-batch-group/dtos/product-batch-group.dto.js';
 import { StatusDto } from '@/status/dtos/status.dto.js';
 
 @ObjectType()
@@ -43,6 +44,9 @@ export class ProductBatchDto {
 
   @Field(() => ProductDto)
   product: ProductDto;
+
+  @Field(() => ProductBatchGroupDto, { nullable: true })
+  group: ProductBatchGroupDto | null;
 
   @Field(() => StatusDto, { nullable: true, defaultValue: null })
   status: StatusDto | null;

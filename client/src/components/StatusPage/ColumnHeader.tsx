@@ -1,5 +1,5 @@
 import { SyntheticListenerMap } from '@dnd-kit/core/dist/hooks/utilities/useSyntheticListeners';
-import NiceModal, { useModal } from '@ebay/nice-modal-react';
+import { useModal } from '@ebay/nice-modal-react';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import OpenWithIcon from '@mui/icons-material/OpenWith';
 import { IconButton, Menu, MenuItem, Typography } from '@mui/material';
@@ -7,25 +7,30 @@ import Box from '@mui/material/Box';
 import omit from 'lodash/omit';
 import React, { useCallback } from 'react';
 
-import { useProductBatch } from '../../api/product-batch/product-batch.hook';
-import { useProductBatchGroup } from '../../api/product-batch-group/product-batch-group.hook';
-import { StatusFragment } from '../../gql-types/graphql';
+import { useProductBatchMutations } from '../../api/product-batch/product-batch.hook';
+import { useProductBatchGroupMutations } from '../../api/product-batch-group/product-batch-group.hook';
+import {
+  ProductBatchFragment,
+  ProductFragment,
+  StatusFragment,
+} from '../../gql-types/graphql';
 import CreateProductBatchForm from '../CreateProductBatch/ProductBatchForm';
+import ProductBatchModal from '../CreateProductBatch/ProductBatchModal';
 import CreateProductBatchGroupForm from '../CreateProductBatchGroup/ProductBatchGroupForm';
 
 export interface Props {
   status: StatusFragment;
+  product: ProductFragment;
   sortableData?: {
     listeners?: SyntheticListenerMap;
     setActivatorNodeRef: (element: HTMLElement | null) => void;
   };
-  refetch: () => void;
+  refetch?: () => void;
 }
 
 export const ColumnHeader = React.memo<Props>(props => {
-  const { createProductBatchGroup } = useProductBatchGroup();
-  const { createProductBatch } = useProductBatch();
-  const { status, refetch, sortableData } = props;
+  const { createProductBatch } = useProductBatchMutations();
+  const { status, product, refetch, sortableData } = props;
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
@@ -34,44 +39,22 @@ export const ColumnHeader = React.memo<Props>(props => {
   const handleClose = () => {
     setAnchorEl(null);
   };
-  const createProductBatchGroupModal = useModal(CreateProductBatchGroupForm);
-  const showCreateProductBatchGroupModal = useCallback(() => {
-    createProductBatchGroupModal.show({
-      groupStatus: status,
-      onSubmit: async values => {
-        createProductBatchGroup({
-          name: values.name,
-          statusId: values.statusId,
-          existProductBatchIds: values.existProductBatches.map(
-            ({ productBatch }) => productBatch.id,
-          ),
-          newProductBatches: values.newProductBatches.map(item => ({
-            ...omit(item, 'product', 'statusId'),
-            productId: item.product.id,
-          })),
-        })
-          .then(result => {
-            refetch();
-          })
-          .catch(err => {
-            alert('ERROR');
-          });
-      },
-    });
-    handleClose();
-  }, [status]);
+
   const createProductBatchModal = useModal(CreateProductBatchForm);
   const showCreateProductBatchModal = useCallback(() => {
     createProductBatchModal.show({
-      initialValues: {},
+      initialValues: {
+        product,
+      },
       onSubmit: async values => {
         createProductBatch({
-          dto: { ...omit(values, ['product']), productId: values.product.id },
+          ...omit(values, ['product']),
+          productId: values.product.id,
           statusId: status.id,
           groupId: null,
         })
           .then(result => {
-            refetch();
+            // refetch();
           })
           .catch(err => {
             alert('ERROR');
@@ -80,6 +63,17 @@ export const ColumnHeader = React.memo<Props>(props => {
     });
     handleClose();
   }, [status]);
+
+  const productBatchModal = useModal(ProductBatchModal);
+  const showProductBatchModal = useCallback(() => {
+    productBatchModal.show({
+      productId: product.id,
+      onSelect: (data: ProductBatchFragment) => {
+        //   todo: move
+      },
+    });
+    handleClose();
+  }, []);
 
   return (
     <Box
@@ -89,15 +83,6 @@ export const ColumnHeader = React.memo<Props>(props => {
         alignItems: 'center',
       }}
     >
-      <IconButton
-        ref={sortableData?.setActivatorNodeRef}
-        {...sortableData?.listeners}
-        sx={{
-          cursor: 'grab',
-        }}
-      >
-        <OpenWithIcon />
-      </IconButton>
       <Typography
         id="modal-modal-title"
         variant="h6"
@@ -105,7 +90,7 @@ export const ColumnHeader = React.memo<Props>(props => {
         component="h2"
         sx={{ flexGrow: 1 }}
       >
-        {status.title}
+        {product.name}
       </Typography>
       <IconButton
         aria-label="more"
@@ -126,8 +111,8 @@ export const ColumnHeader = React.memo<Props>(props => {
         open={open}
         onClose={handleClose}
       >
-        <MenuItem onClick={showCreateProductBatchGroupModal}>
-          Добавить группу
+        <MenuItem onClick={showProductBatchModal}>
+          Переместить сюда партию
         </MenuItem>
         <MenuItem onClick={showCreateProductBatchModal}>
           Добавить партию

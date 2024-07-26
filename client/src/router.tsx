@@ -4,7 +4,7 @@ import { createBrowserRouter, RouteObject } from 'react-router-dom';
 
 import { ProductBatchPage } from './components/ProductBatchPage/ProductBatchPage';
 import ProductList from './components/ProductList';
-import StoreComponent from './components/Store/Store';
+import { StatusPage } from './components/StatusPage/StatusPage';
 import Root from './Root';
 
 export const routeObject: RouteObject[] = [
@@ -17,12 +17,16 @@ export const routeObject: RouteObject[] = [
         element: <ProductList />,
       },
       {
+        path: 'batch',
+        element: <ProductBatchPage />,
+      },
+      {
         path: 'batch/:productId',
         element: <ProductBatchPage />,
       },
       {
-        path: 'ozon-store/:statusId',
-        element: <StoreComponent />,
+        path: 'status/:statusId',
+        element: <StatusPage />,
       },
     ],
   },

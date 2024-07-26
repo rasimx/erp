@@ -1,30 +1,26 @@
-import { SyntheticListenerMap } from '@dnd-kit/core/dist/hooks/utilities/useSyntheticListeners';
 import { useModal } from '@ebay/nice-modal-react';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import OpenWithIcon from '@mui/icons-material/OpenWith';
 import {
   Card,
   CardContent,
-  CardHeader,
   CircularProgress,
   IconButton,
-  List,
-  ListItem,
-  ListItemText,
   Menu,
   MenuItem,
-  Typography,
 } from '@mui/material';
 import Box from '@mui/material/Box';
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 
 import { useOperation } from '../../api/operation/operation.hooks';
-import { useProductBatch } from '../../api/product-batch/product-batch.hook';
+import { PRODUCT_FRAGMENT } from '../../api/product/product.gql';
+import { useProductBatchMutations } from '../../api/product-batch/product-batch.hook';
+import { getFragmentData } from '../../gql-types';
 import { ProductBatchFragment } from '../../gql-types/graphql';
 import { toRouble } from '../../utils';
+import { CardProps } from '../KanbanBoard/types';
 import OperationForm from '../OperationForm/OperationForm';
 import ProductBatchInfo from './ProductBatchInfo';
-import productBatchInfo from './ProductBatchInfo';
 
 const Preloader = () => {
   return (
@@ -43,20 +39,15 @@ const Preloader = () => {
   );
 };
 
-export interface Props {
-  card: ProductBatchFragment;
+export interface Props extends CardProps<ProductBatchFragment> {
   refetch: () => void;
   loading?: boolean;
-  sortableData?: {
-    listeners?: SyntheticListenerMap;
-    setActivatorNodeRef: (element: HTMLElement | null) => void;
-  };
 }
 
 export const ProductBatchCard = React.memo<Props>(props => {
   const { card, loading, refetch, sortableData } = props;
 
-  const { deleteProductBatch } = useProductBatch();
+  const { deleteProductBatch } = useProductBatchMutations();
   const { createOperation } = useOperation();
 
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
@@ -101,8 +92,13 @@ export const ProductBatchCard = React.memo<Props>(props => {
     });
   }, [productBatchInfoDrawer, card]);
 
+  const product = useMemo(
+    () => getFragmentData(PRODUCT_FRAGMENT, card.product),
+    [card],
+  );
+
   const listItems = [
-    { label: 'SKU', value: card.product.sku },
+    { label: 'SKU', value: product.sku },
     { label: 'количество, шт', value: card.count },
     { label: 'цена закупки 1 шт, р.', value: toRouble(card.costPricePerUnit) },
     {
@@ -196,7 +192,7 @@ export const ProductBatchCard = React.memo<Props>(props => {
             </Menu>
           </Box>
           <CardContent>
-            <Box sx={{ fontWeight: 600, pb: 2 }}>{card.product.name}</Box>
+            <Box sx={{ fontWeight: 600, pb: 2 }}>{product.name}</Box>
             <Box sx={{ fontSize: 12 }}>
               {listItems.map((item, index) => (
                 <Box

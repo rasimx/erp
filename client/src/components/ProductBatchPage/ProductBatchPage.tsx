@@ -1,7 +1,7 @@
 import { FC, useCallback, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 
-import { useStatus } from '@/api/status/status.hooks';
+import { useStatusList } from '@/api/status/status.hooks';
 import KanbanBoard from '@/components/KanbanBoard/KanbanBoard';
 import { MoveOptions } from '@/components/KanbanBoard/types';
 
@@ -14,8 +14,8 @@ import {
   StatusDto,
   StatusType,
 } from '../../gql-types/graphql';
-import ColumnHeader from './ColumnHeader';
-import GroupHeader from './GroupHeader';
+import Column from './Column';
+import Group from './Group';
 import { ProductBatchCard } from './ProductBatchCard';
 
 export const ProductBatchPage: FC = () => {
@@ -25,10 +25,10 @@ export const ProductBatchPage: FC = () => {
     moveStatus,
     loadingId: statusInLoadingId,
     loading: statusListLoading,
-  } = useStatus();
+  } = useStatusList();
 
   const { kanbanCards, moveProductBatch, moveProductBatchGroup, refetch } =
-    useKanban(Number(productId));
+    useKanban({ productIds: productId ? [Number(productId)] : [] });
 
   const cards = useMemo(() => [...kanbanCards], [kanbanCards]);
 
@@ -88,13 +88,7 @@ export const ProductBatchPage: FC = () => {
     <div>
       <KanbanBoard
         columnItems={statusList}
-        getColumnHeader={(status, sortableData) => (
-          <ColumnHeader
-            status={status}
-            refetch={refetch}
-            sortableData={sortableData}
-          />
-        )}
+        renderColumn={props => <Column {...props} refetch={refetch} />}
         moveColumn={moveStatus}
         setColumnId={(item, newColumnId) => (item.statusId = newColumnId)}
         setGroupId={(item, newGroupId) => (item.groupId = newGroupId)}
@@ -110,13 +104,7 @@ export const ProductBatchPage: FC = () => {
           });
         }}
         isGroup={item => item.__typename == 'ProductBatchGroupDto'}
-        renderGroupTitle={(group, sortableData) => (
-          <GroupHeader
-            group={group}
-            refetch={refetch}
-            sortableData={sortableData}
-          />
-        )}
+        renderGroup={props => <Group {...props} refetch={refetch} />}
         getGroupItems={item =>
           getFragmentData(PRODUCT_BATCH_FRAGMENT, item.productBatchList)
         }
@@ -129,14 +117,7 @@ export const ProductBatchPage: FC = () => {
           });
         }}
         isForbiddenMove={isForbiddenMove}
-        modifiers={modifiers}
-        renderCard={(card, sortableData) => (
-          <ProductBatchCard
-            card={card as ProductBatchFragment}
-            sortableData={sortableData}
-            refetch={refetch}
-          />
-        )}
+        renderCard={props => <ProductBatchCard {...props} refetch={refetch} />}
       />
     </div>
   );

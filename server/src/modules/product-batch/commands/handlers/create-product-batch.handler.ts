@@ -33,7 +33,7 @@ export class CreateProductBatchHandler
         this.productBatchRepository,
       );
 
-      const entity = await productBatchRepository.createFromDto(command);
+      const entity = await productBatchRepository.createFromDto(dto);
       await this.productBatchEventStore.createProductBatch({
         eventId: requestId,
         productBatchId: entity.id,

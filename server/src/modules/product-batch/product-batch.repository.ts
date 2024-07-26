@@ -1,43 +1,45 @@
 import { BadRequestException } from '@nestjs/common';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import omit from 'lodash/omit.js';
-import { IsNull, Repository } from 'typeorm';
+import { type FindOptionsWhere, In, IsNull, Repository } from 'typeorm';
 
 import type { FindLatestRequest } from '@/microservices/proto/erp.pb.js';
 import type { CreateProductBatchDto } from '@/product-batch/dtos/create-product-batch.dto.js';
+import type { GetProductBatchListDto } from '@/product-batch/dtos/get-product-batch-list.dto.js';
 import type { MoveProductBatchDto } from '@/product-batch/dtos/move-product-batch.dto.js';
 import { ProductBatchEntity } from '@/product-batch/product-batch.entity.js';
 import { ProductBatchGroupEntity } from '@/product-batch-group/product-batch-group.entity.js';
 import { StatusEntity } from '@/status/status.entity.js';
 
 export class ProductBatchRepository extends Repository<ProductBatchEntity> {
-  async productBatchList(): Promise<ProductBatchEntity[]> {
-    const items = await this.createQueryBuilder('pb')
-      // .select([
-      //   '*',
-      //   'product.volume * pb.count as volume',
-      //   'product.weight * pb.count as weight',
-      // ])
+  async productBatchList({
+    productIds,
+    statusIds,
+  }: GetProductBatchListDto): Promise<ProductBatchEntity[]> {
+    let query = this.createQueryBuilder('pb')
       .leftJoinAndSelect('pb.product', 'product')
       .leftJoinAndSelect('pb.status', 'status')
-      .orderBy('pb.order', 'ASC')
-      .where('pb.deleted_date is null')
-      .getMany();
+      .where('pb.deleted_date is null');
+    if (productIds.length) {
+      query = query.andWhere('pb.productId in (:...productIds)', {
+        productIds,
+      });
+    }
+    if (statusIds.length) {
+      query = query.andWhere('pb.statusId in (:...statusIds)', {
+        statusIds,
+      });
+    }
+
+    const items = await query.orderBy('pb.order', 'ASC').getMany();
     return items.map(item => ({
       ...item,
       volume: item.volume,
       weight: item.weight,
     }));
   }
-  async createFromDto({
-    dto,
-    statusId,
-    groupId,
-  }: {
-    dto: CreateProductBatchDto;
-    statusId: number | null;
-    groupId: number | null;
-  }) {
+
+  async createFromDto(dto: CreateProductBatchDto) {
+    const { statusId, groupId } = dto;
     /*
      * если создается в новой колонке то order - последний
      * если создается в той же партии
@@ -389,6 +391,81 @@ export class ProductBatchRepository extends Repository<ProductBatchEntity> {
     });
     return last ? [last] : [];
   }
+
+  async findByCondition({
+    productId,
+    statusId,
+    storeId,
+  }: {
+    productId?: number[] | number;
+    statusId?: number[] | number;
+    storeId?: number[] | number;
+  }): Promise<ProductBatchEntity[]> {
+    const where: FindOptionsWhere<ProductBatchEntity> = {};
+    if (productId)
+      where.productId = Array.isArray(productId) ? In(productId) : productId;
+    if (statusId)
+      where.statusId = Array.isArray(statusId) ? In(statusId) : statusId;
+    if (storeId)
+      where.status = {
+        storeId: Array.isArray(storeId) ? In(storeId) : storeId,
+      };
+
+    return this.find({ where });
+  }
+
+  // async getProductBatchesMapByStatusId(
+  //   productBatches: {
+  //     productId: number;
+  //     statusId: number;
+  //     productBatchId?: number;
+  //   }[],
+  // ): Promise<Map<number, Map<number, ProductBatchEntity[]>>> {
+  //   const entityManager = this.repository;
+  //
+  //   // Преобразуем массив объектов в массив строк для SQL-запроса
+  //   const productBatchConditions = productBatches
+  //     .map(pb => {
+  //       const common = `
+  //       pb.product_id = ${pb.productId.toString()}
+  //       AND pb.status_id = ${pb.statusId.toString()}
+  //       `;
+  //       if (pb.productBatchId) {
+  //         return `(
+  //           ${common}
+  //           AND pb.date >= (SELECT date FROM product_batch WHERE id = ${pb.productBatchId.toString()})
+  //           )`;
+  //       } else {
+  //         return `(${common})`;
+  //       }
+  //     })
+  //     .join(' OR ');
+  //
+  //   const query = `
+  //   SELECT pb.id
+  //   FROM product_batch pb
+  //   WHERE (${productBatchConditions})
+  //   ORDER BY pb.product_id, pb.date;
+  // `;
+  //
+  //   const rows: { id: number }[] = await entityManager.query(query);
+  //
+  //   const pbMapByProductId = new Map<number, Map<number, ProductBatch[]>>();
+  //
+  //   const items = await this.findProductBatchByIds(rows.map(row => row.id));
+  //
+  //   items.forEach(row => {
+  //     let mapItem = pbMapByProductId.get(row.statusId);
+  //     if (!mapItem) mapItem = new Map<number, ProductBatch[]>();
+  //     let subMapItem = mapItem.get(row.productId);
+  //     if (!subMapItem) subMapItem = [];
+  //     subMapItem.push(row);
+  //     mapItem.set(row.productId, subMapItem);
+  //     pbMapByProductId.set(row.statusId, mapItem);
+  //   });
+  //
+  //   return pbMapByProductId;
+  // }
 }
 
 export const ProductBatchRepositoryProvider = {

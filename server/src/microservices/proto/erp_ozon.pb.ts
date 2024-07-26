@@ -13,7 +13,7 @@ export const protobufPackage = "erp_ozon";
 
 export interface FullStateItemRequest {
   storeId?: number | undefined;
-  baseProductId?: number | undefined;
+  baseProductIds: number[];
 }
 
 export interface FullStateData {
