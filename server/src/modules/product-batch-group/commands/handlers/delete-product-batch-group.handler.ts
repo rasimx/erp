@@ -3,6 +3,7 @@ import { InjectDataSource } from '@nestjs/typeorm';
 
 import { ContextService } from '@/context/context.service.js';
 import type { CustomDataSource } from '@/database/custom.data-source.js';
+import { OzonPostingProductMicroservice } from '@/microservices/erp_ozon/ozon-posting-product-microservice.service.js';
 import { DeleteProductBatchCommand } from '@/product-batch/commands/impl/delete-product-batch.command.js';
 import { DeleteProductBatchGroupCommand } from '@/product-batch-group/commands/impl/delete-product-batch-group.command.js';
 import { ProductBatchGroupEventStore } from '@/product-batch-group/prodict-batch-group.eventstore.js';
@@ -13,12 +14,13 @@ export class DeleteProductBatchGroupHandler
   implements ICommandHandler<DeleteProductBatchGroupCommand>
 {
   constructor(
-    private readonly productBatchGroupRepository: ProductBatchGroupRepository,
-    private readonly productBatchGroupEventStore: ProductBatchGroupEventStore,
-    private commandBus: CommandBus,
     @InjectDataSource()
     private dataSource: CustomDataSource,
+    private commandBus: CommandBus,
+    private readonly productBatchGroupRepository: ProductBatchGroupRepository,
+    private readonly productBatchGroupEventStore: ProductBatchGroupEventStore,
     private readonly contextService: ContextService,
+    private readonly ozonPostingProductMicroservice: OzonPostingProductMicroservice,
   ) {}
 
   async execute(command: DeleteProductBatchGroupCommand) {

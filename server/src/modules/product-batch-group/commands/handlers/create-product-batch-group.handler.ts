@@ -1,16 +1,18 @@
-import { BadRequestException, HttpException } from '@nestjs/common';
+import { BadRequestException } from '@nestjs/common';
 import { CommandHandler, type ICommandHandler } from '@nestjs/cqrs';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { In } from 'typeorm';
 
 import { ContextService } from '@/context/context.service.js';
 import type { CustomDataSource } from '@/database/custom.data-source.js';
+import { OzonPostingProductMicroservice } from '@/microservices/erp_ozon/ozon-posting-product-microservice.service.js';
 import { ProductBatchEntity } from '@/product-batch/product-batch.entity.js';
 import { ProductBatchEventStore } from '@/product-batch/product-batch.eventstore.js';
 import { ProductBatchRepository } from '@/product-batch/product-batch.repository.js';
 import { CreateProductBatchGroupCommand } from '@/product-batch-group/commands/impl/create-product-batch-group.command.js';
 import { ProductBatchGroupEventStore } from '@/product-batch-group/prodict-batch-group.eventstore.js';
 import { ProductBatchGroupRepository } from '@/product-batch-group/product-batch-group.repository.js';
+import { StatusRepository } from '@/status/status.repository.js';
 
 @CommandHandler(CreateProductBatchGroupCommand)
 export class CreateProductBatchGroupHandler
@@ -24,6 +26,8 @@ export class CreateProductBatchGroupHandler
     private readonly productBatchGroupEventStore: ProductBatchGroupEventStore,
     private readonly productBatchEventStore: ProductBatchEventStore,
     private readonly contextService: ContextService,
+    private readonly statusRepository: StatusRepository,
+    private readonly ozonPostingProductMicroservice: OzonPostingProductMicroservice,
   ) {}
 
   async execute(command: CreateProductBatchGroupCommand) {
@@ -43,13 +47,16 @@ export class CreateProductBatchGroupHandler
         this.productBatchRepository,
       );
 
-      const newEntity = await productBatchGroupRepository.createFromDto(dto);
+      let newEntity = await productBatchGroupRepository.createFromDto(dto);
 
       let existProductBatches: ProductBatchEntity[] = [];
+
+      const a = new Map<number, Map<number, ProductBatchEntity[]>>(); // <storeId, <productId, batch[]>>
 
       if (dto.existProductBatchIds.length) {
         existProductBatches = await productBatchRepository.find({
           where: { id: In(dto.existProductBatchIds) },
+          relations: ['group', 'status'],
         });
         const existIds = existProductBatches.map(({ id }) => id);
         const notFoundIds = dto.existProductBatchIds.filter(
@@ -60,6 +67,17 @@ export class CreateProductBatchGroupHandler
             `not found batches: ${notFoundIds.join(',')}`,
           );
         }
+        existProductBatches.forEach(item => {
+          const storeId = item.status?.storeId;
+          if (storeId) {
+            const storeMapItem =
+              a.get(storeId) ?? new Map<number, ProductBatchEntity[]>();
+            const productMapItem = storeMapItem.get(item.productId) ?? [];
+            productMapItem.push(item);
+            storeMapItem.set(item.productId, productMapItem);
+            a.set(storeId, storeMapItem);
+          }
+        });
         newEntity.productBatchList = existProductBatches;
       }
       const newProductBatches: ProductBatchEntity[] = [];
@@ -67,7 +85,7 @@ export class CreateProductBatchGroupHandler
         for (const item of dto.newProductBatches) {
           newProductBatches.push(
             await productBatchRepository.createFromDto({
-              dto: item,
+              ...item,
               groupId: newEntity.id,
               statusId: null,
             }),
@@ -80,7 +98,7 @@ export class CreateProductBatchGroupHandler
           ...newProductBatches,
         ];
       }
-      await productBatchGroupRepository.save(newEntity);
+      newEntity = await productBatchGroupRepository.save(newEntity);
 
       await this.productBatchGroupEventStore.createProductBatchGroup({
         eventId: requestId,
@@ -109,6 +127,28 @@ export class CreateProductBatchGroupHandler
           });
         }
       }
+
+      const statusRepository = queryRunner.manager.withRepository(
+        this.statusRepository,
+      );
+
+      const status = await statusRepository.findOneOrFail({
+        where: { id: newEntity.statusId },
+      });
+
+      // if (status.storeId) {
+      //   const { success } =
+      //     await this.ozonPostingProductMicroservice.relinkPostings({
+      //       storeId: status.storeId,
+      //       items: [
+      //         {
+      //           baseProductId: entity.productId,
+      //           productBatches: [entity],
+      //         },
+      //       ],
+      //     });
+      //   if (!success) throw new Error('relink error');
+      // }
 
       await queryRunner.commitTransaction();
     } catch (err) {

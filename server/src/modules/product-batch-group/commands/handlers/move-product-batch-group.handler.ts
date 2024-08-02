@@ -35,9 +35,13 @@ export class MoveProductBatchGroupHandler
         this.productBatchGroupRepository,
       );
 
+      const productBatchRepository = queryRunner.manager.withRepository(
+        this.productBatchRepository,
+      );
+
       const { statusId, oldStatusId, order, oldOrder } =
         await productBatchGroupRepository.moveProductBatchGroup(dto);
-      await this.productBatchRepository.moveOthersByStatus({
+      await productBatchRepository.moveOthersByStatus({
         statusId,
         oldStatusId,
         order,

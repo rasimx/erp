@@ -92,9 +92,8 @@ export interface UpdatedProductBatchListRequest {
 export interface ProductBatchListItem {
   id: number;
   productId: number;
-  product: Product | undefined;
   count: number;
-  date: string;
+  order: number;
 }
 
 export interface ProductBatchListResponse {

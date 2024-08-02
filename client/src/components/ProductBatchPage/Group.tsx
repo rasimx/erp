@@ -1,21 +1,18 @@
-import { SyntheticListenerMap } from '@dnd-kit/core/dist/hooks/utilities/useSyntheticListeners';
 import { useModal } from '@ebay/nice-modal-react';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import OpenWithIcon from '@mui/icons-material/OpenWith';
 import { IconButton, Menu, MenuItem, Typography } from '@mui/material';
 import Box from '@mui/material/Box';
-import React, { ReactElement, useCallback } from 'react';
+import React, { useCallback } from 'react';
 
 import { useOperation } from '../../api/operation/operation.hooks';
-import { PRODUCT_BATCH_FRAGMENT } from '../../api/product-batch/product-batch.gql';
+import { ProductBatchGroup } from '../../api/product-batch-group/product-batch-group.gql';
 import { useProductBatchGroupMutations } from '../../api/product-batch-group/product-batch-group.hook';
-import { getFragmentData } from '../../gql-types';
-import { ProductBatchGroupFragment } from '../../gql-types/graphql';
 import { toRouble } from '../../utils';
 import { GroupProps } from '../KanbanBoard/types';
 import OperationForm from '../OperationForm/OperationForm';
 
-export interface Props extends GroupProps<ProductBatchGroupFragment> {
+export interface Props extends GroupProps<ProductBatchGroup> {
   refetch: () => void;
 }
 
@@ -46,10 +43,7 @@ export const Group = React.memo<Props>(props => {
       initialValues: {
         groupId: group.id,
       },
-      productBatches: getFragmentData(
-        PRODUCT_BATCH_FRAGMENT,
-        group.productBatchList,
-      ),
+      productBatches: group.productBatchList,
       onSubmit: async values => {
         createOperation(values)
           .then(result => {
@@ -125,8 +119,7 @@ export const Group = React.memo<Props>(props => {
           <Box sx={{ display: 'flex', p: 1 }}>
             С/с группы, р. -
             {toRouble(
-              group.productBatchList.reduce((prev, cur) => {
-                const data = getFragmentData(PRODUCT_BATCH_FRAGMENT, cur);
+              group.productBatchList.reduce((prev, data) => {
                 return (
                   prev +
                   data.count *
@@ -136,8 +129,7 @@ export const Group = React.memo<Props>(props => {
             )}
             <br />
             количество, шт. -
-            {group.productBatchList.reduce((prev, cur) => {
-              const data = getFragmentData(PRODUCT_BATCH_FRAGMENT, cur);
+            {group.productBatchList.reduce((prev, data) => {
               return prev + data.count;
             }, 0)}
           </Box>

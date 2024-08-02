@@ -5,7 +5,7 @@ import Joi from 'joi';
 
 import { getPathRelativeToRoot } from '@/common/helpers/paths.js';
 import { ContextService } from '@/context/context.service.js';
-import { OzonStateMicroservice } from '@/microservices/erp_ozon/ozon-state-microservice.service.js';
+import { OzonPostingProductMicroservice } from '@/microservices/erp_ozon/ozon-posting-product-microservice.service.js';
 import { getContextInterceptor } from '@/microservices/interceptors.js';
 import { ERP_OZON_PACKAGE_NAME } from '@/microservices/proto/erp_ozon.pb.js';
 
@@ -52,7 +52,7 @@ const MICROSERVICES = [
       })),
     ),
   ],
-  providers: [OzonStateMicroservice],
-  exports: [OzonStateMicroservice],
+  providers: [OzonPostingProductMicroservice],
+  exports: [OzonPostingProductMicroservice],
 })
 export class Microservices {}

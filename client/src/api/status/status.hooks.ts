@@ -1,7 +1,11 @@
 import { useMutation, useQuery } from '@apollo/client';
 import { arrayMove } from '@dnd-kit/sortable';
+import { enableMapSet } from 'immer';
 import { useSnackbar } from 'notistack';
 import { useCallback, useEffect, useState } from 'react';
+import { useImmer } from 'use-immer';
+
+enableMapSet();
 
 import { type StatusDto, StatusFragment } from '@/gql-types/graphql';
 
@@ -19,10 +23,10 @@ export const useStatus = (id: number) => {
 };
 
 export const useStatusList = (ids: number[] = []) => {
-  const [statusMap, setStatusMap] = useState<Map<number, StatusFragment>>(
+  const [statusMap, setStatusMap] = useImmer<Map<number, StatusFragment>>(
     new Map(),
   );
-  const [statusList, setStatusList] = useState<StatusDto[]>([]);
+  const [statusList, setStatusList] = useImmer<StatusDto[]>([]);
 
   useEffect(() => {
     setStatusList(
@@ -35,18 +39,15 @@ export const useStatusList = (ids: number[] = []) => {
     error,
     loading,
   } = useQuery(STATUS_LIST_QUERY, {
-    skip: statusMap.size > 0,
+    fetchPolicy: 'network-only',
+    skip: statusList.length > 0,
     variables: { ids },
   });
   useEffect(() => {
     if (statusListData) {
-      setStatusMap(
-        new Map(
-          getFragmentData(STATUS_FRAGMENT, statusListData?.statusList).map(
-            item => {
-              return [item.id, item];
-            },
-          ),
+      setStatusList(
+        getFragmentData(STATUS_FRAGMENT, statusListData?.statusList).toSorted(
+          (a, b) => a.order - b.order,
         ),
       );
     }
@@ -68,13 +69,19 @@ export const useStatusList = (ids: number[] = []) => {
       move({ variables: { dto: { id: active.id, order: over.order } } })
         .then(({ data, errors }) => {
           if (data) {
-            setStatusMap(statusMap => {
-              (
-                getFragmentData(STATUS_FRAGMENT, data?.moveStatus) ?? []
-              ).forEach(item => {
-                statusMap.set(item.id, item);
+            const newItemsMap = new Map(
+              getFragmentData(STATUS_FRAGMENT, data?.moveStatus).map(item => [
+                item.id,
+                item,
+              ]),
+            );
+            setStatusList(draft => {
+              draft.forEach(draftItem => {
+                const item = newItemsMap.get(draftItem.id);
+                if (item && draftItem.order != item.order) {
+                  draftItem.order = item.order;
+                }
               });
-              return new Map(statusMap.entries());
             });
           } else {
             setStatusList(

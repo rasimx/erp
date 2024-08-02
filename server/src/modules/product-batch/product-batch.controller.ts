@@ -6,13 +6,14 @@ import {
   type CreateStatusResponse,
   type FindLatestRequest,
   type ProductBatchListResponse,
+  ProductBatchServiceControllerMethods,
 } from '@/microservices/proto/erp.pb.js';
 import { ProductBatchRepository } from '@/product-batch/product-batch.repository.js';
 import { StatusService } from '@/status/status.service.js';
 
 @Controller()
 @UseInterceptors(UserInterceptor)
-// @ProductBatchServiceControllerMethods()
+@ProductBatchServiceControllerMethods()
 // export class ProductBatchController implements ProductBatchServiceController {
 export class ProductBatchController {
   constructor(

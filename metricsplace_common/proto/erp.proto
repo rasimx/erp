@@ -96,9 +96,8 @@ message UpdatedProductBatchListRequest {
 message ProductBatchListItem {
     uint32 id = 1;
     uint32 product_id = 2;
-    Product product = 3;
     uint32 count = 4;
-    string date = 5;
+    uint32 order = 5;
 }
 
 message ProductBatchListResponse {

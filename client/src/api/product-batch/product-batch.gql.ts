@@ -1,4 +1,14 @@
-import { graphql } from '@/gql-types';
+import { DocumentTypeDecoration } from '@graphql-typed-document-node/core';
+
+import {
+  DocumentType,
+  FragmentType,
+  getFragmentData,
+  graphql,
+} from '@/gql-types';
+
+import { ProductBatchFragment, ProductFragment } from '../../gql-types/graphql';
+import { PRODUCT_FRAGMENT } from '../product/product.gql';
 
 export const PRODUCT_BATCH_LIST_QUERY = graphql(`
   query productBatchList($dto: GetProductBatchListDto!) {
@@ -38,6 +48,36 @@ export const PRODUCT_BATCH_FRAGMENT = graphql(`
     }
   }
 `);
+
+export interface ProductBatch extends ProductBatchFragment {
+  product: ProductFragment;
+}
+
+export function getProductBatchFragment(
+  data: FragmentType<typeof PRODUCT_BATCH_FRAGMENT> | undefined,
+): ProductBatch;
+export function getProductBatchFragment(
+  data: Array<FragmentType<typeof PRODUCT_BATCH_FRAGMENT>> | undefined,
+): ProductBatch[];
+export function getProductBatchFragment(
+  data:
+    | FragmentType<typeof PRODUCT_BATCH_FRAGMENT>
+    | Array<FragmentType<typeof PRODUCT_BATCH_FRAGMENT>>
+    | undefined,
+) {
+  if (Array.isArray(data)) {
+    return getFragmentData(PRODUCT_BATCH_FRAGMENT, data).map(item => ({
+      ...item,
+      product: getFragmentData(PRODUCT_FRAGMENT, item.product),
+    }));
+  } else if (data) {
+    const productBatch = getFragmentData(PRODUCT_BATCH_FRAGMENT, data);
+    return {
+      ...productBatch,
+      product: getFragmentData(PRODUCT_FRAGMENT, productBatch.product),
+    };
+  }
+}
 
 export const MOVE_PRODUCT_BATCH_MUTATION = graphql(`
   mutation moveProductBatch($dto: MoveProductBatchDto!) {

@@ -30,6 +30,6 @@ import { StatusService } from './status.service.js';
     MoveStatusHandler,
     StatusRepositoryProvider,
   ],
-  exports: [StatusService],
+  exports: [StatusService, StatusRepositoryProvider],
 })
 export class StatusModule {}

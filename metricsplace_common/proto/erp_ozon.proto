@@ -2,40 +2,25 @@ syntax = "proto3";
 
 package erp_ozon;
 
-service StateService {
-    rpc CurrentFullState (FullStateItemRequest) returns (FullStateResponse);
+service PostingProductService {
     rpc RelinkPostings (RelinkPostingsRequest) returns (RelinkPostingsResponse);
 }
 
-
-message FullStateItemRequest {
-    optional uint32 store_id = 1;
-    repeated uint32 base_product_ids = 2;
-}
-
-message FullStateData {
-    uint32 base_product_id = 1;
-    uint32 sales_count = 2; // продано (за исключением отмен/возвратов и awaiting_packaging, может меняться)
-    uint32 in_store_count = 3; // на складе (включая резерв)
-    optional uint32 last_product_batch_id = 4;
-}
-message FullStateItem {
-    uint32 store_id = 1;
-    repeated FullStateData items = 2;
-}
-
-
-message FullStateResponse {
-    repeated FullStateItem items = 1;
+message ProductBatch {
+    uint32 id = 1;
+    uint32 count = 2;
+    uint32 order = 3;
 }
 
 message RelinkPostingsItem {
-    uint32 product_batch_id = 1;
-    uint32 count = 2;
-    repeated RelinkPostingsItem next_items = 3;
+    uint32 base_product_id = 1;
+    repeated ProductBatch product_batches = 2;
 }
 
 message RelinkPostingsRequest {
+    repeated RelinkPostingsRequestItem items = 2;
+}
+message RelinkPostingsRequestItem {
     uint32 store_id = 1;
     repeated RelinkPostingsItem items = 2;
 }

@@ -39,24 +39,35 @@ export class ProductBatchGroupRepository extends Repository<ProductBatchGroupEnt
     return this.save(newEntity);
   }
 
-  async moveOthersInOld({
+  async moveOthersInOldStatus({
     oldOrder,
     oldStatusId,
   }: {
     oldOrder: number;
     oldStatusId: number;
   }) {
-    return this.createQueryBuilder()
-      .update()
-      .set({ order: () => '"order" - 1' })
-      .where('"order" > :oldOrder AND statusId = :oldStatusId', {
+    const query = this.createQueryBuilder('pbg').where(
+      '"order" > :oldOrder AND status_id = :oldStatusId',
+      {
         oldOrder,
         oldStatusId,
-      })
+      },
+    );
+
+    const affectedIds = await query
+      .select('pbg.id')
+      .getMany()
+      .then(rows => rows.map(({ id }) => id));
+
+    await query
+      .update()
+      .set({ order: () => '"order" - 1' })
       .execute();
+
+    return affectedIds;
   }
 
-  async moveOthersInNew({
+  async moveOthersInNewStatus({
     id,
     newOrder,
     statusId,
@@ -65,20 +76,30 @@ export class ProductBatchGroupRepository extends Repository<ProductBatchGroupEnt
     newOrder: number;
     statusId: number;
   }) {
-    let query = this.createQueryBuilder()
-      .update()
-      .set({ order: () => '"order" + 1' })
-      .where('"order" >= :newOrder AND statusId = :statusId', {
+    let query = this.createQueryBuilder('pbg').where(
+      '"order" >= :newOrder AND status_id = :statusId',
+      {
         newOrder,
-        id,
         statusId,
-      });
+      },
+    );
     if (id) {
       query = query.andWhere('id != :id', {
         id,
       });
     }
-    return query.execute();
+
+    const affectedIds = await query
+      .select('pbg.id')
+      .getMany()
+      .then(rows => rows.map(({ id }) => id));
+
+    await query
+      .update()
+      .set({ order: () => '"order" + 1' })
+      .execute();
+
+    return affectedIds;
   }
 
   async moveOthersByMovingInside({
@@ -92,38 +113,48 @@ export class ProductBatchGroupRepository extends Repository<ProductBatchGroupEnt
     oldOrder: number;
     statusId: number;
   }) {
-    let query = this.createQueryBuilder().update();
+    let query = this.createQueryBuilder('pbg');
     if (newOrder < oldOrder) {
-      query = query
-        .set({ order: () => '"order" + 1' })
-        .where(
-          '"order" >= :newOrder AND "order" <= :oldOrder AND statusId = :statusId',
-          {
-            newOrder,
-            oldOrder,
-            statusId,
-          },
-        );
+      query = query.where(
+        '"order" >= :newOrder AND "order" <= :oldOrder AND status_id = :statusId AND id != :id',
+        {
+          newOrder,
+          oldOrder,
+          statusId,
+          id,
+        },
+      );
     } else {
-      query = query
+      query = query.where(
+        '"order" >= :oldOrder AND "order" <= :newOrder AND status_id = :statusId AND id != :id',
+        {
+          oldOrder,
+          newOrder,
+          statusId,
+          id,
+        },
+      );
+    }
+
+    const affectedIds = await query
+      .select('pbg.id')
+      .getMany()
+      .then(rows => rows.map(({ id }) => id));
+
+    if (newOrder < oldOrder) {
+      await query
+        .update()
+        .set({ order: () => '"order" + 1' })
+        .execute();
+    } else {
+      await query
+        .update()
         .set({ order: () => '"order" - 1' })
-        .where(
-          '"order" >= :oldOrder AND "order" <= :newOrder AND statusId = :statusId',
-          {
-            oldOrder,
-            newOrder,
-            statusId,
-          },
-        );
+
+        .execute();
     }
 
-    if (id) {
-      query = query.andWhere('id != :id', {
-        id,
-      });
-    }
-
-    return query.execute();
+    return affectedIds;
   }
 
   async moveOthers({
@@ -139,26 +170,35 @@ export class ProductBatchGroupRepository extends Repository<ProductBatchGroupEnt
     order: number;
     oldOrder: number;
   }) {
+    const affectedIds: number[] = [];
     if (statusId && oldStatusId === statusId) {
       // Перемещение внутри одного столбца
-      await this.moveOthersByMovingInside({
-        statusId,
-        id,
-        newOrder: order,
-        oldOrder,
-      });
+      affectedIds.push(
+        ...(await this.moveOthersByMovingInside({
+          statusId,
+          id,
+          newOrder: order,
+          oldOrder,
+        })),
+      );
     } else {
       // Перемещение в другой столбец
       if (statusId) {
-        await this.moveOthersInNew({
-          id,
-          newOrder: order,
-          statusId,
-        });
+        affectedIds.push(
+          ...(await this.moveOthersInNewStatus({
+            id,
+            newOrder: order,
+            statusId,
+          })),
+        );
       }
 
-      if (oldStatusId) await this.moveOthersInOld({ oldOrder, oldStatusId });
+      if (oldStatusId)
+        affectedIds.push(
+          ...(await this.moveOthersInOldStatus({ oldOrder, oldStatusId })),
+        );
     }
+    return affectedIds;
   }
 
   async moveProductBatchGroup(dto: MoveProductBatchGroupDto): Promise<{
@@ -167,6 +207,7 @@ export class ProductBatchGroupRepository extends Repository<ProductBatchGroupEnt
     oldOrder: number;
     statusId: number;
     oldStatusId: number;
+    affectedIds: number[];
   }> {
     const { id, statusId } = dto;
 
@@ -204,7 +245,7 @@ export class ProductBatchGroupRepository extends Repository<ProductBatchGroupEnt
     const oldStatusId = group.statusId;
     group.status = status;
     group = await this.save(group);
-    await this.moveOthers({
+    const affectedIds = await this.moveOthers({
       id: group.id,
       statusId,
       oldStatusId,
@@ -217,6 +258,7 @@ export class ProductBatchGroupRepository extends Repository<ProductBatchGroupEnt
       oldOrder,
       statusId,
       oldStatusId,
+      affectedIds,
     };
   }
 

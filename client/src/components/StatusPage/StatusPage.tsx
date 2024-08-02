@@ -22,7 +22,13 @@ export const StatusPage: FC = () => {
   useEffect(() => {
     if (status?.storeId) {
       import('remoteOzon/full-state.api').then(({ fetchFullState }) => {
-        fetchFullState({ storeId: 1114008, items: [] }).then(data => {
+        fetchFullState({
+          storeId: 1114008,
+          items: [
+            { baseProductId: 17, fromProductBatchId: 66 },
+            { baseProductId: 18 },
+          ],
+        }).then(data => {
           setFullState(data);
         });
       });

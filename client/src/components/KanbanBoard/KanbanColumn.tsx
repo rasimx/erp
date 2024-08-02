@@ -3,7 +3,7 @@ import { CSS } from '@dnd-kit/utilities';
 import styled from '@emotion/styled';
 import { Stack } from '@mui/material';
 import Box from '@mui/material/Box';
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 
 import { transientOptions } from '@/utils';
 
@@ -42,27 +42,30 @@ export type Props<
   Group extends SortableType,
   Card extends SortableType,
 > = {
-  items: (Card | Group)[];
+  cards: (Card | Group)[];
   column: Column;
   isActive?: boolean;
 };
 
-export const getColumnId = (column: SortableType) => `column_${column.id}`;
+export const getSortableColumnId = (column: SortableType) =>
+  `column_${column.id}`;
 
 const KanbanColumn = <
   Column extends SortableType,
   Group extends SortableType,
   Card extends SortableType,
 >({
-  items,
+  cards,
   column,
   isActive = false,
 }: Props<Column, Group, Card>) => {
-  const { isForbiddenMove, isGroup, renderColumn } = useKanbanBoardContext<
-    Column,
-    Group,
-    Card
-  >();
+  const { isForbiddenMove, isGroup, renderColumn, getColumnId } =
+    useKanbanBoardContext<Column, Group, Card>();
+
+  const items = useMemo(
+    () => cards.filter(card => getColumnId(card) == column.id),
+    [cards],
+  );
 
   const itemsIds = useMemo(
     () =>
@@ -72,7 +75,7 @@ const KanbanColumn = <
     [items],
   );
 
-  const id = getColumnId(column);
+  const id = getSortableColumnId(column);
 
   const {
     setNodeRef,
@@ -123,19 +126,61 @@ const KanbanColumn = <
   const style = {
     transition,
     transform: CSS.Transform.toString(transform),
+    visibility: isDragging ? 'hidden' : 'visible',
   };
 
-  if (isDragging) {
-    return (
-      <Box
-        // elevation={3}
-        // variant="elevation"
-        ref={setNodeRef}
-        style={style}
-        sx={{ width: 300 }}
-      ></Box>
-    );
-  }
+  // useEffect(() => {
+  //   console.log('column', isActive);
+  // }, [column]);
+  // useEffect(() => {
+  //   console.log('items', isActive);
+  // }, [items]);
+  // useEffect(() => {
+  //   console.log('isActive', isActive);
+  // }, [isActive]);
+  // useEffect(() => {
+  //   console.log('setActivatorNodeRef', isActive);
+  // }, [setActivatorNodeRef]);
+  // useEffect(() => {
+  //   // console.log('listeners', listeners, isActive);
+  // }, [listeners]);
+  // useEffect(() => {
+  //   console.log('itemsIds', isActive);
+  // }, [itemsIds]);
+
+  // const renderedColumn = useMemo(() => {
+  //   return renderColumn({
+  //     column,
+  //     items,
+  //     isActive,
+  //     sortableData: { setActivatorNodeRef, listeners },
+  //     children: (
+  //       <Stack spacing={2} sx={{ p: 1 }}>
+  //         <SortableContext items={itemsIds}>
+  //           {items.map(item =>
+  //             isGroup(item) ? (
+  //               <KanbanGroup group={item as Group} key={`group_${item.id}`} />
+  //             ) : (
+  //               <KanbanCard card={item as Card} key={`card_${item.id}`} />
+  //             ),
+  //           )}
+  //         </SortableContext>
+  //       </Stack>
+  //     ),
+  //   });
+  // }, [column, items, isActive, setActivatorNodeRef, listeners, itemsIds]);
+
+  // if (isDragging) {
+  //   return (
+  //     <Box
+  //       // elevation={3}
+  //       // variant="elevation"
+  //       ref={setNodeRef}
+  //       style={style}
+  //       sx={{ width: 300 }}
+  //     ></Box>
+  //   );
+  // }
 
   return (
     <Column
@@ -146,6 +191,7 @@ const KanbanColumn = <
     >
       {renderColumn({
         column,
+        items,
         isActive,
         sortableData: { setActivatorNodeRef, listeners },
         children: (

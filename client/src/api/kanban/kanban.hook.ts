@@ -1,21 +1,25 @@
 import { useQuery } from '@apollo/client';
 import { useCallback, useEffect, useState } from 'react';
 
-import { getFragmentData } from '../../gql-types';
+import apolloClient from '../../apollo-client';
 import {
   GetProductBatchListDto,
   MoveProductBatchDto,
   MoveProductBatchGroupDto,
-  ProductBatchFragment,
-  ProductBatchGroupFragment,
 } from '../../gql-types/graphql';
-import { PRODUCT_BATCH_FRAGMENT } from '../product-batch/product-batch.gql';
+import {
+  getProductBatchFragment,
+  ProductBatch,
+} from '../product-batch/product-batch.gql';
 import { useProductBatchMutations } from '../product-batch/product-batch.hook';
-import { PRODUCT_BATCH_GROUP_FRAGMENT } from '../product-batch-group/product-batch-group.gql';
+import {
+  getProductBatchGroupFragment,
+  ProductBatchGroup,
+} from '../product-batch-group/product-batch-group.gql';
 import { useProductBatchGroupMutations } from '../product-batch-group/product-batch-group.hook';
 import { KANBAN_CARDS_QUERY } from './kanban.gql';
 
-export type KanbanCard = ProductBatchFragment | ProductBatchGroupFragment;
+export type KanbanCard = ProductBatch | ProductBatchGroup;
 
 export const useKanban = (dto: GetProductBatchListDto) => {
   const [kanbanCards, setKanbanCards] = useState<KanbanCard[]>([]);
@@ -23,24 +27,62 @@ export const useKanban = (dto: GetProductBatchListDto) => {
   const { moveProductBatch: moveBatch } = useProductBatchMutations();
   const { moveProductBatchGroup: moveGroup } = useProductBatchGroupMutations();
 
-  const { data, loading, refetch } = useQuery(KANBAN_CARDS_QUERY, {
-    variables: { dto },
-    fetchPolicy: 'network-only',
-  });
+  // const { data, loading, refetch } = useQuery(KANBAN_CARDS_QUERY, {
+  //   variables: { dto },
+  //   fetchPolicy: 'network-only',
+  // });
 
+  const refetch = useCallback(() => {
+    apolloClient
+      .query({
+        query: KANBAN_CARDS_QUERY,
+        variables: { dto },
+        fetchPolicy: 'network-only',
+      })
+      .then(data => {
+        const batchList =
+          getProductBatchFragment(data?.data.productBatchList) || [];
+        const groupList =
+          getProductBatchGroupFragment(data?.data.productBatchGroupList) || [];
+
+        setKanbanCards(
+          [...batchList, ...groupList].toSorted((a, b) => a.order - b.order),
+        );
+      });
+  }, [dto]);
+  //
   useEffect(() => {
-    const batchList =
-      getFragmentData(PRODUCT_BATCH_FRAGMENT, data?.productBatchList) || [];
-    const groupList =
-      getFragmentData(
-        PRODUCT_BATCH_GROUP_FRAGMENT,
-        data?.productBatchGroupList,
-      ) || [];
+    refetch();
+  }, [dto]);
 
-    setKanbanCards(
-      [...batchList, ...groupList].toSorted((a, b) => a.order - b.order),
-    );
-  }, [data]);
+  // useEffect(() => {
+  //   apolloClient
+  //     .query({
+  //       query: KANBAN_CARDS_QUERY,
+  //       variables: { dto },
+  //       fetchPolicy: 'network-only',
+  //     })
+  //     .then(data => {
+  //       const batchList =
+  //         getProductBatchFragment(data?.data.productBatchList) || [];
+  //       const groupList =
+  //         getProductBatchGroupFragment(data?.data.productBatchGroupList) || [];
+  //
+  //       setKanbanCards(
+  //         [...batchList, ...groupList].toSorted((a, b) => a.order - b.order),
+  //       );
+  //     });
+  // }, []);
+
+  // useEffect(() => {
+  //   const batchList = getProductBatchFragment(data?.productBatchList) || [];
+  //   const groupList =
+  //     getProductBatchGroupFragment(data?.productBatchGroupList) || [];
+  //
+  //   setKanbanCards(
+  //     [...batchList, ...groupList].toSorted((a, b) => a.order - b.order),
+  //   );
+  // }, [data]);
 
   const moveProductBatch = useCallback(
     (dto: MoveProductBatchDto) => {
@@ -60,5 +102,10 @@ export const useKanban = (dto: GetProductBatchListDto) => {
     [kanbanCards],
   );
 
-  return { kanbanCards, moveProductBatch, moveProductBatchGroup, refetch };
+  return {
+    kanbanCards,
+    moveProductBatch,
+    moveProductBatchGroup,
+    refetch,
+  };
 };

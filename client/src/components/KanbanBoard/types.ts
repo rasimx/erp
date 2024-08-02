@@ -24,7 +24,8 @@ export type GroupProps<Group> = {
   sortableData: SortableData;
 };
 
-export type ColumnProps<Column> = {
+export type ColumnProps<Column, Group, Card> = {
+  items: (Card | Group)[];
   column: Column;
   children: ReactElement;
   isActive: boolean;
@@ -44,7 +45,7 @@ export type KanbanBoardProps<
 > = {
   columnItems: Column[];
   moveColumn: (active: Column, over: Column) => void;
-  renderColumn: (props: ColumnProps<Column>) => ReactElement;
+  renderColumn: (props: ColumnProps<Column, Group, Card>) => ReactElement;
   getColumnId: (card: Card | Group) => number | null;
   setColumnId: (card: Group | Card, newColumnId: number | null) => void;
 

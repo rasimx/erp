@@ -4,10 +4,10 @@ import { IsNotEmpty, IsNumber, IsOptional } from 'class-validator';
 @InputType()
 export class CreateProductBatchDto {
   @Field(() => Int, { nullable: true, defaultValue: null })
-  statusId: number;
+  statusId: number | null;
 
   @Field(() => Int, { nullable: true, defaultValue: null })
-  groupId: number;
+  groupId: number | null;
 
   @IsNumber()
   @IsNotEmpty()

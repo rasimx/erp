@@ -13,7 +13,9 @@ export default defineConfig({
     },
   },
   plugins: [
-    react(),
+    react({
+      jsxImportSource: '@emotion/react',
+    }),
     federation({
       name: 'remote_app',
       filename: 'remoteEntry.js',

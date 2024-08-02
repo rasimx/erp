@@ -6,14 +6,9 @@ import KanbanBoard from '@/components/KanbanBoard/KanbanBoard';
 import { MoveOptions } from '@/components/KanbanBoard/types';
 
 import { useKanban } from '../../api/kanban/kanban.hook';
-import { PRODUCT_BATCH_FRAGMENT } from '../../api/product-batch/product-batch.gql';
-import { getFragmentData } from '../../gql-types';
-import {
-  ProductBatchFragment,
-  ProductBatchGroupFragment,
-  StatusDto,
-  StatusType,
-} from '../../gql-types/graphql';
+import { ProductBatch } from '../../api/product-batch/product-batch.gql';
+import { ProductBatchGroup } from '../../api/product-batch-group/product-batch-group.gql';
+import { StatusDto, StatusType } from '../../gql-types/graphql';
 import Column from './Column';
 import Group from './Group';
 import { ProductBatchCard } from './ProductBatchCard';
@@ -27,13 +22,18 @@ export const ProductBatchPage: FC = () => {
     loading: statusListLoading,
   } = useStatusList();
 
+  const dto = useMemo(
+    () => ({ productIds: productId ? [Number(productId)] : [] }),
+    [productId],
+  );
+
   const { kanbanCards, moveProductBatch, moveProductBatchGroup, refetch } =
-    useKanban({ productIds: productId ? [Number(productId)] : [] });
+    useKanban(dto);
 
   const cards = useMemo(() => [...kanbanCards], [kanbanCards]);
 
   const isCardInNotCustomColumn = useCallback(
-    (item?: ProductBatchFragment) => {
+    (item?: ProductBatch) => {
       const customStatusIds = statusList
         .filter(({ type }) => type != StatusType.custom)
         .map(({ id }) => id);
@@ -50,11 +50,7 @@ export const ProductBatchPage: FC = () => {
     ({
       active,
       over,
-    }: MoveOptions<
-      StatusDto,
-      ProductBatchGroupFragment,
-      ProductBatchFragment
-    >) => {
+    }: MoveOptions<StatusDto, ProductBatchGroup, ProductBatch>) => {
       // debugger;
       return false;
       // if (
@@ -72,11 +68,7 @@ export const ProductBatchPage: FC = () => {
   );
 
   const modifiers = useCallback(
-    ({}: MoveOptions<
-      StatusDto,
-      ProductBatchGroupFragment,
-      ProductBatchFragment
-    >) => {
+    ({}: MoveOptions<StatusDto, ProductBatchGroup, ProductBatch>) => {
       return [];
       // if (activeCard && isCardInNotCustomColumn(activeCard))
       //   return [restrictToFirstScrollableAncestor];
@@ -105,9 +97,7 @@ export const ProductBatchPage: FC = () => {
         }}
         isGroup={item => item.__typename == 'ProductBatchGroupDto'}
         renderGroup={props => <Group {...props} refetch={refetch} />}
-        getGroupItems={item =>
-          getFragmentData(PRODUCT_BATCH_FRAGMENT, item.productBatchList)
-        }
+        getGroupItems={item => item.productBatchList}
         setGroupItems={(group, items) => (group.productBatchList = items)}
         moveGroup={data => {
           moveProductBatchGroup({

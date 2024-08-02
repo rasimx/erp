@@ -1,5 +1,6 @@
 import { BadRequestException } from '@nestjs/common';
 import { getRepositoryToken } from '@nestjs/typeorm';
+import { objectToCamel } from 'ts-case-convert';
 import { type FindOptionsWhere, In, IsNull, Repository } from 'typeorm';
 
 import type { FindLatestRequest } from '@/microservices/proto/erp.pb.js';
@@ -110,66 +111,107 @@ export class ProductBatchRepository extends Repository<ProductBatchEntity> {
       : null;
   }
 
-  async moveOthersInOld({
+  async moveOthersInOldGroup({
     oldOrder,
     oldGroupId,
+  }: {
+    oldOrder: number;
+    oldGroupId: number;
+  }) {
+    const query = this.createQueryBuilder('pb').where(
+      '"order" > :oldOrder and group_id = :oldGroupId',
+      {
+        oldOrder,
+        oldGroupId,
+      },
+    );
+
+    const affectedIds = await query
+      .select('pb.id')
+      .getMany()
+      .then(rows => rows.map(({ id }) => id));
+
+    await query
+      .update()
+      .set({ order: () => '"order" - 1' })
+      .execute();
+
+    return affectedIds;
+  }
+  async moveOthersInOldStatus({
+    oldOrder,
     oldStatusId,
   }: {
     oldOrder: number;
-    oldGroupId?: number;
-    oldStatusId?: number;
+    oldStatusId: number;
   }) {
-    if (!(oldGroupId ?? oldStatusId))
-      throw new Error('oldGroupId or oldStatusId');
-    let query = this.createQueryBuilder()
+    const query = this.createQueryBuilder('pb').where(
+      '"order" > :oldOrder and status_id = :oldStatusId',
+      {
+        oldOrder,
+        oldStatusId,
+      },
+    );
+
+    const affectedIds = await query
+      .select('pb.id')
+      .getMany()
+      .then(rows => rows.map(({ id }) => id));
+
+    await query
       .update()
       .set({ order: () => '"order" - 1' })
-      .where('"order" > :oldOrder', {
-        oldOrder,
-      });
+      .execute();
 
-    if (oldGroupId) {
-      query = query.andWhere('groupId = :oldGroupId ', {
-        oldGroupId,
-      });
-    } else {
-      query = query.andWhere('statusId = :oldStatusId', {
-        oldStatusId,
-      });
-    }
-
-    return query.execute();
+    return affectedIds;
   }
 
-  async moveOthersInNew({
+  async moveOthersInNewGroup({
+    id,
+    newOrder,
+    groupId,
+  }: {
+    id: number;
+    newOrder: number;
+    groupId: number;
+  }) {
+    const query = this.createQueryBuilder('pb').where(
+      '"order" >= :newOrder and group_id = :groupId and id != :id',
+      {
+        newOrder,
+        groupId,
+        id,
+      },
+    );
+
+    const affectedIds = await query
+      .select('pb.id')
+      .getMany()
+      .then(rows => rows.map(({ id }) => id));
+
+    await query
+      .update()
+      .set({ order: () => '"order" + 1' })
+      .execute();
+
+    return affectedIds;
+  }
+  async moveOthersInNewStatus({
     id,
     newOrder,
     statusId,
-    groupId,
   }: {
     id?: number;
     newOrder: number;
-    statusId?: number;
-    groupId?: number;
+    statusId: number;
   }) {
-    if (!(groupId ?? statusId)) throw new Error('groupId or statusId');
-
-    let query = this.createQueryBuilder()
-      .update()
-      .set({ order: () => '"order" + 1' })
-      .where('"order" >= :newOrder', {
+    let query = this.createQueryBuilder('pb').where(
+      '"order" >= :newOrder and status_id = :statusId',
+      {
         newOrder,
-      });
-
-    if (groupId) {
-      query = query.andWhere('groupId = :groupId', {
-        groupId,
-      });
-    } else {
-      query = query.andWhere('statusId = :statusId', {
         statusId,
-      });
-    }
+      },
+    );
 
     if (id) {
       query = query.andWhere('id != :id', {
@@ -177,57 +219,119 @@ export class ProductBatchRepository extends Repository<ProductBatchEntity> {
       });
     }
 
-    return query.execute();
+    const affectedIds = await query
+      .select('pb.id')
+      .getMany()
+      .then(rows => rows.map(({ id }) => id));
+
+    await query
+      .update()
+      .set({ order: () => '"order" + 1' })
+      .execute();
+
+    return affectedIds;
   }
 
-  async moveOthersByMovingInside({
-    id,
+  async moveOthersInsideGroup({
     newOrder,
     oldOrder,
     groupId,
+    id,
+  }: {
+    newOrder: number;
+    oldOrder: number;
+    groupId: number;
+    id: number;
+  }) {
+    let query = this.createQueryBuilder('pb').where(
+      'group_id = :groupId and id != :id',
+      {
+        groupId,
+        id,
+      },
+    );
+
+    if (newOrder < oldOrder) {
+      query = query.andWhere('"order" >= :newOrder AND "order" <= :oldOrder', {
+        newOrder,
+        oldOrder,
+      });
+    } else {
+      query = query.andWhere('"order" >= :oldOrder AND "order" <= :newOrder', {
+        oldOrder,
+        newOrder,
+      });
+    }
+
+    const affectedIds = await query
+      .select('pb.id')
+      .getMany()
+      .then(rows => rows.map(({ id }) => id));
+
+    if (newOrder < oldOrder) {
+      await query
+        .update()
+        .set({ order: () => '"order" + 1' })
+        .execute();
+    } else {
+      await query
+        .update()
+        .set({ order: () => '"order" - 1' })
+        .execute();
+    }
+
+    return affectedIds;
+  }
+
+  async moveOthersInsideStatus({
+    id,
+    newOrder,
+    oldOrder,
     statusId,
   }: {
     newOrder: number;
     oldOrder: number;
+    statusId: number;
     id?: number;
-    groupId?: number;
-    statusId?: number;
   }) {
-    if (!(groupId ?? statusId)) throw new Error('groupId or statusId');
-
-    let query = this.createQueryBuilder().update();
-    if (newOrder < oldOrder) {
-      query = query
-        .set({ order: () => '"order" + 1' })
-        .where('"order" >= :newOrder AND "order" <= :oldOrder', {
-          newOrder,
-          oldOrder,
-        });
-    } else {
-      query = query
-        .set({ order: () => '"order" - 1' })
-        .where('"order" >= :oldOrder AND "order" <= :newOrder', {
-          oldOrder,
-          newOrder,
-        });
-    }
-
-    if (groupId) {
-      query = query.andWhere('groupId = :groupId ', {
-        groupId,
-      });
-    } else {
-      query = query.andWhere('statusId = :statusId', {
-        statusId,
-      });
-    }
+    let query = this.createQueryBuilder('pb').where('status_id = :statusId', {
+      statusId,
+    });
     if (id) {
       query = query.andWhere('id != :id', {
         id,
       });
     }
+    if (newOrder < oldOrder) {
+      query = query.andWhere('"order" >= :newOrder AND "order" <= :oldOrder', {
+        newOrder,
+        oldOrder,
+      });
+    } else {
+      query = query.andWhere('"order" >= :oldOrder AND "order" <= :newOrder', {
+        oldOrder,
+        newOrder,
+      });
+    }
 
-    return query.execute();
+    const affectedIds = await query
+      .select('pb.id')
+      .getMany()
+      .then(rows => rows.map(({ id }) => id));
+
+    if (newOrder < oldOrder) {
+      await query
+        .update()
+        .set({ order: () => '"order" + 1' })
+        .execute();
+    } else {
+      await query
+        .update()
+        .set({ order: () => '"order" - 1' })
+        .execute();
+    }
+
+    return affectedIds;
   }
 
   async moveOthersByStatus({
@@ -243,23 +347,74 @@ export class ProductBatchRepository extends Repository<ProductBatchEntity> {
     order: number;
     oldOrder: number;
   }) {
+    const affectedIds: number[] = [];
+
     if (oldStatusId === statusId) {
       // Перемещение внутри одного столбца
-      await this.moveOthersByMovingInside({
-        statusId,
-        id,
-        newOrder: order,
-        oldOrder,
-      });
+      affectedIds.push(
+        ...(await this.moveOthersInsideStatus({
+          statusId,
+          id,
+          newOrder: order,
+          oldOrder,
+        })),
+      );
     } else {
       // Перемещение в другой столбец
-      await this.moveOthersInNew({
-        id,
-        newOrder: order,
-        statusId,
-      });
-      if (oldStatusId) await this.moveOthersInOld({ oldOrder, oldStatusId });
+      affectedIds.push(
+        ...(await this.moveOthersInNewStatus({
+          id,
+          newOrder: order,
+          statusId,
+        })),
+      );
+      if (oldStatusId)
+        affectedIds.push(
+          ...(await this.moveOthersInOldStatus({ oldOrder, oldStatusId })),
+        );
     }
+    return affectedIds;
+  }
+
+  async moveOthersByGroup({
+    id,
+    groupId,
+    oldGroupId,
+    order,
+    oldOrder,
+  }: {
+    id: number;
+    groupId: number;
+    oldGroupId: number | null;
+    order: number;
+    oldOrder: number;
+  }) {
+    const affectedIds: number[] = [];
+    if (oldGroupId === groupId) {
+      // Перемещение внутри одной группы
+      affectedIds.push(
+        ...(await this.moveOthersInsideGroup({
+          id,
+          groupId,
+          newOrder: order,
+          oldOrder,
+        })),
+      );
+    } else {
+      // Перемещение в другой столбец
+      affectedIds.push(
+        ...(await this.moveOthersInNewGroup({
+          id,
+          newOrder: order,
+          groupId,
+        })),
+      );
+      if (oldGroupId)
+        affectedIds.push(
+          ...(await this.moveOthersInOldGroup({ oldOrder, oldGroupId })),
+        );
+    }
+    return affectedIds;
   }
 
   async moveProductBatch(dto: MoveProductBatchDto): Promise<{
@@ -270,6 +425,7 @@ export class ProductBatchRepository extends Repository<ProductBatchEntity> {
     oldStatusId: number | null;
     groupId: number | null;
     oldGroupId: number | null;
+    affectedIds: number[];
   }> {
     const { id, statusId, groupId } = dto;
     if (!(statusId || groupId))
@@ -307,6 +463,9 @@ export class ProductBatchRepository extends Repository<ProductBatchEntity> {
     const oldStatusId = batch.statusId;
     const oldGroupId = batch.groupId;
     batch.order = order;
+
+    const affectedIds: number[] = [];
+
     if (groupId) {
       const group = await this.manager.findOneOrFail(ProductBatchGroupEntity, {
         where: { id: groupId },
@@ -314,25 +473,16 @@ export class ProductBatchRepository extends Repository<ProductBatchEntity> {
       batch.group = group;
       batch.status = null;
       batch = await this.save(batch);
-      // Обновите порядок карточек в старом столбце
-
-      if (oldGroupId === groupId) {
-        // Перемещение внутри одного столбца
-        await this.moveOthersByMovingInside({
-          groupId,
+      // Обновите порядок карточек в группах
+      affectedIds.push(
+        ...(await this.moveOthersByGroup({
           id: batch.id,
-          newOrder: order,
+          groupId,
+          oldGroupId,
+          order,
           oldOrder,
-        });
-      } else {
-        // Перемещение в другой столбец
-        await this.moveOthersInNew({
-          id: batch.id,
-          newOrder: order,
-          groupId,
-        });
-        if (oldGroupId) await this.moveOthersInOld({ oldOrder, oldGroupId });
-      }
+        })),
+      );
     } else {
       if (!statusId) throw new Error('statusId was not defined');
       const status = await this.manager.findOneOrFail(StatusEntity, {
@@ -342,13 +492,15 @@ export class ProductBatchRepository extends Repository<ProductBatchEntity> {
       batch.status = status;
       batch.group = null;
       batch = await this.save(batch);
-      await this.moveOthersByStatus({
-        id: batch.id,
-        statusId,
-        oldStatusId,
-        order,
-        oldOrder,
-      });
+      affectedIds.push(
+        ...(await this.moveOthersByStatus({
+          id: batch.id,
+          statusId,
+          oldStatusId,
+          order,
+          oldOrder,
+        })),
+      );
     }
     return {
       id,
@@ -358,39 +510,126 @@ export class ProductBatchRepository extends Repository<ProductBatchEntity> {
       groupId,
       statusId,
       oldStatusId,
+      affectedIds,
     };
   }
 
-  async findFromId({ storeId, id }: { storeId: number; id: number }) {
-    return this.createQueryBuilder('pb')
-      .leftJoinAndSelect('pb.product', 'product')
-      .leftJoinAndSelect('pb.status', 'status')
-      .leftJoinAndSelect(
-        ProductBatchEntity,
-        'pb2',
-        'pb.product_id = pb2.product_id',
-      )
-      .where('pb2.id = :id', { id })
-      .andWhere('pb.date::date >= pb2.date::date')
-      .andWhere('status.store_id = :storeId', { storeId })
-      .orderBy('pb.order', 'DESC')
-      .getMany();
+  async findLatest({
+    items,
+    storeId,
+    withDeleted = false,
+  }: {
+    items: {
+      productId: number;
+      productBatchIds: number[];
+    }[];
+    storeId: number;
+    withDeleted?: boolean;
+  }) {
+    const productIds = items.map(({ productId }) => productId);
+    const productBatchIds = items.flatMap(
+      ({ productBatchIds }) => productBatchIds,
+    );
+    const query = `
+WITH all_batches AS (SELECT pb.id,
+                            pb.count,
+                            pb.product_id,
+                            pb.order                              AS batch_order,
+                            pbg.order                             AS group_order,
+                            COALESCE(pbg.order, pb.order)         AS global_order,
+                            s.store_id
+                     FROM product_batch pb
+                              LEFT JOIN product_batch_group pbg ON pb.group_id = pbg.id
+                              LEFT JOIN status s ON pb.status_id = s.id or pbg.status_id = s.id
+                     ${withDeleted ? '' : 'WHERE pb.deleted_date is null'}),
+     batches_in_target_status AS (select *
+                                  from all_batches
+                                  where store_id = ${storeId.toString()}
+                                    and product_id in (${productIds.join(',')})),
+
+     last_batches AS (SELECT distinct on (product_id) product_id, global_order, batch_order
+                      FROM batches_in_target_status
+                      ORDER BY product_id, global_order DESC,
+                               batch_order DESC),
+
+     target_batch AS (SELECT distinct on (product_id) product_id, global_order, batch_order
+                      FROM batches_in_target_status
+                      WHERE id in (${productBatchIds.length ? productBatchIds.join(',') : 'null'})
+                      ORDER BY product_id, global_order,
+                          batch_order),
+     result as (SELECT b.id, b.product_id, b.count
+                FROM batches_in_target_status b
+                         left join last_batches lb on b.product_id = lb.product_id
+                         left join target_batch tb on b.product_id = tb.product_id
+                WHERE ((b.global_order > tb.global_order)
+                    OR (b.global_order = tb.global_order AND b.batch_order >= tb.batch_order))
+                   OR ((b.global_order > lb.global_order)
+                    OR (b.global_order = lb.global_order AND b.batch_order >= lb.batch_order))
+                ORDER BY b.global_order,
+                         b.batch_order)
+select *, row_number() over () as order
+from result;
+    `;
+
+    const rows = objectToCamel(await this.query(query)) as ProductBatchEntity[];
+    const map = new Map<number, ProductBatchEntity[]>();
+    rows.forEach(row => {
+      const mapItem = map.get(row.productId) ?? [];
+      mapItem.push(row);
+      map.set(row.productId, mapItem);
+    });
+    return map;
   }
 
-  async findLatest({
-    productId,
-    starterId,
-    storeId,
-  }: FindLatestRequest): Promise<ProductBatchEntity[]> {
-    if (starterId !== undefined)
-      return this.findFromId({ storeId, id: starterId });
-    const last = await this.findOne({
-      where: { productId, status: { storeId } },
-      relations: ['product', 'status'],
-      order: { date: 'desc' },
-    });
-    return last ? [last] : [];
-  }
+  // async findFromOrder({
+  //   productId,
+  //   starterOrder,
+  //   statusId,
+  // }: {
+  //   productId: number;
+  //   starterOrder: number;
+  //   statusId: number;
+  // }) {
+  //   const query = `
+  //       WITH all_batches AS (SELECT pb.id,
+  //                                   pb.count,
+  //                                   pb.product_id,
+  //                                   pb.order                              AS batch_order,
+  //                                   pbg.order                             AS group_order,
+  //                                   COALESCE(pbg.order, pb.order)         AS global_order,
+  //                                   COALESCE(pbs.store_id, pbgs.store_id) AS global_store_id
+  //                            FROM product_batch pb
+  //                                     LEFT JOIN
+  //                                 product_batch_group pbg ON pb.group_id = pbg.id
+  //                                     left join status pbs on pb.status_id = pbs.id
+  //                                     left join status pbgs on pbg.status_id = pbgs.id)
+  //                            WHERE deleted_date is null,
+  //            store_batches AS (select * from all_batches where global_store_id = ${storeId.toString()} and product_id = ${productId.toString()}),
+  //            target_batch AS (SELECT *
+  //                             FROM store_batches
+  //                             WHERE id = COALESCE(${starterId?.toString() ?? 'null'}, (SELECT id
+  //                                                                                  FROM store_batches
+  //                                                                                  ORDER BY global_order DESC,
+  //                                                                      batch_order DESC
+  //
+  //                                                 LIMIT 1))),
+  //            result as (SELECT sb.id, sb.product_id, sb.count
+  //                       FROM store_batches sb,
+  //                            target_batch tb
+  //                       WHERE (sb.global_order > tb.global_order)
+  //                          OR (sb.global_order = tb.global_order AND sb.batch_order >= tb.batch_order)
+  //                       ORDER BY sb.global_order,
+  //                                sb.batch_order)
+  //       select *, row_number() over () as order
+  //       from result;
+  //   `;
+  //   return objectToCamel(await this.query(query)) as {
+  //     id: number;
+  //     productId: number;
+  //     count: number;
+  //     order: string;
+  //   }[];
+  // }
 
   async findByCondition({
     productId,

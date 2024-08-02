@@ -1,10 +1,10 @@
 import NiceModal from '@ebay/nice-modal-react';
 import { Autocomplete, Box, Button, Typography } from '@mui/material';
+import Grid from '@mui/material/Grid';
 import Step from '@mui/material/Step';
 import StepLabel from '@mui/material/StepLabel';
 import Stepper from '@mui/material/Stepper';
 import TextField from '@mui/material/TextField';
-import Grid from '@mui/material/Unstable_Grid2';
 import { FormikErrors, FormikProps, withFormik } from 'formik';
 import React, { type FC, useEffect, useState } from 'react';
 import { object, ObjectSchema } from 'yup';

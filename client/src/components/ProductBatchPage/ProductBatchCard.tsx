@@ -10,16 +10,15 @@ import {
   MenuItem,
 } from '@mui/material';
 import Box from '@mui/material/Box';
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback } from 'react';
 
 import { useOperation } from '../../api/operation/operation.hooks';
-import { PRODUCT_FRAGMENT } from '../../api/product/product.gql';
+import { ProductBatch } from '../../api/product-batch/product-batch.gql';
 import { useProductBatchMutations } from '../../api/product-batch/product-batch.hook';
-import { getFragmentData } from '../../gql-types';
-import { ProductBatchFragment } from '../../gql-types/graphql';
 import { toRouble } from '../../utils';
 import { CardProps } from '../KanbanBoard/types';
 import OperationForm from '../OperationForm/OperationForm';
+import { useStoreState } from '../StoreState';
 import ProductBatchInfo from './ProductBatchInfo';
 
 const Preloader = () => {
@@ -39,7 +38,7 @@ const Preloader = () => {
   );
 };
 
-export interface Props extends CardProps<ProductBatchFragment> {
+export interface Props extends CardProps<ProductBatch> {
   refetch: () => void;
   loading?: boolean;
 }
@@ -49,6 +48,7 @@ export const ProductBatchCard = React.memo<Props>(props => {
 
   const { deleteProductBatch } = useProductBatchMutations();
   const { createOperation } = useOperation();
+  const {} = useStoreState(card);
 
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
@@ -92,13 +92,10 @@ export const ProductBatchCard = React.memo<Props>(props => {
     });
   }, [productBatchInfoDrawer, card]);
 
-  const product = useMemo(
-    () => getFragmentData(PRODUCT_FRAGMENT, card.product),
-    [card],
-  );
-
   const listItems = [
-    { label: 'SKU', value: product.sku },
+    { label: 'ID', value: card.id },
+    { label: 'productID', value: card.product.id },
+    { label: 'SKU', value: card.product.sku },
     { label: 'количество, шт', value: card.count },
     { label: 'цена закупки 1 шт, р.', value: toRouble(card.costPricePerUnit) },
     {
@@ -192,7 +189,7 @@ export const ProductBatchCard = React.memo<Props>(props => {
             </Menu>
           </Box>
           <CardContent>
-            <Box sx={{ fontWeight: 600, pb: 2 }}>{product.name}</Box>
+            <Box sx={{ fontWeight: 600, pb: 2 }}>{card.product.name}</Box>
             <Box sx={{ fontSize: 12 }}>
               {listItems.map((item, index) => (
                 <Box

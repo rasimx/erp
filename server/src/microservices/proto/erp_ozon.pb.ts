@@ -11,36 +11,22 @@ import { Observable } from "rxjs";
 
 export const protobufPackage = "erp_ozon";
 
-export interface FullStateItemRequest {
-  storeId?: number | undefined;
-  baseProductIds: number[];
-}
-
-export interface FullStateData {
-  baseProductId: number;
-  /** продано (за исключением отмен/возвратов и awaiting_packaging, может меняться) */
-  salesCount: number;
-  /** на складе (включая резерв) */
-  inStoreCount: number;
-  lastProductBatchId?: number | undefined;
-}
-
-export interface FullStateItem {
-  storeId: number;
-  items: FullStateData[];
-}
-
-export interface FullStateResponse {
-  items: FullStateItem[];
+export interface ProductBatch {
+  id: number;
+  count: number;
+  order: number;
 }
 
 export interface RelinkPostingsItem {
-  productBatchId: number;
-  count: number;
-  nextItems: RelinkPostingsItem[];
+  baseProductId: number;
+  productBatches: ProductBatch[];
 }
 
 export interface RelinkPostingsRequest {
+  items: RelinkPostingsRequestItem[];
+}
+
+export interface RelinkPostingsRequestItem {
   storeId: number;
   items: RelinkPostingsItem[];
 }
@@ -51,37 +37,30 @@ export interface RelinkPostingsResponse {
 
 export const ERP_OZON_PACKAGE_NAME = "erp_ozon";
 
-export interface StateServiceClient {
-  currentFullState(request: FullStateItemRequest, metadata?: Metadata): Observable<FullStateResponse>;
-
+export interface PostingProductServiceClient {
   relinkPostings(request: RelinkPostingsRequest, metadata?: Metadata): Observable<RelinkPostingsResponse>;
 }
 
-export interface StateServiceController {
-  currentFullState(
-    request: FullStateItemRequest,
-    metadata?: Metadata,
-  ): Promise<FullStateResponse> | Observable<FullStateResponse> | FullStateResponse;
-
+export interface PostingProductServiceController {
   relinkPostings(
     request: RelinkPostingsRequest,
     metadata?: Metadata,
   ): Promise<RelinkPostingsResponse> | Observable<RelinkPostingsResponse> | RelinkPostingsResponse;
 }
 
-export function StateServiceControllerMethods() {
+export function PostingProductServiceControllerMethods() {
   return function (constructor: Function) {
-    const grpcMethods: string[] = ["currentFullState", "relinkPostings"];
+    const grpcMethods: string[] = ["relinkPostings"];
     for (const method of grpcMethods) {
       const descriptor: any = Reflect.getOwnPropertyDescriptor(constructor.prototype, method);
-      GrpcMethod("StateService", method)(constructor.prototype[method], method, descriptor);
+      GrpcMethod("PostingProductService", method)(constructor.prototype[method], method, descriptor);
     }
     const grpcStreamMethods: string[] = [];
     for (const method of grpcStreamMethods) {
       const descriptor: any = Reflect.getOwnPropertyDescriptor(constructor.prototype, method);
-      GrpcStreamMethod("StateService", method)(constructor.prototype[method], method, descriptor);
+      GrpcStreamMethod("PostingProductService", method)(constructor.prototype[method], method, descriptor);
     }
   };
 }
 
-export const STATE_SERVICE_NAME = "StateService";
+export const POSTING_PRODUCT_SERVICE_NAME = "PostingProductService";

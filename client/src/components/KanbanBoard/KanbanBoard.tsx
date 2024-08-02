@@ -542,7 +542,7 @@ const KanbanBoard = <
         case DraggableType.Column: {
           const activeColumn = activeData.data;
           const overColumn = overData.data as Column;
-          console.log('aaaaa');
+
           if (!overColumn) return;
 
           setColumns(items => {
@@ -630,7 +630,7 @@ const KanbanBoard = <
                   {index != 0 && <Divider orientation="vertical" />}
                   <KanbanColumn
                     column={column}
-                    items={cards.filter(card => getColumnId(card) == column.id)}
+                    cards={cards}
                     // loading={column.id === statusInLoadingId}
                   />
                 </React.Fragment>
@@ -640,13 +640,7 @@ const KanbanBoard = <
           {createPortal(
             <DragOverlay>
               {activeColumn && (
-                <KanbanColumn
-                  isActive
-                  column={activeColumn}
-                  items={cards.filter(
-                    card => getColumnId(card) == activeColumn.id,
-                  )}
-                />
+                <KanbanColumn isActive column={activeColumn} cards={cards} />
               )}
               {activeCard && <KanbanCard card={activeCard} isActive />}
               {activeGroup && <KanbanGroup group={activeGroup} isActive />}
