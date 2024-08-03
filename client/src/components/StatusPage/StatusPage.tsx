@@ -1,48 +1,37 @@
-import { FC, useEffect, useMemo, useState } from 'react';
+import { Stack } from '@mui/material';
+import Box from '@mui/material/Box';
+import React, { FC, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
-import { FullStateDtoFragment } from 'remoteOzon/full-state.api';
 
 import { useKanban } from '../../api/kanban/kanban.hook';
-import { PRODUCT_FRAGMENT } from '../../api/product/product.gql';
 import { useProductList } from '../../api/product/product.hooks';
-import { PRODUCT_BATCH_FRAGMENT } from '../../api/product-batch/product-batch.gql';
+import { ProductBatch } from '../../api/product-batch/product-batch.gql';
 import { useStatus } from '../../api/status/status.hooks';
-import { getFragmentData } from '../../gql-types';
-import { ProductBatchFragment } from '../../gql-types/graphql';
-import { A } from './Column';
+import { StoreStateProvider } from '../StoreState';
+import Column, { A } from './Column';
 
 export const StatusPage: FC = () => {
   const params = useParams();
   const statusId = Number(params.statusId);
 
   const status = useStatus(Number(statusId));
+  const statusIds = useMemo(() => [statusId], [statusId]);
 
-  const [fullState, setFullState] = useState<FullStateDtoFragment[]>([]);
-
-  useEffect(() => {
-    if (status?.storeId) {
-      import('remoteOzon/full-state.api').then(({ fetchFullState }) => {
-        fetchFullState({
-          storeId: 1114008,
-          items: [
-            { baseProductId: 17, fromProductBatchId: 66 },
-            { baseProductId: 18 },
-          ],
-        }).then(data => {
-          setFullState(data);
-        });
-      });
-    }
-  }, [status]);
-
-  const { kanbanCards } = useKanban({ statusIds: [Number(statusId)] });
+  const dto = useMemo(
+    () => ({
+      statusIds: [statusId],
+    }),
+    [statusId],
+  );
+  const { kanbanCards } = useKanban(dto);
+  console.log(statusIds);
 
   const productBatchList = useMemo(
     () =>
       kanbanCards.flatMap(item => {
         if (item.__typename == 'ProductBatchGroupDto')
-          return getFragmentData(PRODUCT_BATCH_FRAGMENT, item.productBatchList);
-        return [item as ProductBatchFragment];
+          return item.productBatchList;
+        return [item as ProductBatch];
       }),
     [kanbanCards],
   );
@@ -50,14 +39,10 @@ export const StatusPage: FC = () => {
   const productIds = useMemo(() => {
     return [
       ...new Set<number>([
-        ...getFragmentData(
-          PRODUCT_FRAGMENT,
-          productBatchList?.map(item => item.product),
-        ).map(({ id }) => id),
-        ...fullState.map(({ baseProductId }) => baseProductId),
+        ...productBatchList.map(item => item.product).map(({ id }) => id),
       ]),
     ];
-  }, [productBatchList, fullState]);
+  }, [productBatchList]);
 
   const { items } = useProductList(productIds);
 
@@ -71,28 +56,25 @@ export const StatusPage: FC = () => {
     productBatchList.forEach(item => {
       map.get(item.productId)?.productBatchList.push(item);
     });
-    fullState.forEach(item => {
-      const mapItem = map.get(item.baseProductId);
-      // if (mapItem) mapItem.s = item;
-    });
+
     return [...map.values()];
   }, [items, productBatchList]);
   console.log(columns);
 
-  return <div>aaa</div>;
-  // return (
-  //   <Suspense fallback={<Preloader />}>
-  //     <Box sx={{ height: '90vh' }}>
-  //       <Stack
-  //         spacing={1}
-  //         sx={{ p: 1, width: '100%', overflow: 'auto', height: '100%' }}
-  //         direction="row"
-  //       >
-  //         {columns?.map(
-  //           item => item.fullState && <Column item={item} status={status} />,
-  //         )}
-  //       </Stack>
-  //     </Box>
-  //   </Suspense>
-  // );
+  return (
+    status &&
+    productBatchList && (
+      <StoreStateProvider status={status} items={productBatchList}>
+        <Box sx={{ height: '90vh' }}>
+          <Stack
+            spacing={1}
+            sx={{ p: 1, width: '100%', overflow: 'auto', height: '100%' }}
+            direction="row"
+          >
+            {columns?.map(item => <Column item={item} status={status} />)}
+          </Stack>
+        </Box>
+      </StoreStateProvider>
+    )
+  );
 };

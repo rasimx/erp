@@ -1,20 +1,15 @@
 import styled from '@emotion/styled';
 import { Card, Stack } from '@mui/material';
-import Box from '@mui/material/Box';
-import React, { type FC, useMemo } from 'react';
-import { FullStateDtoFragment } from 'remoteOzon/full-state.api';
+import React, { type FC } from 'react';
 
-import {
-  ProductBatchFragment,
-  ProductFragment,
-  StatusFragment,
-} from '../../gql-types/graphql';
-import { transientOptions } from '../../utils';
+import { ProductBatch } from '../../api/product-batch/product-batch.gql';
+import { ProductFragment, StatusFragment } from '../../gql-types/graphql';
+import { ProductBatchCard } from '../ProductBatchPage/ProductBatchCard';
 import ColumnHeader from './ColumnHeader';
 
 export type A = {
   product: ProductFragment;
-  productBatchList: ProductBatchFragment[];
+  productBatchList: ProductBatch[];
 };
 
 const Item = styled(Card)<A>`
@@ -38,16 +33,7 @@ const Column: FC<Props> = props => {
       <ColumnHeader status={status} product={product} />
       <Stack spacing={1} sx={{ position: 'relative', zIndex: 1 }}>
         {productBatchList.map(item => (
-          <Card sx={{ height: 200, p: 1 }}>
-            <Box sx={{ position: 'relative' }}>
-              <strong>{item.name}</strong>
-              <br />
-              Всего: {item.count}
-              {/*C/c единицы: {(item.costPricePerUnit / 100).toFixed(2)}*/}
-              {/*<br />*/}
-              {/*C/c партии: {(item.fullPrice / 100).toFixed(2)}*/}
-            </Box>
-          </Card>
+          <ProductBatchCard card={item} refetch={() => {}} />
         ))}
       </Stack>
     </Item>

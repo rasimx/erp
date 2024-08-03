@@ -34,8 +34,8 @@ export type ColumnProps<Column, Group, Card> = {
 
 export type CardProps<Card> = {
   card: Card;
-  isActive: boolean;
-  sortableData: SortableData;
+  isActive?: boolean;
+  sortableData?: SortableData;
 };
 
 export type KanbanBoardProps<

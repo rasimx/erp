@@ -52,6 +52,7 @@ export const useKanban = (dto: GetProductBatchListDto) => {
   }, [dto]);
   //
   useEffect(() => {
+    console.log('QQQQ');
     refetch();
   }, [dto]);
 

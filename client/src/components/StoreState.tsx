@@ -19,7 +19,7 @@ export const StoreStateContext = createContext<FullStateDtoFragment[]>([]);
 export type Props = {
   status: StatusFragment;
   items: (ProductBatch | ProductBatchGroup)[];
-  skip: boolean;
+  skip?: boolean;
   children: ReactElement;
 };
 
