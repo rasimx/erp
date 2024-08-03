@@ -7,6 +7,7 @@ import { OzonPostingProductMicroservice } from '@/microservices/erp_ozon/ozon-po
 import { CreateProductBatchCommand } from '@/product-batch/commands/impl/create-product-batch.command.js';
 import { ProductBatchEventStore } from '@/product-batch/product-batch.eventstore.js';
 import { ProductBatchRepository } from '@/product-batch/product-batch.repository.js';
+import { ProductBatchService } from '@/product-batch/product-batch.service.js';
 
 @CommandHandler(CreateProductBatchCommand)
 export class CreateProductBatchHandler
@@ -18,7 +19,7 @@ export class CreateProductBatchHandler
     private readonly productBatchRepository: ProductBatchRepository,
     private readonly productBatchEventStore: ProductBatchEventStore,
     private readonly contextService: ContextService,
-    private readonly ozonPostingProductMicroservice: OzonPostingProductMicroservice,
+    private readonly productBatchService: ProductBatchService,
   ) {}
 
   async execute(command: CreateProductBatchCommand) {
@@ -35,7 +36,16 @@ export class CreateProductBatchHandler
         this.productBatchRepository,
       );
 
-      let entity = await productBatchRepository.createFromDto(dto);
+      const entity = await productBatchRepository.createFromDto(dto);
+      const affectedIds: number[] = [entity.id];
+
+      if (entity.parentId) affectedIds.push(entity.parentId);
+
+      await this.productBatchService.relinkPostings({
+        queryRunner,
+        affectedIds,
+      });
+
       await this.productBatchEventStore.createProductBatch({
         eventId: requestId,
         productBatchId: entity.id,
@@ -51,32 +61,6 @@ export class CreateProductBatchHandler
             recipientId: entity.id,
           },
         });
-      }
-
-      entity = await productBatchRepository.findOneOrFail({
-        where: { id: entity.id },
-        relations: ['status', 'group', 'group.status'],
-      });
-
-      const status = entity.status ?? entity.group?.status;
-      if (status?.storeId) {
-        const storeId = status.storeId;
-
-        const { success } =
-          await this.ozonPostingProductMicroservice.relinkPostings({
-            items: [
-              {
-                storeId,
-                items: [
-                  {
-                    baseProductId: entity.productId,
-                    productBatches: [entity],
-                  },
-                ],
-              },
-            ],
-          });
-        if (!success) throw new Error('relink error');
       }
 
       await queryRunner.commitTransaction();

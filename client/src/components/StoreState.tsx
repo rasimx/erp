@@ -119,5 +119,5 @@ export const useStoreState = (productBatch: ProductBatch) => {
     .find(item => item.baseProductId == productBatch.productId)
     ?.linkedSales.find(item => item.productBatchId == productBatch.id);
   console.log(aa);
-  return {};
+  return { aa };
 };

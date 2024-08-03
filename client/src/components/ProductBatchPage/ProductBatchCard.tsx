@@ -48,7 +48,7 @@ export const ProductBatchCard = React.memo<Props>(props => {
 
   const { deleteProductBatch } = useProductBatchMutations();
   const { createOperation } = useOperation();
-  const {} = useStoreState(card);
+  const { aa } = useStoreState(card);
 
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
@@ -93,6 +93,10 @@ export const ProductBatchCard = React.memo<Props>(props => {
   }, [productBatchInfoDrawer, card]);
 
   const listItems = [
+    {
+      label: 'order',
+      value: card.order,
+    },
     { label: 'ID', value: card.id },
     { label: 'productID', value: card.product.id },
     { label: 'SKU', value: card.product.sku },
@@ -111,6 +115,10 @@ export const ProductBatchCard = React.memo<Props>(props => {
       value: toRouble(
         (card.operationsPricePerUnit + card.costPricePerUnit) * card.count,
       ),
+    },
+    {
+      label: 'продано',
+      value: aa?.count ?? 0,
     },
   ];
 

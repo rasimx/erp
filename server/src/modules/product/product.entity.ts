@@ -51,7 +51,7 @@ export class ProductEntity {
     // объем в литрах
     const a =
       (((this.width * this.height * this.length) / 1000_000) * 100) / 100;
-    console.log('aaaaa', a);
+
     return a;
   }
 }

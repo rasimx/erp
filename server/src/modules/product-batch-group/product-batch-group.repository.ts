@@ -116,24 +116,27 @@ export class ProductBatchGroupRepository extends Repository<ProductBatchGroupEnt
     let query = this.createQueryBuilder('pbg');
     if (newOrder < oldOrder) {
       query = query.where(
-        '"order" >= :newOrder AND "order" <= :oldOrder AND status_id = :statusId AND id != :id',
+        '"order" >= :newOrder AND "order" <= :oldOrder AND status_id = :statusId',
         {
           newOrder,
           oldOrder,
           statusId,
-          id,
         },
       );
     } else {
       query = query.where(
-        '"order" >= :oldOrder AND "order" <= :newOrder AND status_id = :statusId AND id != :id',
+        '"order" >= :oldOrder AND "order" <= :newOrder AND status_id = :statusId',
         {
           oldOrder,
           newOrder,
           statusId,
-          id,
         },
       );
+    }
+    if (id) {
+      query = query.andWhere('id != :id', {
+        id,
+      });
     }
 
     const affectedIds = await query
@@ -207,7 +210,7 @@ export class ProductBatchGroupRepository extends Repository<ProductBatchGroupEnt
     oldOrder: number;
     statusId: number;
     oldStatusId: number;
-    affectedIds: number[];
+    affectedGroupIds: number[];
   }> {
     const { id, statusId } = dto;
 
@@ -258,7 +261,7 @@ export class ProductBatchGroupRepository extends Repository<ProductBatchGroupEnt
       oldOrder,
       statusId,
       oldStatusId,
-      affectedIds,
+      affectedGroupIds: affectedIds,
     };
   }
 

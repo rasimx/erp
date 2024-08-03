@@ -112,19 +112,27 @@ export class ProductBatchRepository extends Repository<ProductBatchEntity> {
   }
 
   async moveOthersInOldGroup({
+    id,
     oldOrder,
     oldGroupId,
   }: {
+    id?: number;
     oldOrder: number;
     oldGroupId: number;
   }) {
-    const query = this.createQueryBuilder('pb').where(
-      '"order" > :oldOrder and group_id = :oldGroupId',
+    let query = this.createQueryBuilder('pb').where(
+      '"order" >= :oldOrder and group_id = :oldGroupId and id != :id',
       {
         oldOrder,
         oldGroupId,
+        id,
       },
     );
+    if (id) {
+      query = query.andWhere('id != :id', {
+        id,
+      });
+    }
 
     const affectedIds = await query
       .select('pb.id')
@@ -139,19 +147,26 @@ export class ProductBatchRepository extends Repository<ProductBatchEntity> {
     return affectedIds;
   }
   async moveOthersInOldStatus({
+    id,
     oldOrder,
     oldStatusId,
   }: {
+    id?: number;
     oldOrder: number;
     oldStatusId: number;
   }) {
-    const query = this.createQueryBuilder('pb').where(
-      '"order" > :oldOrder and status_id = :oldStatusId',
+    let query = this.createQueryBuilder('pb').where(
+      '"order" >= :oldOrder and status_id = :oldStatusId',
       {
         oldOrder,
         oldStatusId,
       },
     );
+    if (id) {
+      query = query.andWhere('id != :id', {
+        id,
+      });
+    }
 
     const affectedIds = await query
       .select('pb.id')
@@ -338,12 +353,14 @@ export class ProductBatchRepository extends Repository<ProductBatchEntity> {
     id,
     statusId,
     oldStatusId,
+    oldGroupId,
     order,
     oldOrder,
   }: {
     id?: number;
     statusId: number;
     oldStatusId: number | null;
+    oldGroupId?: number | null;
     order: number;
     oldOrder: number;
   }) {
@@ -370,7 +387,12 @@ export class ProductBatchRepository extends Repository<ProductBatchEntity> {
       );
       if (oldStatusId)
         affectedIds.push(
-          ...(await this.moveOthersInOldStatus({ oldOrder, oldStatusId })),
+          ...(await this.moveOthersInOldStatus({ id, oldOrder, oldStatusId })),
+        );
+
+      if (oldGroupId)
+        affectedIds.push(
+          ...(await this.moveOthersInOldGroup({ oldOrder, oldGroupId })),
         );
     }
     return affectedIds;
@@ -380,12 +402,14 @@ export class ProductBatchRepository extends Repository<ProductBatchEntity> {
     id,
     groupId,
     oldGroupId,
+    oldStatusId,
     order,
     oldOrder,
   }: {
     id: number;
     groupId: number;
     oldGroupId: number | null;
+    oldStatusId?: number | null;
     order: number;
     oldOrder: number;
   }) {
@@ -412,6 +436,10 @@ export class ProductBatchRepository extends Repository<ProductBatchEntity> {
       if (oldGroupId)
         affectedIds.push(
           ...(await this.moveOthersInOldGroup({ oldOrder, oldGroupId })),
+        );
+      if (oldStatusId)
+        affectedIds.push(
+          ...(await this.moveOthersInOldStatus({ id, oldOrder, oldStatusId })),
         );
     }
     return affectedIds;
@@ -479,6 +507,7 @@ export class ProductBatchRepository extends Repository<ProductBatchEntity> {
           id: batch.id,
           groupId,
           oldGroupId,
+          oldStatusId,
           order,
           oldOrder,
         })),
@@ -497,6 +526,7 @@ export class ProductBatchRepository extends Repository<ProductBatchEntity> {
           id: batch.id,
           statusId,
           oldStatusId,
+          oldGroupId,
           order,
           oldOrder,
         })),

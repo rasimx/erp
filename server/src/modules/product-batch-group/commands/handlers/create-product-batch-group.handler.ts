@@ -5,10 +5,10 @@ import { In } from 'typeorm';
 
 import { ContextService } from '@/context/context.service.js';
 import type { CustomDataSource } from '@/database/custom.data-source.js';
-import { OzonPostingProductMicroservice } from '@/microservices/erp_ozon/ozon-posting-product-microservice.service.js';
 import { ProductBatchEntity } from '@/product-batch/product-batch.entity.js';
 import { ProductBatchEventStore } from '@/product-batch/product-batch.eventstore.js';
 import { ProductBatchRepository } from '@/product-batch/product-batch.repository.js';
+import { ProductBatchService } from '@/product-batch/product-batch.service.js';
 import { CreateProductBatchGroupCommand } from '@/product-batch-group/commands/impl/create-product-batch-group.command.js';
 import { ProductBatchGroupEventStore } from '@/product-batch-group/prodict-batch-group.eventstore.js';
 import { ProductBatchGroupRepository } from '@/product-batch-group/product-batch-group.repository.js';
@@ -27,7 +27,7 @@ export class CreateProductBatchGroupHandler
     private readonly productBatchEventStore: ProductBatchEventStore,
     private readonly contextService: ContextService,
     private readonly statusRepository: StatusRepository,
-    private readonly ozonPostingProductMicroservice: OzonPostingProductMicroservice,
+    private readonly productBatchService: ProductBatchService,
   ) {}
 
   async execute(command: CreateProductBatchGroupCommand) {
@@ -49,37 +49,7 @@ export class CreateProductBatchGroupHandler
 
       let newEntity = await productBatchGroupRepository.createFromDto(dto);
 
-      let existProductBatches: ProductBatchEntity[] = [];
-
-      const a = new Map<number, Map<number, ProductBatchEntity[]>>(); // <storeId, <productId, batch[]>>
-
-      if (dto.existProductBatchIds.length) {
-        existProductBatches = await productBatchRepository.find({
-          where: { id: In(dto.existProductBatchIds) },
-          relations: ['group', 'status'],
-        });
-        const existIds = existProductBatches.map(({ id }) => id);
-        const notFoundIds = dto.existProductBatchIds.filter(
-          id => !existIds.includes(id),
-        );
-        if (notFoundIds.length) {
-          throw new BadRequestException(
-            `not found batches: ${notFoundIds.join(',')}`,
-          );
-        }
-        existProductBatches.forEach(item => {
-          const storeId = item.status?.storeId;
-          if (storeId) {
-            const storeMapItem =
-              a.get(storeId) ?? new Map<number, ProductBatchEntity[]>();
-            const productMapItem = storeMapItem.get(item.productId) ?? [];
-            productMapItem.push(item);
-            storeMapItem.set(item.productId, productMapItem);
-            a.set(storeId, storeMapItem);
-          }
-        });
-        newEntity.productBatchList = existProductBatches;
-      }
+      const allAffectedIds: number[] = [];
       const newProductBatches: ProductBatchEntity[] = [];
       if (dto.newProductBatches.length) {
         for (const item of dto.newProductBatches) {
@@ -91,21 +61,56 @@ export class CreateProductBatchGroupHandler
             }),
           );
         }
-
-        newEntity.productBatchList = [
-          // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-          ...existProductBatches,
-          ...newProductBatches,
-        ];
+        allAffectedIds.push(
+          ...newProductBatches.flatMap(({ id, parentId }) => {
+            const affectedIds = [id];
+            if (parentId) affectedIds.push(parentId);
+            return affectedIds;
+          }),
+        );
       }
+      newEntity.productBatchList = newProductBatches;
       newEntity = await productBatchGroupRepository.save(newEntity);
 
+      let existProductBatches: ProductBatchEntity[] = [];
+      if (dto.existProductBatchIds.length) {
+        existProductBatches = await productBatchRepository.find({
+          where: { id: In(dto.existProductBatchIds) },
+          relations: ['status', 'group', 'group.status'],
+        });
+        const existIds = existProductBatches.map(({ id }) => id);
+        const notFoundIds = dto.existProductBatchIds.filter(
+          id => !existIds.includes(id),
+        );
+        if (notFoundIds.length) {
+          throw new BadRequestException(
+            `not found batches: ${notFoundIds.join(',')}`,
+          );
+        }
+        for (const item of existProductBatches) {
+          const { affectedIds } = await productBatchRepository.moveProductBatch(
+            {
+              id: item.id,
+              statusId: null,
+              groupId: newEntity.id,
+            },
+          );
+          allAffectedIds.push(...affectedIds, item.id);
+        }
+      }
+
+      await this.productBatchService.relinkPostings({
+        queryRunner,
+        affectedIds: allAffectedIds,
+        affectedGroupIds: [newEntity.id],
+      });
+
+      // EventStore
       await this.productBatchGroupEventStore.createProductBatchGroup({
         eventId: requestId,
         productBatchGroupId: newEntity.id,
         dto,
       });
-
       if (newProductBatches.length) {
         for (const newProductBatch of newProductBatches) {
           await this.productBatchEventStore.createProductBatch({
@@ -127,28 +132,6 @@ export class CreateProductBatchGroupHandler
           });
         }
       }
-
-      const statusRepository = queryRunner.manager.withRepository(
-        this.statusRepository,
-      );
-
-      const status = await statusRepository.findOneOrFail({
-        where: { id: newEntity.statusId },
-      });
-
-      // if (status.storeId) {
-      //   const { success } =
-      //     await this.ozonPostingProductMicroservice.relinkPostings({
-      //       storeId: status.storeId,
-      //       items: [
-      //         {
-      //           baseProductId: entity.productId,
-      //           productBatches: [entity],
-      //         },
-      //       ],
-      //     });
-      //   if (!success) throw new Error('relink error');
-      // }
 
       await queryRunner.commitTransaction();
     } catch (err) {

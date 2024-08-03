@@ -5,6 +5,7 @@ import { ContextService } from '@/context/context.service.js';
 import type { CustomDataSource } from '@/database/custom.data-source.js';
 import { OzonPostingProductMicroservice } from '@/microservices/erp_ozon/ozon-posting-product-microservice.service.js';
 import { DeleteProductBatchCommand } from '@/product-batch/commands/impl/delete-product-batch.command.js';
+import { ProductBatchService } from '@/product-batch/product-batch.service.js';
 import { DeleteProductBatchGroupCommand } from '@/product-batch-group/commands/impl/delete-product-batch-group.command.js';
 import { ProductBatchGroupEventStore } from '@/product-batch-group/prodict-batch-group.eventstore.js';
 import { ProductBatchGroupRepository } from '@/product-batch-group/product-batch-group.repository.js';
@@ -20,7 +21,7 @@ export class DeleteProductBatchGroupHandler
     private readonly productBatchGroupRepository: ProductBatchGroupRepository,
     private readonly productBatchGroupEventStore: ProductBatchGroupEventStore,
     private readonly contextService: ContextService,
-    private readonly ozonPostingProductMicroservice: OzonPostingProductMicroservice,
+    private readonly productBatchService: ProductBatchService,
   ) {}
 
   async execute(command: DeleteProductBatchGroupCommand) {
@@ -47,6 +48,13 @@ export class DeleteProductBatchGroupHandler
       }
 
       await productBatchGroupRepository.softDelete({ id });
+
+      await this.productBatchService.relinkPostings({
+        queryRunner,
+        deletedGroupIds: [id],
+      });
+
+      // eventStore
       await this.productBatchGroupEventStore.deleteProductBatchGroup({
         eventId: requestId,
         productBatchGroupId: entity.id,

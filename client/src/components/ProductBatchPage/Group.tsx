@@ -117,6 +117,8 @@ export const Group = React.memo<Props>(props => {
             </Menu>
           </Box>
           <Box sx={{ display: 'flex', p: 1 }}>
+            id: {group.id} <br />
+            order: {group.order} <br />
             С/с группы, р. -
             {toRouble(
               group.productBatchList.reduce((prev, data) => {
