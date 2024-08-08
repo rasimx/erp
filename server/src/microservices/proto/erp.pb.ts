@@ -79,21 +79,30 @@ export interface ProductBatchListFromIdRequest {
   id: number;
 }
 
+export interface FindLatestItemRequest {
+  productId: number;
+  /** если указать, вернет все, начиная с самого первого указаного и все последующие в подядке order, даже те что не указаны */
+  productBatchIds: number[];
+}
+
 export interface FindLatestRequest {
   storeId: number;
-  productId: number;
-  /** возвращает все id позже этого, если указано, иначе последнюю партию */
-  starterId?: number | undefined;
+  items: FindLatestItemRequest[];
 }
 
 export interface UpdatedProductBatchListRequest {
 }
 
-export interface ProductBatchListItem {
+export interface ProductBatch {
   id: number;
   productId: number;
   count: number;
   order: number;
+}
+
+export interface ProductBatchListItem {
+  productId: number;
+  items: ProductBatch[];
 }
 
 export interface ProductBatchListResponse {

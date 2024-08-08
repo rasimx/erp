@@ -1,11 +1,10 @@
 import { CommandHandler, type ICommandHandler } from '@nestjs/cqrs';
-import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
+import { InjectDataSource } from '@nestjs/typeorm';
 
 import type { CustomDataSource } from '@/database/custom.data-source.js';
 import { CreateStatusCommand } from '@/status/commands/impl/create-status.command.js';
-import { StatusEntity } from '@/status/status.entity.js';
 import { StatusEventStore } from '@/status/status.eventstore.js';
-import type { StatusRepository } from '@/status/status.repository.js';
+import { StatusRepository } from '@/status/status.repository.js';
 
 @CommandHandler(CreateStatusCommand)
 export class CreateStatusHandler
@@ -13,7 +12,6 @@ export class CreateStatusHandler
 {
   constructor(
     private readonly statusEventStore: StatusEventStore,
-    @InjectRepository(StatusEntity)
     private readonly statusRepository: StatusRepository,
     @InjectDataSource()
     private dataSource: CustomDataSource,

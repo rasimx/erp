@@ -10,7 +10,7 @@ export const getContextInterceptor =
       .withStart((metadata, listener, next) => {
         try {
           const { userId } = contextService;
-          if (userId) metadata.set('userID', userId.toString());
+          if (userId) metadata.set('userId', userId.toString());
         } catch (e) {
           // пропустить, если не указан userId
           if (!(e instanceof ContextVarNotFound)) throw e;

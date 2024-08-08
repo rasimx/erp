@@ -14,39 +14,30 @@ import { ContextService } from '@/context/context.service.js';
 export class UserInterceptor implements NestInterceptor {
   constructor(private readonly contextService: ContextService) {}
 
-  intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
+  async intercept(
+    context: ExecutionContext,
+    next: CallHandler,
+  ): Promise<Observable<any>> {
     if (context.getType() === 'rpc') {
       const metadata: Metadata = context.switchToRpc().getContext();
 
-      return new Observable(subscriber => {
-        this.contextService.run(() => {
-          this.contextService.userId = metadata.get('userId')[0].toString();
+      return this.contextService.run(async () => {
+        const userId = Number(metadata.get('userId')[0]);
 
-          // next.handle().pipe().subscribe(subscriber);
-          next
-            .handle()
-            .pipe()
-            .subscribe({
-              next: res => {
-                subscriber.next(res);
-              },
-              error: err => {
-                subscriber.error(err);
-              },
-              complete: () => {
-                subscriber.complete();
-              },
-            });
-        });
+        if (userId && !isNaN(userId)) {
+          this.contextService.userId = userId;
+        }
+
+        return next.handle();
       });
     } else {
       const ctx = GqlExecutionContext.create(context);
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       const request = ctx.getContext().req;
 
-      // this.contextService.userId = request.user?.id;
+      this.contextService.userId = request.user?.id;
       // todo: userId
-      this.contextService.userId = 1;
+      // this.contextService.userId = 1;
 
       return next.handle();
     }

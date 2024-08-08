@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: eventstoredb
+  namespace: mp
+  labels:
+    pod: eventstoredb
+spec:
+  type: NodePort
+  ports:
+    - protocol: TCP
+      name: http
+      port: 2113
+      targetPort: 2113
+      nodePort: 9113
+    - protocol: TCP
+      name: tcp
+      port: 1113
+      targetPort: 1113
+      nodePort: 9114
+  selector:
+    pod: eventstoredb

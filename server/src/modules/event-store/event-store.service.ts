@@ -10,7 +10,7 @@ import type {
   EventType,
 } from '@eventstore/db-client/dist/types/index.js';
 
-import type { JSONCompatible } from '@/common/helpers/utils.js';
+import { getEnv, type JSONCompatible } from '@/common/helpers/utils.js';
 import type { ContextService } from '@/context/context.service.js';
 import type { CreateProductBatchDto } from '@/product-batch/dtos/create-product-batch.dto.js';
 import type { CreateProductBatchEvent } from '@/product-batch/product-batch.eventstore.js';
@@ -31,7 +31,7 @@ export class EventStoreService extends EventStoreDBClient {
     // this = client;
     super(
       {
-        endpoint: 'localhost:2113',
+        endpoint: getEnv('EVENTSTORE_ENDPOINT'),
       },
       { insecure: true },
     );

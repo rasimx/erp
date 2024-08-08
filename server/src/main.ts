@@ -22,10 +22,10 @@ async function bootstrap() {
     httpsOptions: ssl
       ? {
           key: fs.readFileSync(
-            getPathRelativeToRoot('server/local-certs/local-key.pem'),
+            getPathRelativeToRoot('server/certs/local-key.pem'),
           ),
           cert: fs.readFileSync(
-            getPathRelativeToRoot('server/local-certs/local-cert.pem'),
+            getPathRelativeToRoot('server/certs/local-cert.pem'),
           ),
         }
       : undefined,
@@ -50,7 +50,7 @@ async function bootstrap() {
   const microserviceGRPC = app.connectMicroservice<MicroserviceOptions>({
     transport: Transport.GRPC,
     options: {
-      url: '127.0.0.1:3018',
+      url: '0.0.0.0:3001',
       package: 'erp',
       protoPath: getPathRelativeToRoot('metricsplace_common/proto/erp.proto'),
       channelOptions: {},

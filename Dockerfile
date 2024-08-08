@@ -6,9 +6,9 @@ RUN corepack enable
 FROM base AS build
 COPY . /app
 WORKDIR /app
-RUN --mount=type=cache,id=pnpm,target=/pnpm/reduxStore pnpm install --frozen-lockfile
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 RUN pnpm run -r build
-RUN pnpm deploy --filter=server --prod /prod
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm deploy --filter=server --prod /prod
 
 FROM base AS app
 COPY --from=build /app/client/dist             /app/client/dist
@@ -21,4 +21,5 @@ COPY --from=build /app/server/certs            /app/server/certs
 
 WORKDIR /app
 EXPOSE 3000
+EXPOSE 3001
 CMD [ "node", "server/dist/main.js" ]

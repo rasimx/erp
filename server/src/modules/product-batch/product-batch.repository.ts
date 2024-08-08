@@ -544,6 +544,19 @@ export class ProductBatchRepository extends Repository<ProductBatchEntity> {
     };
   }
 
+  /**
+   * Осуществляет вычисление суммы двух чисел.
+   *
+   * @param {Object} arg - принимает один аргумент в виде объекта
+   * @param {Object} arg.items - Все важное здесь
+   * @param {number} arg.items.productId - id продукта
+   * @param {number[]} arg.items.productBatchIds - // id партий, если указать, вернет все, начиная с самого первого из
+   * указаных в порядке order и все последующие в порядке order, даже те что не указаны
+   * @param {number} storeId - id магазина
+   * @param {number} withDeleted - учитывать удаленные?
+   *
+   * @returns {Map<number, ProductBatchEntity[]>} Сумма двух чисел.
+   */
   async findLatest({
     items,
     storeId,
@@ -555,7 +568,7 @@ export class ProductBatchRepository extends Repository<ProductBatchEntity> {
     }[];
     storeId: number;
     withDeleted?: boolean;
-  }) {
+  }): Promise<Map<number, ProductBatchEntity[]>> {
     const productIds = items.map(({ productId }) => productId);
     const productBatchIds = items.flatMap(
       ({ productBatchIds }) => productBatchIds,

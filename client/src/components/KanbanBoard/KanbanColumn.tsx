@@ -187,6 +187,7 @@ const KanbanColumn = <
       $showAfter={showAfter}
       ref={setNodeRef}
       {...attributes}
+      // @ts-expect-error
       style={style}
     >
       {renderColumn({

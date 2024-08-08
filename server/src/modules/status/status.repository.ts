@@ -1,17 +1,23 @@
 import { BadRequestException } from '@nestjs/common';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { type FindOptionsWhere, In, Repository } from 'typeorm';
+import { type FindOptionsWhere, In, IsNull, Not, Repository } from 'typeorm';
 
-import { ProductBatchEntity } from '@/product-batch/product-batch.entity.js';
 import type { CreateStatusDto } from '@/status/dtos/create-status.dto.js';
 import type { MoveStatusDto } from '@/status/dtos/move-status.dto.js';
 import { StatusEntity } from '@/status/status.entity.js';
 
 export class StatusRepository extends Repository<StatusEntity> {
-  createFromDto(dto: CreateStatusDto) {
+  async createFromDto(dto: CreateStatusDto) {
+    const lastStatus = await this.findOne({
+      where: { id: Not(IsNull()) },
+      order: { order: 'DESC' },
+    });
+
     const entity = new StatusEntity();
     entity.userId = 1;
+    entity.order = lastStatus ? lastStatus.order + 1 : 1;
     Object.assign(entity, dto);
+
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     return this.save(entity);
   }

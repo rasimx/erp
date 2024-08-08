@@ -36,15 +36,18 @@ export const StatusPage: FC = () => {
     [kanbanCards],
   );
 
-  const productIds = useMemo(() => {
-    return [
-      ...new Set<number>([
-        ...productBatchList.map(item => item.product).map(({ id }) => id),
-      ]),
-    ];
-  }, [productBatchList]);
+  // const productIds = useMemo(() => {
+  //   return [
+  //     ...new Set<number>([
+  //       ...productBatchList.map(item => item.product).map(({ id }) => id),
+  //     ]),
+  //   ];
+  // }, [productBatchList]);
 
-  const { items } = useProductList(productIds);
+  const { items } = useProductList([]);
+  const productIds = useMemo(() => {
+    return items.map(({ id }) => id);
+  }, [items]);
 
   const columns = useMemo(() => {
     const map = new Map<number, A>(
@@ -64,7 +67,11 @@ export const StatusPage: FC = () => {
   return (
     status &&
     productBatchList && (
-      <StoreStateProvider status={status} items={productBatchList}>
+      <StoreStateProvider
+        status={status}
+        productIds={productIds}
+        items={productBatchList}
+      >
         <Box sx={{ height: '90vh' }}>
           <Stack
             spacing={1}

@@ -82,10 +82,13 @@ message ProductBatchListByIdRequest {
 message ProductBatchListFromIdRequest {
     uint32 id = 1; // возвращает все id позже этого
 }
+message FindLatestItemRequest {
+    uint32 product_id = 1;
+    repeated uint32 product_batch_ids = 2; // если указать, вернет все, начиная с самого первого указаного и все последующие в подядке order, даже те что не указаны
+}
 message FindLatestRequest {
     uint32 store_id = 1;
-    uint32 product_id = 2;
-    optional uint32 starter_id = 3; // возвращает все id позже этого, если указано, иначе последнюю партию
+    repeated FindLatestItemRequest items = 2;
 }
 
 message UpdatedProductBatchListRequest {
@@ -93,11 +96,15 @@ message UpdatedProductBatchListRequest {
 }
 
 
-message ProductBatchListItem {
+message ProductBatch {
     uint32 id = 1;
     uint32 product_id = 2;
     uint32 count = 4;
     uint32 order = 5;
+}
+message ProductBatchListItem {
+    uint32 product_id = 1;
+    repeated ProductBatch items = 2;
 }
 
 message ProductBatchListResponse {

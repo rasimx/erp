@@ -51,9 +51,8 @@ const ProductBatchModal: FC<Props> = ({
       kanbanCards.forEach(item => {
         if (item.__typename == 'ProductBatchGroupDto') {
           item.productBatchList.forEach(child => {
-            const data = getFragmentData(PRODUCT_BATCH_FRAGMENT, child);
-            if (data.id == initialId) {
-              onSelect(data);
+            if (child.id == initialId) {
+              onSelect(child);
               return;
             }
           });
@@ -107,17 +106,13 @@ const ProductBatchModal: FC<Props> = ({
                         <Card sx={{ cursor: 'pointer' }} key={item.id}>
                           <Stack spacing={2} sx={{ p: 1 }}>
                             {item.productBatchList.map(item => {
-                              const itemData = getFragmentData(
-                                PRODUCT_BATCH_FRAGMENT,
-                                item,
-                              );
                               return (
                                 <Card
                                   sx={{ cursor: 'pointer' }}
-                                  key={itemData.id}
-                                  onClick={() => onSelectHandle(itemData)}
+                                  key={item.id}
+                                  onClick={() => onSelectHandle(item)}
                                 >
-                                  {itemData.id}: {itemData.order}
+                                  {item.id}: {item.order}
                                 </Card>
                               );
                             })}

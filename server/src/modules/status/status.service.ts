@@ -1,9 +1,7 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
-import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
-import { type FindOptionsWhere, Repository } from 'typeorm';
+import { type FindOptionsWhere } from 'typeorm';
 
-import { CustomDataSource } from '@/database/custom.data-source.js';
 import type { Status } from '@/graphql.schema.js';
 import { CreateStatusCommand } from '@/status/commands/impl/create-status.command.js';
 import { MoveStatusCommand } from '@/status/commands/impl/move-status.command.js';
@@ -15,32 +13,30 @@ import {
   StatusEntity,
   type StatusInsertEntity,
 } from '@/status/status.entity.js';
+import { StatusRepository } from '@/status/status.repository.js';
 
 @Injectable()
 export class StatusService {
   constructor(
-    @InjectRepository(StatusEntity)
-    private readonly repository: Repository<StatusEntity>,
-    @InjectDataSource()
-    private dataSource: CustomDataSource,
+    private readonly statusRepository: StatusRepository,
     private commandBus: CommandBus,
     private queryBus: QueryBus,
   ) {}
 
   async findById(id: number) {
-    return this.repository.findOneByOrFail({ id });
+    return this.statusRepository.findOneByOrFail({ id });
   }
 
   async find(where: FindOptionsWhere<StatusEntity>, relations: string[] = []) {
-    return this.repository.find({ where, relations });
+    return this.statusRepository.find({ where, relations });
   }
 
   async insert(data: StatusInsertEntity) {
-    return this.repository.insert(data);
+    return this.statusRepository.insert(data);
   }
 
   async statusList2(): Promise<Status[]> {
-    return this.repository.find({ order: { order: 'ASC' } });
+    return this.statusRepository.find({ order: { order: 'ASC' } });
   }
 
   async createStatus(dto: CreateStatusDto): Promise<StatusDto[]> {
@@ -54,7 +50,7 @@ export class StatusService {
   async deleteStatus(id: number): Promise<Status[]> {
     throw new Error('Not implemented');
     // todo: как быть при удалении не custom
-    await this.repository.delete({ id });
+    await this.statusRepository.delete({ id });
     // return this.statusList();
   }
 

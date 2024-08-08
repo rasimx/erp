@@ -1,19 +1,19 @@
 apiVersion: apps/v1
 kind: Deployment # Create a deployment
 metadata:
-  name: nest
-  namespace: mp-account
+  name: nest-erp
+  namespace: mp
   labels:
-    pod: nest
+    pod: nest-erp
 spec:
   replicas: 1 # Set 3 deployment replicas
   selector:
     matchLabels:
-      pod: nest
+      pod: nest-erp
   template:
     metadata:
       labels:
-        pod: nest
+        pod: nest-erp
     spec:
       containers:
         - name: nest-js
@@ -21,9 +21,10 @@ spec:
           imagePullPolicy: "Always"
           ports:
             - containerPort: 3000
+            - containerPort: 3001
           envFrom:
             - configMapRef:
-                name: env-config
+                name: env-config-erp
           volumeMounts:
             - name: json-config
               mountPath: /app/config.json
@@ -31,5 +32,5 @@ spec:
       volumes:
         - name: json-config
           configMap:
-            name: json-config
+            name: json-config-erp
             defaultMode: 511

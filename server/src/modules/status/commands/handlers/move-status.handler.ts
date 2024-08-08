@@ -11,7 +11,6 @@ import { StatusRepository } from '@/status/status.repository.js';
 export class MoveStatusHandler implements ICommandHandler<MoveStatusCommand> {
   constructor(
     private readonly statusEventStore: StatusEventStore,
-    // @InjectRepository(StatusEntity)
     private readonly statusRepository: StatusRepository,
     @InjectDataSource()
     private dataSource: CustomDataSource,

@@ -18,7 +18,7 @@ import { useProductBatchMutations } from '../../api/product-batch/product-batch.
 import { toRouble } from '../../utils';
 import { CardProps } from '../KanbanBoard/types';
 import OperationForm from '../OperationForm/OperationForm';
-import { useStoreState } from '../StoreState';
+import { useStoreStateByProductBatch } from '../StoreState';
 import ProductBatchInfo from './ProductBatchInfo';
 
 const Preloader = () => {
@@ -48,7 +48,7 @@ export const ProductBatchCard = React.memo<Props>(props => {
 
   const { deleteProductBatch } = useProductBatchMutations();
   const { createOperation } = useOperation();
-  const { aa } = useStoreState(card);
+  const { aa } = useStoreStateByProductBatch(card);
 
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);

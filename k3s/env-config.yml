@@ -1,8 +1,8 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: env-config
-  namespace: mp-account
+  name: env-config-erp
+  namespace: mp
 data:
   TZ: "Europe/Moscow"
 
@@ -18,7 +18,7 @@ data:
   REDIS_HOST: "redis.mp.svc.cluster.local"
   REDIS_PORT: "6379"
 
-  TYPEORM_URL: "postgres://postgres:130504@postgresql.mp-mm.svc.cluster.local:5432/account"
+  TYPEORM_URL: "postgres://db_user:130504@postgresql.mp-mm.svc.cluster.local:5432/erp"
   TYPEORM_LOGGING: 'false'
 
   HTTP_BASIC_USERNAME: 'user'
@@ -30,6 +30,10 @@ data:
   JWT_GOOGLE_CLIENT_SECRET: 'YOUR_GOOGLE_CLIENT_SECRET'
 
   TELEGRAF_BOT_TOKEN: '6066046276:AAFijZJQzYSCyHQFoBOkc5wiAYO83IDpCdE'
+
+  GRPC_ERP_OZON_URL: 'nest-erp-ozon.mp.svc.cluster.local:3001'
+  EVENTSTORE_ENDPOINT: 'eventstoredb.mp.svc.cluster.local:2113'
+
 
 
 

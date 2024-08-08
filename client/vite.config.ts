@@ -37,7 +37,7 @@ export default defineConfig({
     federation({
       name: 'app2',
       remotes: {
-        remoteOzon: 'https://localhost:3003/assets/remoteEntry.js',
+        remoteOzon: 'https://192.168.0.2:13040/assets/remoteEntry.js',
       },
       shared: [
         'react',

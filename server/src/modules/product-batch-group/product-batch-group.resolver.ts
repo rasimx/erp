@@ -4,6 +4,7 @@ import { Args, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
 
 import { UserInterceptor } from '@/auth/user.interceptor.js';
 import { GetProductBatchListDto } from '@/product-batch/dtos/get-product-batch-list.dto.js';
+import { CreateProductBatchGroupCommand } from '@/product-batch-group/commands/impl/create-product-batch-group.command.js';
 import { DeleteProductBatchGroupCommand } from '@/product-batch-group/commands/impl/delete-product-batch-group.command.js';
 import { MoveProductBatchGroupCommand } from '@/product-batch-group/commands/impl/move-product-batch-group.command.js';
 import { GetProductBatchGroupListQuery } from '@/product-batch-group/queries/impl/get-product-batch-group-list.query.js';
@@ -38,7 +39,7 @@ export class ProductBatchGroupResolver {
     @Args('dto', { type: () => CreateProductBatchGroupDto })
     dto: CreateProductBatchGroupDto,
   ): Promise<CommandResponse> {
-    await this.service.createProductBatchGroup(dto);
+    await this.commandBus.execute(new CreateProductBatchGroupCommand(dto));
     return { success: true };
   }
 

@@ -5,12 +5,14 @@ import {
   type NestModule,
   RequestMethod,
 } from '@nestjs/common';
+import { APP_GUARD } from '@nestjs/core';
 import { GraphQLModule } from '@nestjs/graphql';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 
 import { ExcludeAssetsMiddleware } from '@/assets.middleware.js';
 import { AuthModule } from '@/auth/auth.module.js';
+import { JwtAuthGuard } from '@/auth/guard/jwt-auth.guard.js';
 import { getPathRelativeToRoot } from '@/common/helpers/paths.js';
 import { AppConfigModule } from '@/config/app/config.module.js';
 import { AuthConfigModule } from '@/config/auth/config.module.js';
@@ -23,7 +25,6 @@ import { ProductBatchModule } from '@/product-batch/product-batch.module.js';
 import { ProductBatchGroupModule } from '@/product-batch-group/product-batch-group.module.js';
 import { ProductBatchOperationModule } from '@/product-batch-operation/product-batch-operation.module.js';
 import { StatusModule } from '@/status/status.module.js';
-// import { StoreModule } from '@/store/store.module.js';
 import { TransactionModule } from '@/transaction/transaction.module.js';
 
 import { AppService } from './app.service.js';
@@ -53,14 +54,14 @@ import { AppService } from './app.service.js';
     AuthModule,
     AuthConfigModule,
     ContextModule,
-    // StoreModule,
   ],
   controllers: [],
   providers: [
     AppService,
-    // {
-    //   provide: APP_GUARD,
-    //   useClass: JwtAuthGuard,
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
+    },
   ],
 })
 export class AppModule implements NestModule {

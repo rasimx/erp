@@ -19,17 +19,21 @@ export const StoreStateContext = createContext<FullStateDtoFragment[]>([]);
 export type Props = {
   status: StatusFragment;
   items: (ProductBatch | ProductBatchGroup)[];
+  productIds?: number[];
   skip?: boolean;
   children: ReactElement;
 };
 
 export const StoreStateProvider: FC<Props> = props => {
-  const { children, status, items = [], skip = false } = props;
+  const { children, status, items, productIds = [], skip = false } = props;
 
   const [fullState, setFullState] = useState<FullStateDtoFragment[]>([]);
 
   const mapItems = useMemo(() => {
     const map = new Map<number, { id: number; count: number }[]>();
+    productIds.forEach(productId => {
+      map.set(productId, []);
+    });
     items.forEach(item => {
       switch (item.__typename) {
         case 'ProductBatchDto': {
@@ -50,11 +54,12 @@ export const StoreStateProvider: FC<Props> = props => {
           throw new Error('unknown __typename');
       }
     });
+
     return [...map.entries()].map(([baseProductId, productBatches]) => ({
       baseProductId,
       productBatches,
     }));
-  }, [items]);
+  }, [items, productIds]);
 
   const prevMapItems = useRef(JSON.stringify(mapItems));
 
@@ -69,7 +74,9 @@ export const StoreStateProvider: FC<Props> = props => {
           storeId: 1114008,
           items: mapItems.map(({ baseProductId, productBatches }) => ({
             baseProductId,
-            fromProductBatchId: productBatches[0].id,
+            fromProductBatchId: productBatches.length
+              ? productBatches[0].id
+              : undefined,
           })),
         }).then(data => {
           setFullState(data);
@@ -77,7 +84,7 @@ export const StoreStateProvider: FC<Props> = props => {
         prevMapItems.current = JSON.stringify(mapItems);
       });
     }
-  }, [items]);
+  }, [mapItems]);
 
   // useEffect(() => {
   //   fullState.forEach(item => {
@@ -113,11 +120,16 @@ export const StoreStateProvider: FC<Props> = props => {
   );
 };
 
-export const useStoreState = (productBatch: ProductBatch) => {
+export const useStoreStateByProductBatch = (productBatch: ProductBatch) => {
   const fullState = useContext(StoreStateContext);
   const aa = fullState
     .find(item => item.baseProductId == productBatch.productId)
     ?.linkedSales.find(item => item.productBatchId == productBatch.id);
   console.log(aa);
   return { aa };
+};
+
+export const useStoreStateByProductId = (productId: number) => {
+  const fullState = useContext(StoreStateContext);
+  return fullState.find(item => item.baseProductId == productId);
 };

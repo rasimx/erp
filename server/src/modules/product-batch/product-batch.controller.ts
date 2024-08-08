@@ -24,8 +24,13 @@ export class ProductBatchController {
   async findLatest(
     request: FindLatestRequest,
   ): Promise<ProductBatchListResponse> {
-    const items = await this.productBatchRepository.findLatest(request);
-    return { items };
+    const map = await this.productBatchRepository.findLatest(request);
+    return {
+      items: [...map.entries()].map(([productId, items]) => ({
+        productId,
+        items,
+      })),
+    };
   }
 
   async createStatus(
