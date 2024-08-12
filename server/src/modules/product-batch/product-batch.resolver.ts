@@ -10,7 +10,9 @@ import { CreateProductBatchDto } from '@/product-batch/dtos/create-product-batch
 import { GetProductBatchListDto } from '@/product-batch/dtos/get-product-batch-list.dto.js';
 import { MoveProductBatchDto } from '@/product-batch/dtos/move-product-batch.dto.js';
 import { ProductBatchDto } from '@/product-batch/dtos/product-batch.dto.js';
+import { ProductBatchDetailDto } from '@/product-batch/dtos/product-batch-detail.dto.js';
 import { ProductBatchService } from '@/product-batch/product-batch.service.js';
+import { GetProductBatchQuery } from '@/product-batch/queries/impl/get-product-batch.query.js';
 import { GetProductBatchListQuery } from '@/product-batch/queries/impl/get-product-batch-list.query.js';
 import { CommandResponse } from '@/product-batch-group/dtos/product-batch-group.dto.js';
 
@@ -29,6 +31,13 @@ export class ProductBatchResolver {
     dto: GetProductBatchListDto,
   ): Promise<ProductBatchDto[]> {
     return this.queryBus.execute(new GetProductBatchListQuery(dto));
+  }
+  @Query(() => ProductBatchDetailDto)
+  async productBatchDetail(
+    @Args('id', { type: () => Int })
+    id: number,
+  ): Promise<ProductBatchDetailDto[]> {
+    return this.queryBus.execute(new GetProductBatchQuery(id));
   }
   //
   // @Mutation('updateProductBatch')

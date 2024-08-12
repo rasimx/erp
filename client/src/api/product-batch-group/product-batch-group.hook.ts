@@ -18,18 +18,15 @@ export const useProductBatchGroupMutations = () => {
   const [createGroup] = useMutation(CREATE_PRODUCT_BATCH_GROUP_MUTATION);
   const createProductBatchGroup = useCallback(
     (dto: CreateProductBatchGroupDto) =>
-      createGroup({ variables: { dto } })
-        .then(res => {
-          // refetch();
-        })
-        .catch(err => {
-          // todo: обработать ошику
-          enqueueSnackbar(err.message, {
-            variant: 'error',
-            anchorOrigin: { vertical: 'bottom', horizontal: 'left' },
-          });
-          // setKanbanCards([...kanbanCards]);
-        }),
+      createGroup({ variables: { dto } }).catch(err => {
+        // todo: обработать ошику
+        enqueueSnackbar(err.message, {
+          variant: 'error',
+          anchorOrigin: { vertical: 'bottom', horizontal: 'left' },
+        });
+        throw err;
+        // setKanbanCards([...kanbanCards]);
+      }),
     // .finally(() => {
     //   setLoadingId(null);
     // });
@@ -40,15 +37,14 @@ export const useProductBatchGroupMutations = () => {
   const moveProductBatchGroup = useCallback(
     (dto: MoveProductBatchGroupDto) =>
       moveGroup({ variables: { dto } })
-        .then(res => {
-          // refetch();
-        })
+        .then(res => res)
         .catch(err => {
           // todo: обработать ошику
           enqueueSnackbar(err.message, {
             variant: 'error',
             anchorOrigin: { vertical: 'bottom', horizontal: 'left' },
           });
+          throw err;
           // setKanbanCards([...kanbanCards]);
         }),
     [],
@@ -58,15 +54,14 @@ export const useProductBatchGroupMutations = () => {
   const deleteProductBatchGroup = useCallback(
     (id: number) =>
       deleteGroup({ variables: { id } })
-        .then(res => {
-          // refetch();
-        })
+        .then(res => res)
         .catch(err => {
           // todo: обработать ошику
           enqueueSnackbar(err.message, {
             variant: 'error',
             anchorOrigin: { vertical: 'bottom', horizontal: 'left' },
           });
+          throw err;
           // setKanbanCards([...kanbanCards]);
         }),
     // .finally(() => {

@@ -107,10 +107,19 @@ const KanbanCard = <Card extends SortableType>({
             height: 5,
             backgroundColor: 'rgba(0,255,0,.5)',
             marginBottom: 1,
+            flexShrink: 0,
           }}
         ></Card>
       )}
-      <Card ref={setNodeRef} {...attributes} style={style} elevation={3}>
+      <Card
+        ref={setNodeRef}
+        {...attributes}
+        style={style}
+        elevation={3}
+        sx={{
+          flexShrink: 0,
+        }}
+      >
         {renderCard({
           card,
           isActive,

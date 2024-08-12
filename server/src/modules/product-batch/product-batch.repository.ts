@@ -7,6 +7,7 @@ import type { FindLatestRequest } from '@/microservices/proto/erp.pb.js';
 import type { CreateProductBatchDto } from '@/product-batch/dtos/create-product-batch.dto.js';
 import type { GetProductBatchListDto } from '@/product-batch/dtos/get-product-batch-list.dto.js';
 import type { MoveProductBatchDto } from '@/product-batch/dtos/move-product-batch.dto.js';
+import type { ProductBatchDto } from '@/product-batch/dtos/product-batch.dto.js';
 import { ProductBatchEntity } from '@/product-batch/product-batch.entity.js';
 import { ProductBatchGroupEntity } from '@/product-batch-group/product-batch-group.entity.js';
 import { StatusEntity } from '@/status/status.entity.js';

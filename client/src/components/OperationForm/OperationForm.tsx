@@ -22,12 +22,10 @@ import pick from 'lodash/pick';
 import React, { type FC, useCallback, useEffect, useMemo } from 'react';
 import { array, mixed, number, object, ObjectSchema, string } from 'yup';
 
+import { ProductBatch } from '../../api/product-batch/product-batch.gql';
+import { ProductBatchDetail } from '../../api/product-batch/product-batch-detail.gql';
 // import { ProportionType } from '@/gql-types/graphql';
-import {
-  CreateOperationDto,
-  ProductBatchFragment,
-  ProportionType,
-} from '../../gql-types/graphql';
+import { CreateOperationDto, ProportionType } from '../../gql-types/graphql';
 import { fromRouble, toRouble } from '../../utils';
 import withModal from '../withModal';
 
@@ -106,7 +104,7 @@ const Value = styled('div')`
 `;
 
 export interface Props {
-  productBatches: ProductBatchFragment[];
+  productBatches: ProductBatch[] | ProductBatchDetail[];
   closeModal: () => void;
   initialValues: Partial<CreateOperationDto>;
   onSubmit: (
@@ -134,7 +132,7 @@ type B = {
 
 type DataCellProps = {
   type: ProportionType;
-  row: ProductBatchFragment;
+  row: ProductBatch | ProductBatchDetail;
   items: B;
   label: string;
   getValue?: (value: number) => number;
@@ -184,11 +182,11 @@ const Form: FC<Props & FormikProps<CreateOperationDto>> = props => {
   const percentages = useCallback(
     (
       field: keyof Pick<
-        ProductBatchFragment,
+        ProductBatch | ProductBatchDetail,
         'volume' | 'weight' | 'costPricePerUnit'
       >,
     ) => {
-      const getValue = (item: ProductBatchFragment) =>
+      const getValue = (item: ProductBatch | ProductBatchDetail) =>
         field == 'costPricePerUnit'
           ? Number(toRouble(item.costPricePerUnit * item.count))
           : item[field];

@@ -8,6 +8,7 @@ import { EventStoreModule } from '@/event-store/event-store.module.js';
 import { Microservices } from '@/microservices/microservices.js';
 import { ProductModule } from '@/product/product.module.js';
 import { ProductBatchModule } from '@/product-batch/product-batch.module.js';
+import { GetProductBatchGroupHandler } from '@/product-batch-group/queries/handlers/get-product-batch-group.handler.js';
 import { StatusModule } from '@/status/status.module.js';
 
 import { CreateProductBatchGroupHandler } from './commands/handlers/create-product-batch-group.handler.js';
@@ -36,6 +37,7 @@ import { GetProductBatchGroupListHandler } from './queries/handlers/get-product-
     ProductBatchGroupEventStore,
     ProductBatchGroupService,
     ProductBatchGroupResolver,
+    GetProductBatchGroupHandler,
     GetProductBatchGroupListHandler,
     CreateProductBatchGroupHandler,
     MoveProductBatchGroupHandler,

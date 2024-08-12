@@ -1,6 +1,5 @@
 import { useModal } from '@ebay/nice-modal-react';
-import MoreVertIcon from '@mui/icons-material/MoreVert';
-import OpenWithIcon from '@mui/icons-material/OpenWith';
+import { MoreVert, OpenWith } from '@mui/icons-material';
 import { IconButton, Menu, MenuItem, Paper, Typography } from '@mui/material';
 import Box from '@mui/material/Box';
 import omit from 'lodash/omit';
@@ -47,7 +46,7 @@ export const Column = React.memo<Props>(props => {
     createProductBatchGroupModal.show({
       groupStatus: status,
       onSubmit: async values => {
-        createProductBatchGroup({
+        return createProductBatchGroup({
           name: values.name,
           statusId: values.statusId,
           existProductBatchIds: values.existProductBatches.map(
@@ -60,9 +59,13 @@ export const Column = React.memo<Props>(props => {
         })
           .then(result => {
             refetch();
+            debugger;
+            createProductBatchGroupModal.hide();
+            return result;
           })
           .catch(err => {
             alert('ERROR');
+            return err;
           });
       },
     });
@@ -97,7 +100,7 @@ export const Column = React.memo<Props>(props => {
         elevation={3}
         variant="elevation"
         sx={{
-          width: 300,
+          width: '100%',
           position: 'relative',
           height: '100%',
           display: 'flex',
@@ -129,8 +132,9 @@ export const Column = React.memo<Props>(props => {
                   cursor: 'grab',
                 }}
               >
-                <OpenWithIcon />
+                <OpenWith />
               </IconButton>
+
               <Typography
                 id="modal-modal-title"
                 variant="h6"
@@ -149,7 +153,7 @@ export const Column = React.memo<Props>(props => {
                 aria-haspopup="true"
                 onClick={handleClick}
               >
-                <MoreVertIcon />
+                <MoreVert />
               </IconButton>
               <Menu
                 id="long-menu"

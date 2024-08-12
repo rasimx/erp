@@ -63,6 +63,7 @@ export default defineConfig({
     emptyOutDir: false, // This is done during the build of the server
     // outDir: `${PROJECT_ROOT}/dist/public`,
     // outDir: `../server/dist/public`,
+
     outDir: `dist`,
     rollupOptions: {
       input: '/src/main.tsx',

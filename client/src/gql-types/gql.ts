@@ -16,10 +16,16 @@ const documents = {
     "\n  query kanbanCards($dto: GetProductBatchListDto!) {\n    productBatchList(dto: $dto) {\n      ...ProductBatch\n    }\n    productBatchGroupList(dto: $dto) {\n      ...ProductBatchGroup\n    }\n  }\n": types.KanbanCardsDocument,
     "\n  fragment Product on ProductDto {\n    id\n    name\n    sku\n  }\n": types.ProductFragmentDoc,
     "\n  mutation createOperation($dto: CreateOperationDto!) {\n    createOperation(dto: $dto) {\n      success\n    }\n  }\n": types.CreateOperationDocument,
+    "\n  fragment ProductBatchGroupDetail on ProductBatchGroupDetailDto {\n    id\n    name\n    statusId\n    status {\n      id\n      title\n      order\n    }\n    order\n    productBatchList {\n      ...ProductBatch\n    }\n    events {\n      ...Event\n    }\n  }\n": types.ProductBatchGroupDetailFragmentDoc,
+    "\n  query productBatchGroupDetail($id: Int!) {\n    productBatchGroupDetail(id: $id) {\n      ...ProductBatchGroupDetail\n    }\n  }\n": types.ProductBatchGroupDetailDocument,
     "\n  fragment ProductBatchGroup on ProductBatchGroupDto {\n    id\n    name\n    statusId\n    status {\n      id\n      title\n      order\n    }\n    order\n    productBatchList {\n      ...ProductBatch\n    }\n  }\n": types.ProductBatchGroupFragmentDoc,
     "\n  mutation moveProductBatchGroup($dto: MoveProductBatchGroupDto!) {\n    moveProductBatchGroup(dto: $dto) {\n      success\n    }\n  }\n": types.MoveProductBatchGroupDocument,
     "\n  mutation createProductBatchGroup($dto: CreateProductBatchGroupDto!) {\n    createProductBatchGroup(dto: $dto) {\n      success\n    }\n  }\n": types.CreateProductBatchGroupDocument,
     "\n  mutation deleteProductBatchGroup($id: Int!) {\n    deleteProductBatchGroup(id: $id) {\n      success\n    }\n  }\n": types.DeleteProductBatchGroupDocument,
+    "\n  fragment Event on EventDto {\n    type\n    data\n  }\n": types.EventFragmentDoc,
+    "\n  fragment Operation on OperationDto {\n    id\n    name\n    cost\n    date\n    proportionType\n    createdAt\n  }\n": types.OperationFragmentDoc,
+    "\n  fragment ProductBatchDetail on ProductBatchDetailDto {\n    id\n    name\n    groupId\n    productId\n    product {\n      ...Product\n    }\n    parentId\n    statusId\n    status {\n      id\n      title\n      order\n    }\n    count\n    costPricePerUnit\n    operationsPricePerUnit\n    date\n    order\n    volume\n    weight\n    color\n    group {\n      id\n      order\n    }\n    operations {\n      ...Operation\n    }\n    events {\n      ...Event\n    }\n  }\n": types.ProductBatchDetailFragmentDoc,
+    "\n  query productBatchDetail($id: Int!) {\n    productBatchDetail(id: $id) {\n      ...ProductBatchDetail\n    }\n  }\n": types.ProductBatchDetailDocument,
     "\n  query productBatchList($dto: GetProductBatchListDto!) {\n    productBatchList(dto: $dto) {\n      ...ProductBatch\n    }\n  }\n": types.ProductBatchListDocument,
     "\n  fragment ProductBatch on ProductBatchDto {\n    id\n    name\n    groupId\n    productId\n    product {\n      ...Product\n    }\n    parentId\n    statusId\n    status {\n      id\n      title\n      order\n    }\n    count\n    costPricePerUnit\n    operationsPricePerUnit\n    date\n    order\n    volume\n    weight\n    color\n    group {\n      id\n      order\n    }\n  }\n": types.ProductBatchFragmentDoc,
     "\n  mutation moveProductBatch($dto: MoveProductBatchDto!) {\n    moveProductBatch(dto: $dto) {\n      success\n    }\n  }\n": types.MoveProductBatchDocument,
@@ -62,6 +68,14 @@ export function graphql(source: "\n  mutation createOperation($dto: CreateOperat
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
+export function graphql(source: "\n  fragment ProductBatchGroupDetail on ProductBatchGroupDetailDto {\n    id\n    name\n    statusId\n    status {\n      id\n      title\n      order\n    }\n    order\n    productBatchList {\n      ...ProductBatch\n    }\n    events {\n      ...Event\n    }\n  }\n"): (typeof documents)["\n  fragment ProductBatchGroupDetail on ProductBatchGroupDetailDto {\n    id\n    name\n    statusId\n    status {\n      id\n      title\n      order\n    }\n    order\n    productBatchList {\n      ...ProductBatch\n    }\n    events {\n      ...Event\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  query productBatchGroupDetail($id: Int!) {\n    productBatchGroupDetail(id: $id) {\n      ...ProductBatchGroupDetail\n    }\n  }\n"): (typeof documents)["\n  query productBatchGroupDetail($id: Int!) {\n    productBatchGroupDetail(id: $id) {\n      ...ProductBatchGroupDetail\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
 export function graphql(source: "\n  fragment ProductBatchGroup on ProductBatchGroupDto {\n    id\n    name\n    statusId\n    status {\n      id\n      title\n      order\n    }\n    order\n    productBatchList {\n      ...ProductBatch\n    }\n  }\n"): (typeof documents)["\n  fragment ProductBatchGroup on ProductBatchGroupDto {\n    id\n    name\n    statusId\n    status {\n      id\n      title\n      order\n    }\n    order\n    productBatchList {\n      ...ProductBatch\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
@@ -75,6 +89,22 @@ export function graphql(source: "\n  mutation createProductBatchGroup($dto: Crea
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n  mutation deleteProductBatchGroup($id: Int!) {\n    deleteProductBatchGroup(id: $id) {\n      success\n    }\n  }\n"): (typeof documents)["\n  mutation deleteProductBatchGroup($id: Int!) {\n    deleteProductBatchGroup(id: $id) {\n      success\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  fragment Event on EventDto {\n    type\n    data\n  }\n"): (typeof documents)["\n  fragment Event on EventDto {\n    type\n    data\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  fragment Operation on OperationDto {\n    id\n    name\n    cost\n    date\n    proportionType\n    createdAt\n  }\n"): (typeof documents)["\n  fragment Operation on OperationDto {\n    id\n    name\n    cost\n    date\n    proportionType\n    createdAt\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  fragment ProductBatchDetail on ProductBatchDetailDto {\n    id\n    name\n    groupId\n    productId\n    product {\n      ...Product\n    }\n    parentId\n    statusId\n    status {\n      id\n      title\n      order\n    }\n    count\n    costPricePerUnit\n    operationsPricePerUnit\n    date\n    order\n    volume\n    weight\n    color\n    group {\n      id\n      order\n    }\n    operations {\n      ...Operation\n    }\n    events {\n      ...Event\n    }\n  }\n"): (typeof documents)["\n  fragment ProductBatchDetail on ProductBatchDetailDto {\n    id\n    name\n    groupId\n    productId\n    product {\n      ...Product\n    }\n    parentId\n    statusId\n    status {\n      id\n      title\n      order\n    }\n    count\n    costPricePerUnit\n    operationsPricePerUnit\n    date\n    order\n    volume\n    weight\n    color\n    group {\n      id\n      order\n    }\n    operations {\n      ...Operation\n    }\n    events {\n      ...Event\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  query productBatchDetail($id: Int!) {\n    productBatchDetail(id: $id) {\n      ...ProductBatchDetail\n    }\n  }\n"): (typeof documents)["\n  query productBatchDetail($id: Int!) {\n    productBatchDetail(id: $id) {\n      ...ProductBatchDetail\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

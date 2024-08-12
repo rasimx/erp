@@ -41,7 +41,7 @@ export class CreateOperationHandler
     try {
       let newOperation = new OperationEntity();
       newOperation.date = dto.date;
-      newOperation.cost = dto.cost * 100;
+      newOperation.cost = dto.cost;
       newOperation.name = dto.name;
       newOperation.groupId = dto.groupId;
       newOperation.proportionType = dto.proportionType;

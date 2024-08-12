@@ -1,7 +1,8 @@
 import { useModal } from '@ebay/nice-modal-react';
+import { ExpandLess, ExpandMore } from '@mui/icons-material';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import OpenWithIcon from '@mui/icons-material/OpenWith';
-import { IconButton, Menu, MenuItem, Typography } from '@mui/material';
+import { Collapse, IconButton, Menu, MenuItem } from '@mui/material';
 import Box from '@mui/material/Box';
 import React, { useCallback } from 'react';
 
@@ -11,6 +12,7 @@ import { useProductBatchGroupMutations } from '../../api/product-batch-group/pro
 import { toRouble } from '../../utils';
 import { GroupProps } from '../KanbanBoard/types';
 import OperationForm from '../OperationForm/OperationForm';
+import ProductBatchGroupInfo from './ProductBatchGroupDetail';
 
 export interface Props extends GroupProps<ProductBatchGroup> {
   refetch: () => void;
@@ -19,50 +21,24 @@ export interface Props extends GroupProps<ProductBatchGroup> {
 export const Group = React.memo<Props>(props => {
   const { group, refetch, sortableData, children } = props;
 
-  const { deleteProductBatchGroup } = useProductBatchGroupMutations();
-  const { createOperation } = useOperation();
+  const [openCollapse, setOpenCollapse] = React.useState(false);
 
-  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
-  const open = Boolean(anchorEl);
-  const handleClick = (event: React.MouseEvent<HTMLElement>) => {
-    setAnchorEl(event.currentTarget);
-  };
-  const handleClose = () => {
-    setAnchorEl(null);
-  };
-  const handleDelete = () => {
-    deleteProductBatchGroup(group.id).then(() => {
-      handleClose();
-      refetch();
-    });
+  const handleClickCollapse = () => {
+    setOpenCollapse(!openCollapse);
   };
 
-  const operationFormModal = useModal(OperationForm);
-  const showOperationFormModal = useCallback(() => {
-    operationFormModal.show({
-      initialValues: {
-        groupId: group.id,
-      },
-      productBatches: group.productBatchList,
-      onSubmit: async values => {
-        createOperation(values)
-          .then(result => {
-            refetch();
-          })
-          .catch(err => {
-            alert('ERROR');
-          });
-      },
+  const productBatchGroupInfoDrawer = useModal(ProductBatchGroupInfo);
+  const showProductBatchGroupInfoDrawer = useCallback(() => {
+    productBatchGroupInfoDrawer.show({
+      productBatchGroupId: group.id,
     });
-    handleClose();
-  }, [handleClose, group]);
+  }, [productBatchGroupInfoDrawer, group]);
 
   return (
     <>
       <Box
         sx={{
           background: '#FAFAFA',
-          // p: 1,
           textAlign: 'center',
         }}
       >
@@ -83,61 +59,28 @@ export const Group = React.memo<Props>(props => {
             >
               <OpenWithIcon />
             </IconButton>
-            <Typography
-              id="modal-modal-title"
-              variant="h6"
-              component="h2"
-              sx={{ flexGrow: 1 }}
+
+            <Box
+              onClick={showProductBatchGroupInfoDrawer}
+              sx={{ cursor: 'pointer', fontWeight: 600 }}
             >
-              {group.name}
-            </Typography>
+              {group.name} #{group.productBatchList.length}
+            </Box>
+
             <IconButton
-              aria-label="more"
-              id="long-button"
-              aria-controls={open ? 'long-menu' : undefined}
-              aria-expanded={open ? 'true' : undefined}
-              aria-haspopup="true"
-              onClick={handleClick}
-            >
-              <MoreVertIcon />
-            </IconButton>
-            <Menu
-              id="long-menu"
-              MenuListProps={{
-                'aria-labelledby': 'long-button',
+              sx={{
+                cursor: 'pointer',
               }}
-              anchorEl={anchorEl}
-              open={open}
-              onClose={handleClose}
+              onClick={handleClickCollapse}
             >
-              <MenuItem onClick={showOperationFormModal}>
-                Добавить операцию
-              </MenuItem>
-              <MenuItem onClick={handleDelete}>Удалить группу</MenuItem>
-            </Menu>
-          </Box>
-          <Box sx={{ display: 'flex', p: 1 }}>
-            id: {group.id} <br />
-            order: {group.order} <br />
-            С/с группы, р. -
-            {toRouble(
-              group.productBatchList.reduce((prev, data) => {
-                return (
-                  prev +
-                  data.count *
-                    (data.operationsPricePerUnit + data.costPricePerUnit)
-                );
-              }, 0),
-            )}
-            <br />
-            количество, шт. -
-            {group.productBatchList.reduce((prev, data) => {
-              return prev + data.count;
-            }, 0)}
+              {openCollapse ? <ExpandLess /> : <ExpandMore />}
+            </IconButton>
           </Box>
         </Box>
       </Box>
-      <Box>{children}</Box>
+      <Collapse in={openCollapse} timeout="auto" unmountOnExit>
+        <Box>{children}</Box>
+      </Collapse>
     </>
   );
 });

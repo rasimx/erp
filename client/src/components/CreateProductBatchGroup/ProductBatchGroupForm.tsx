@@ -312,9 +312,7 @@ const ProductBatchGroupForm = withFormik<Props, FormValues>({
   },
 
   handleSubmit: async (values, formikBag) => {
-    return formikBag.props.onSubmit(values, formikBag).then(() => {
-      formikBag.props.closeModal();
-    });
+    return formikBag.props.onSubmit(values, formikBag);
   },
 })(Form);
 

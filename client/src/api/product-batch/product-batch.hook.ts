@@ -26,6 +26,7 @@ export const useProductBatchMutations = () => {
           variant: 'error',
           anchorOrigin: { vertical: 'bottom', horizontal: 'left' },
         });
+        throw err;
         // setKanbanCards([...kanbanCards]);
       });
     // .finally(() => {
@@ -43,6 +44,7 @@ export const useProductBatchMutations = () => {
             variant: 'error',
             anchorOrigin: { vertical: 'bottom', horizontal: 'left' },
           });
+          throw err;
           // setKanbanCards([...kanbanCards]);
         }),
     [],
@@ -59,6 +61,7 @@ export const useProductBatchMutations = () => {
             variant: 'error',
             anchorOrigin: { vertical: 'bottom', horizontal: 'left' },
           });
+          throw err;
           // setKanbanCards([...kanbanCards]);
         }),
     [],

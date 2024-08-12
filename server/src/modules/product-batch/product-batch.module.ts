@@ -14,6 +14,7 @@ import { ProductBatchEntity } from '@/product-batch/product-batch.entity.js';
 import { ProductBatchEventStore } from '@/product-batch/product-batch.eventstore.js';
 import { ProductBatchRepositoryProvider } from '@/product-batch/product-batch.repository.js';
 import { ProductBatchResolver } from '@/product-batch/product-batch.resolver.js';
+import { GetProductBatchHandler } from '@/product-batch/queries/handlers/get-product-batch.handler.js';
 import { GetProductBatchListHandler } from '@/product-batch/queries/handlers/get-product-batch-list.handler.js';
 import { ProductBatchGroupModule } from '@/product-batch-group/product-batch-group.module.js';
 import { StatusModule } from '@/status/status.module.js';
@@ -35,6 +36,7 @@ import { ProductBatchService } from './product-batch.service.js';
     ProductBatchEventStore,
     ProductBatchService,
     ProductBatchResolver,
+    GetProductBatchHandler,
     GetProductBatchListHandler,
     CreateProductBatchHandler,
     MoveProductBatchHandler,

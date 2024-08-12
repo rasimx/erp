@@ -1,4 +1,12 @@
-import { FORWARDS, jsonEvent, type JSONEventType } from '@eventstore/db-client';
+import {
+  BACKWARDS,
+  END,
+  FORWARDS,
+  jsonEvent,
+  type JSONEventType,
+  type ResolvedEvent,
+  START,
+} from '@eventstore/db-client';
 import { Injectable } from '@nestjs/common';
 
 import type { JSONCompatible } from '@/common/helpers/utils.js';
@@ -124,6 +132,22 @@ export class ProductBatchEventStore {
     const STREAM_NAME = `ProductBatch-${productBatchId.toString()}`;
 
     await this.eventStoreService.appendToStream(STREAM_NAME, event);
+  }
+
+  async getEvents(productBatchId: number) {
+    const STREAM_NAME = `ProductBatch-${productBatchId.toString()}`;
+
+    const events: JSONEventType[] = [];
+    const result = this.eventStoreService.readStream(STREAM_NAME, {
+      direction: BACKWARDS,
+      fromRevision: END,
+      maxCount: 100,
+    });
+
+    for await (const event of result) {
+      events.push(event.event as JSONEventType);
+    }
+    return events;
   }
 }
 

@@ -7,6 +7,8 @@ import { GetProductBatchListDto } from '@/product-batch/dtos/get-product-batch-l
 import { CreateProductBatchGroupCommand } from '@/product-batch-group/commands/impl/create-product-batch-group.command.js';
 import { DeleteProductBatchGroupCommand } from '@/product-batch-group/commands/impl/delete-product-batch-group.command.js';
 import { MoveProductBatchGroupCommand } from '@/product-batch-group/commands/impl/move-product-batch-group.command.js';
+import { ProductBatchGroupDetailDto } from '@/product-batch-group/dtos/product-batch-group-detail.dto.js';
+import { GetProductBatchGroupQuery } from '@/product-batch-group/queries/impl/get-product-batch-group.query.js';
 import { GetProductBatchGroupListQuery } from '@/product-batch-group/queries/impl/get-product-batch-group-list.query.js';
 
 import { CreateProductBatchGroupDto } from './dtos/create-product-batch-group.dto.js';
@@ -32,6 +34,14 @@ export class ProductBatchGroupResolver {
     dto: GetProductBatchListDto,
   ): Promise<ProductBatchGroupDto[]> {
     return this.queryBus.execute(new GetProductBatchGroupListQuery(dto));
+  }
+
+  @Query(() => ProductBatchGroupDetailDto)
+  async productBatchGroupDetail(
+    @Args('id', { type: () => Int })
+    id: number,
+  ): Promise<ProductBatchGroupDetailDto[]> {
+    return this.queryBus.execute(new GetProductBatchGroupQuery(id));
   }
 
   @Mutation(() => CommandResponse)

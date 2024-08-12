@@ -1,3 +1,4 @@
+import { gql } from '@apollo/client';
 import { DocumentTypeDecoration } from '@graphql-typed-document-node/core';
 
 import {
@@ -100,5 +101,12 @@ export const DELETE_PRODUCT_BATCH_MUTATION = graphql(`
     deleteProductBatch(id: $id) {
       success
     }
+  }
+`);
+
+export const EVENT_FRAGMENT = graphql(`
+  fragment Event on EventDto {
+    type
+    data
   }
 `);

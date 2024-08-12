@@ -17,6 +17,8 @@ const Column = styled(Box, transientOptions)<{ $showAfter: boolean }>`
   background-color: rgba(0, 0, 0, 0.1);
   width: 300px;
   position: relative;
+  flex-shrink: 0;
+  flex-grow: 0;
   &::after {
     content: '';
     display: ${props => (props.$showAfter ? 'block' : 'none')};
@@ -187,7 +189,7 @@ const KanbanColumn = <
       $showAfter={showAfter}
       ref={setNodeRef}
       {...attributes}
-      // @ts-expect-error
+      // @ts-expect-error .....
       style={style}
     >
       {renderColumn({
@@ -196,17 +198,27 @@ const KanbanColumn = <
         isActive,
         sortableData: { setActivatorNodeRef, listeners },
         children: (
-          <Stack spacing={2} sx={{ p: 1 }}>
-            <SortableContext items={itemsIds}>
-              {items.map(item =>
-                isGroup(item) ? (
-                  <KanbanGroup group={item as Group} key={`group_${item.id}`} />
-                ) : (
-                  <KanbanCard card={item as Card} key={`card_${item.id}`} />
-                ),
-              )}
-            </SortableContext>
-          </Stack>
+          <Box
+            sx={{
+              overflowY: 'auto',
+              overflowX: 'visible',
+            }}
+          >
+            <Stack spacing={2} sx={{ p: 1 }}>
+              <SortableContext items={itemsIds}>
+                {items.map(item =>
+                  isGroup(item) ? (
+                    <KanbanGroup
+                      group={item as Group}
+                      key={`group_${item.id}`}
+                    />
+                  ) : (
+                    <KanbanCard card={item as Card} key={`card_${item.id}`} />
+                  ),
+                )}
+              </SortableContext>
+            </Stack>
+          </Box>
         ),
       })}
     </Column>

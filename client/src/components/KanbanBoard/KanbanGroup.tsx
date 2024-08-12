@@ -181,9 +181,9 @@ const KanbanGroup = <Group extends SortableType, Card extends SortableType>({
         ref={setNodeRef}
         style={style}
         sx={{
-          width: 280,
+          width: '100%',
           position: 'relative',
-          minHeight: '250px',
+          // minHeight: '250px',
           display: 'flex',
           flexDirection: 'column',
         }}

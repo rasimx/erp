@@ -298,6 +298,21 @@ export class ProductBatchGroupRepository extends Repository<ProductBatchGroupEnt
       })),
     }));
   }
+  async findById(id: number): Promise<ProductBatchGroupEntity> {
+    const entity = await this.findOneOrFail({
+      where: { id },
+      relations: ['productBatchList', 'productBatchList.product', 'status'],
+    });
+
+    return {
+      ...entity,
+      productBatchList: entity.productBatchList.map(batch => ({
+        ...batch,
+        volume: batch.volume,
+        weight: batch.weight,
+      })),
+    };
+  }
 }
 
 export const ProductBatchGroupRepositoryProvider = {
