@@ -8,11 +8,13 @@ import { JwtGrpcGuard } from '@/auth/guard/jwt-grpc.guard.js';
 import { RolesGuard } from '@/auth/guard/roles.guard.js';
 import { JwtStrategy } from '@/auth/strategy/jwt.strategy.js';
 import { JwtGrpcStrategy } from '@/auth/strategy/jwt-grpc.strategy.js';
+import { AppConfigModule } from '@/config/app/config.module.js';
 import { AuthConfigModule } from '@/config/auth/config.module.js';
 import { AuthConfigService } from '@/config/auth/config.service.js';
 
 @Module({
   imports: [
+    AppConfigModule,
     HttpModule,
     PassportModule,
     AuthConfigModule,

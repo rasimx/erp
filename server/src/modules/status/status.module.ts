@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { CqrsModule } from '@nestjs/cqrs';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
+import { AppConfigModule } from '@/config/app/config.module.js';
 import { EventStoreModule } from '@/event-store/event-store.module.js';
 import { CreateStatusHandler } from '@/status/commands/handlers/create-status.handler.js';
 import { MoveStatusHandler } from '@/status/commands/handlers/move-status.handler.js';
@@ -17,6 +18,7 @@ import { StatusService } from './status.service.js';
 @Module({
   imports: [
     TypeOrmModule.forFeature([StatusEntity]),
+    AppConfigModule,
     CqrsModule,
     EventStoreModule,
   ],

@@ -29,4 +29,7 @@ export class AppConfigService {
   get jsonConfig(): JsonConfig {
     return this.configService.get('json');
   }
+  get isDev(): boolean {
+    return ['development', 'dev'].includes(this.configService.get('app.env'));
+  }
 }

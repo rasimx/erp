@@ -2,6 +2,7 @@ import { forwardRef, Module } from '@nestjs/common';
 import { CqrsModule } from '@nestjs/cqrs';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
+import { AppConfigModule } from '@/config/app/config.module.js';
 import { ContextModule } from '@/context/context.module.js';
 import { EventStoreModule } from '@/event-store/event-store.module.js';
 import { Microservices } from '@/microservices/microservices.js';
@@ -21,6 +22,7 @@ import { GetProductBatchGroupListHandler } from './queries/handlers/get-product-
 
 @Module({
   imports: [
+    AppConfigModule,
     TypeOrmModule.forFeature([ProductBatchGroupEntity]),
     Microservices,
     ProductModule,
