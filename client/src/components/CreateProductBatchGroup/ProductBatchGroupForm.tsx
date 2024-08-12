@@ -15,9 +15,7 @@ import {
   Typography,
 } from '@mui/material';
 import TextField from '@mui/material/TextField';
-import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { format, parse } from 'date-fns';
 import { FormikErrors, FormikProps, withFormik } from 'formik';
 import { FormikBag } from 'formik/dist/withFormik';
@@ -94,17 +92,15 @@ const Form: FC<Props & FormikProps<FormValues>> = props => {
         onChange={props.handleChange}
         sx={{ mb: 2, mt: 2 }}
       />
-      <LocalizationProvider dateAdapter={AdapterDateFns}>
-        <DatePicker
-          sx={{ mb: 2 }}
-          label="Дата"
-          format="yyyy-MM-dd"
-          value={date ? parse(date, 'yyyy-MM-dd', new Date()) : null}
-          onChange={value => {
-            setDate(value ? format(value, 'yyyy-MM-dd') : undefined);
-          }}
-        />
-      </LocalizationProvider>
+      <DatePicker
+        sx={{ mb: 2 }}
+        label="Дата"
+        format="yyyy-MM-dd"
+        value={date ? parse(date, 'yyyy-MM-dd', new Date()) : null}
+        onChange={value => {
+          setDate(value ? format(value, 'yyyy-MM-dd') : undefined);
+        }}
+      />
       <Button
         variant="contained"
         onClick={() =>

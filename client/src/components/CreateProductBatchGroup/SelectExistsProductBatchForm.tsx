@@ -1,6 +1,6 @@
 import NiceModal from '@ebay/nice-modal-react';
 import { Autocomplete, Box, Button, Typography } from '@mui/material';
-import Grid from '@mui/material/Grid';
+import Grid from '@mui/material/Grid2';
 import Step from '@mui/material/Step';
 import StepLabel from '@mui/material/StepLabel';
 import Stepper from '@mui/material/Stepper';
@@ -149,7 +149,7 @@ const Form: FC<Props & FormikProps<FormValues>> = ({
                 return (
                   <Box sx={{ p: 2 }}>
                     <Grid container spacing={2}>
-                      <Grid xs={6}>
+                      <Grid size={6}>
                         <Autocomplete
                           fullWidth
                           options={productList}
@@ -179,7 +179,7 @@ const Form: FC<Props & FormikProps<FormValues>> = ({
                           )}
                         />
                       </Grid>
-                      <Grid xs={6}>
+                      <Grid size={6}>
                         Вы должны выбрать товар, который хотите добавить в
                         группу
                       </Grid>
@@ -189,7 +189,7 @@ const Form: FC<Props & FormikProps<FormValues>> = ({
               case 1:
                 return (
                   <Grid container spacing={2}>
-                    <Grid xs={6}>
+                    <Grid size={6}>
                       {values.product ? (
                         <SelectProductBatch
                           valueId={values.productBatch?.id}
@@ -203,7 +203,7 @@ const Form: FC<Props & FormikProps<FormValues>> = ({
                         'не выбран товар'
                       )}
                     </Grid>
-                    <Grid xs={6}>
+                    <Grid size={6}>
                       Вы можете выбрать исходную партию, из которой нужно
                       перенести товары в новую партию
                     </Grid>

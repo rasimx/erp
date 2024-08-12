@@ -93,12 +93,12 @@ export const ProductBatchCard = React.memo<Props>(props => {
   }, [productBatchInfoDrawer, card]);
 
   const listItems = [
-    {
-      label: 'order',
-      value: card.order,
-    },
-    { label: 'ID', value: card.id },
-    { label: 'productID', value: card.product.id },
+    // {
+    //   label: 'order',
+    //   value: card.order,
+    // },
+    // { label: 'ID', value: card.id },
+    // { label: 'productID', value: card.product.id },
     { label: 'SKU', value: card.product.sku },
     { label: 'количество, шт', value: card.count },
     { label: 'цена закупки 1 шт, р.', value: toRouble(card.costPricePerUnit) },
@@ -116,10 +116,10 @@ export const ProductBatchCard = React.memo<Props>(props => {
         (card.operationsPricePerUnit + card.costPricePerUnit) * card.count,
       ),
     },
-    {
-      label: 'продано',
-      value: aa?.count ?? 0,
-    },
+    // {
+    //   label: 'продано',
+    //   value: aa?.count ?? 0,
+    // },
   ];
 
   return (
@@ -197,7 +197,7 @@ export const ProductBatchCard = React.memo<Props>(props => {
             </Menu>
           </Box>
           <CardContent>
-            <Box sx={{ fontWeight: 600, pb: 2 }}>{card.product.name}</Box>
+            {/*<Box sx={{ fontWeight: 600, pb: 2 }}>{card.product.name}</Box>*/}
             <Box sx={{ fontSize: 12 }}>
               {listItems.map((item, index) => (
                 <Box

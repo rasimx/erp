@@ -71,7 +71,7 @@ export const StoreStateProvider: FC<Props> = props => {
     ) {
       import('remoteOzon/full-state.api').then(({ fetchFullState }) => {
         fetchFullState({
-          storeId: 1114008,
+          storeId: status.storeId,
           items: mapItems.map(({ baseProductId, productBatches }) => ({
             baseProductId,
             fromProductBatchId: productBatches.length

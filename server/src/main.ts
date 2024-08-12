@@ -21,12 +21,8 @@ async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     httpsOptions: ssl
       ? {
-          key: fs.readFileSync(
-            getPathRelativeToRoot('server/certs/local-key.pem'),
-          ),
-          cert: fs.readFileSync(
-            getPathRelativeToRoot('server/certs/local-cert.pem'),
-          ),
+          key: fs.readFileSync('/etc/ssl/certs/tls.key'),
+          cert: fs.readFileSync('/etc/ssl/certs/tls.crt'),
         }
       : undefined,
   });

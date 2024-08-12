@@ -22,15 +22,20 @@ export default defineConfig({
       exposes: {
         './App': './src/App',
         './apolloClient': './src/apollo-client/index',
+        './menu': './src/menu',
       },
       shared: [
         'react',
         'react-dom',
         '@apollo/client',
         '@mui/material',
-        // 'react-router-dom',
+        '@mui/x-date-pickers',
+        '@mui/icons-material',
+        '@emotion/react',
+        '@emotion/styled',
         'react-redux',
         'react-use-disclosure',
+        // 'react-router-dom',
       ],
     }),
 
@@ -44,6 +49,8 @@ export default defineConfig({
         'react-dom',
         '@apollo/client',
         '@mui/material',
+        '@emotion/react',
+        '@emotion/styled',
         'react-redux',
         'react-use-disclosure',
       ],
@@ -59,7 +66,15 @@ export default defineConfig({
     outDir: `dist`,
     rollupOptions: {
       input: '/src/main.tsx',
+      // external: ['react', 'react-dom'],
+      // output: {
+      //   globals: {
+      //     react: 'React',
+      //     'react-dom': 'ReactDOM',
+      //   },
+      // },
     },
+    // sourcemap: 'inline',
   },
   server: {
     proxy: {

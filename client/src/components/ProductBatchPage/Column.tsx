@@ -5,6 +5,7 @@ import { IconButton, Menu, MenuItem, Paper, Typography } from '@mui/material';
 import Box from '@mui/material/Box';
 import omit from 'lodash/omit';
 import React, { useCallback } from 'react';
+import { Link } from 'react-router-dom';
 
 import { ProductBatch } from '../../api/product-batch/product-batch.gql';
 import { useProductBatchMutations } from '../../api/product-batch/product-batch.hook';
@@ -134,7 +135,8 @@ export const Column = React.memo<Props>(props => {
                 id="modal-modal-title"
                 variant="h6"
                 fontSize={14}
-                component="h2"
+                component={Link}
+                to={`/status/${status.id}`}
                 sx={{ flexGrow: 1 }}
               >
                 {status.title}

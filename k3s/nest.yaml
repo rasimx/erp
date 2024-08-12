@@ -29,8 +29,14 @@ spec:
             - name: json-config
               mountPath: /app/config.json
               subPath: config.json
+            - name: tls-certs
+              mountPath: "/etc/ssl/certs"
+              readOnly: true
       volumes:
         - name: json-config
           configMap:
             name: json-config-erp
             defaultMode: 511
+        - name: tls-certs
+          secret:
+            secretName: tls-secret

@@ -2,6 +2,8 @@ import { ApolloProvider } from '@apollo/client';
 import NiceModal from '@ebay/nice-modal-react';
 import { createTheme, ThemeProvider } from '@mui/material';
 import CssBaseline from '@mui/material/CssBaseline';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFnsV3';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { SnackbarProvider } from 'notistack';
 import React, { FC } from 'react';
 import { CookiesProvider } from 'react-cookie';
@@ -38,10 +40,12 @@ const App: FC<Props> = ({ basename }) => {
         <SnackbarProvider maxSnack={3}>
           <ReduxProvider store={reduxStore}>
             <ThemeProvider theme={theme}>
-              <NiceModal.Provider>
-                <CssBaseline />
-                <RouterProvider router={createRouter(basename)} />
-              </NiceModal.Provider>
+              <LocalizationProvider dateAdapter={AdapterDateFns}>
+                <NiceModal.Provider>
+                  <CssBaseline />
+                  <RouterProvider router={createRouter(basename)} />
+                </NiceModal.Provider>
+              </LocalizationProvider>
             </ThemeProvider>
           </ReduxProvider>
         </SnackbarProvider>

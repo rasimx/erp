@@ -14,20 +14,12 @@ import {
   TextField,
   Tooltip,
 } from '@mui/material';
-import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { format, parse } from 'date-fns';
 import { FormikErrors, FormikProps, withFormik } from 'formik';
 import { FormikBag } from 'formik/dist/withFormik';
 import pick from 'lodash/pick';
-import React, {
-  type FC,
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react';
+import React, { type FC, useCallback, useEffect, useMemo } from 'react';
 import { array, mixed, number, object, ObjectSchema, string } from 'yup';
 
 // import { ProportionType } from '@/gql-types/graphql';
@@ -300,23 +292,21 @@ const Form: FC<Props & FormikProps<CreateOperationDto>> = props => {
         error={touched.cost && Boolean(errors.cost)}
       />
 
-      <LocalizationProvider dateAdapter={AdapterDateFns}>
-        <DatePicker
-          format="yyyy-MM-dd"
-          sx={{ mt: 1 }}
-          value={
-            values.date ? parse(values.date, 'yyyy-MM-dd', new Date()) : null
-          }
-          // error={touched.date && Boolean(errors.date)}
-          // onBlur={handleBlur}
-          onChange={value => {
-            setFieldValue(
-              'date',
-              value ? format(value, 'yyyy-MM-dd') : undefined,
-            );
-          }}
-        />
-      </LocalizationProvider>
+      <DatePicker
+        format="yyyy-MM-dd"
+        sx={{ mt: 1 }}
+        value={
+          values.date ? parse(values.date, 'yyyy-MM-dd', new Date()) : null
+        }
+        // error={touched.date && Boolean(errors.date)}
+        // onBlur={handleBlur}
+        onChange={value => {
+          setFieldValue(
+            'date',
+            value ? format(value, 'yyyy-MM-dd') : undefined,
+          );
+        }}
+      />
       <div>
         {productBatches.length > 1 && (
           <TableContainer component={Paper} sx={{ mt: 2 }}>
