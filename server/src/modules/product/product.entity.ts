@@ -3,10 +3,14 @@ import {
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
+  OneToMany,
   PrimaryGeneratedColumn,
   Unique,
   UpdateDateColumn,
 } from 'typeorm';
+
+import { ProductSetClosureEntity } from '@/product/product-set-closure.entity.js';
+import { ProductBatchOperationEntity } from '@/product-batch-operation/product-batch-operation.entity.js';
 
 @Entity({ name: 'product' })
 @Unique(['sku'])
@@ -37,6 +41,12 @@ export class ProductEntity {
 
   @Column()
   weight: number; // в граммах
+
+  @OneToMany(() => ProductSetClosureEntity, entity => entity.set)
+  setItems: ProductSetClosureEntity[];
+
+  @OneToMany(() => ProductSetClosureEntity, entity => entity.product)
+  inSets: ProductSetClosureEntity[];
 
   @CreateDateColumn()
   createdAt: Date;
