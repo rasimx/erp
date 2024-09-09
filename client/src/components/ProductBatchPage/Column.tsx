@@ -11,8 +11,10 @@ import { useProductBatchMutations } from '../../api/product-batch/product-batch.
 import { ProductBatchGroup } from '../../api/product-batch-group/product-batch-group.gql';
 import { useProductBatchGroupMutations } from '../../api/product-batch-group/product-batch-group.hook';
 import { StatusFragment } from '../../gql-types/graphql';
-import CreateProductBatchForm from '../CreateProductBatch/ProductBatchForm';
-import CreateProductBatchGroupForm from '../CreateProductBatchGroup/ProductBatchGroupForm';
+import { CreateProductBatchModal } from '../CreateProductBatch/CreateProductBatchForm';
+import { CreateProductBatchesByAssemblingModal } from '../CreateProductBatchesByAssembling/modal';
+import { CreateProductBatchesFromSourcesModal } from '../CreateProductBatchesFromSources/modal';
+import { ProductBatchGroupModal } from '../CreateProductBatchGroup/ProductBatchGroupForm';
 import { ColumnProps } from '../KanbanBoard/types';
 import { StoreStateProvider } from '../StoreState';
 
@@ -41,7 +43,7 @@ export const Column = React.memo<Props>(props => {
     setAnchorEl(null);
   };
 
-  const createProductBatchGroupModal = useModal(CreateProductBatchGroupForm);
+  const createProductBatchGroupModal = useModal(ProductBatchGroupModal);
   const showCreateProductBatchGroupModal = useCallback(() => {
     createProductBatchGroupModal.show({
       groupStatus: status,
@@ -52,6 +54,7 @@ export const Column = React.memo<Props>(props => {
           existProductBatchIds: values.existProductBatches.map(
             ({ productBatch }) => productBatch.id,
           ),
+          // @ts-ignore
           newProductBatches: values.newProductBatches.map(item => ({
             ...omit(item, 'product', 'statusId'),
             productId: item.product.id,
@@ -59,7 +62,6 @@ export const Column = React.memo<Props>(props => {
         })
           .then(result => {
             refetch();
-            debugger;
             createProductBatchGroupModal.hide();
             return result;
           })
@@ -71,23 +73,78 @@ export const Column = React.memo<Props>(props => {
     });
     handleClose();
   }, [status]);
-  const createProductBatchModal = useModal(CreateProductBatchForm);
+
+  const createProductBatchModal = useModal(CreateProductBatchModal);
   const showCreateProductBatchModal = useCallback(() => {
     createProductBatchModal.show({
-      initialValues: {},
+      initialValues: {
+        statusId: status.id,
+      },
       onSubmit: async values => {
-        createProductBatch({
-          ...omit(values, ['product']),
-          productId: values.product.id,
-          statusId: status.id,
-          groupId: null,
-        })
-          .then(result => {
-            refetch();
-          })
-          .catch(err => {
-            alert('ERROR');
-          });
+        // createProductBatch({
+        //   ...omit(values, ['product']),
+        //   productId: values.product.id,
+        //   statusId: status.id,
+        //   groupId: null,
+        // })
+        //   .then(result => {
+        //     refetch();
+        //   })
+        //   .catch(err => {
+        //     alert('ERROR');
+        //   });
+      },
+    });
+    handleClose();
+  }, [status]);
+
+  const createProductBatchesByAssemblingModal = useModal(
+    CreateProductBatchesByAssemblingModal,
+  );
+  const showCreateProductBatchesByAssemblingModal = useCallback(() => {
+    createProductBatchesByAssemblingModal.show({
+      initialValues: {
+        statusId: status.id,
+      },
+      onSubmit: async values => {
+        // createProductBatch({
+        //   ...omit(values, ['product']),
+        //   productId: values.product.id,
+        //   statusId: status.id,
+        //   groupId: null,
+        // })
+        //   .then(result => {
+        //     refetch();
+        //   })
+        //   .catch(err => {
+        //     alert('ERROR');
+        //   });
+      },
+    });
+    handleClose();
+  }, [status]);
+
+  const createProductBatchesFromSourcesModal = useModal(
+    CreateProductBatchesFromSourcesModal,
+  );
+  const showCreateProductBatchesFromSourcesModal = useCallback(() => {
+    createProductBatchesFromSourcesModal.show({
+      initialValues: {
+        statusId: status.id,
+      },
+      onSubmit: async values => {
+        // createProductBatch({
+        //   ...omit(values, ['product']),
+        //   productId: values.product.id,
+        //   statusId: status.id,
+        //   groupId: null,
+        // })
+        //   .then(result => {
+        //     refetch();
+        //   })
+        //   .catch(err => {
+        //     alert('ERROR');
+        //   });
       },
     });
     handleClose();
@@ -164,11 +221,17 @@ export const Column = React.memo<Props>(props => {
                 open={open}
                 onClose={handleClose}
               >
+                <MenuItem onClick={showCreateProductBatchModal}>
+                  Добавить партию товаров
+                </MenuItem>
                 <MenuItem onClick={showCreateProductBatchGroupModal}>
                   Добавить группу
                 </MenuItem>
-                <MenuItem onClick={showCreateProductBatchModal}>
-                  Добавить партию
+                <MenuItem onClick={showCreateProductBatchesFromSourcesModal}>
+                  Перенос товаров
+                </MenuItem>
+                <MenuItem onClick={showCreateProductBatchesByAssemblingModal}>
+                  Собрать комбо-товары
                 </MenuItem>
               </Menu>
             </Box>

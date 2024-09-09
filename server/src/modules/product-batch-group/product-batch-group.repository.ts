@@ -270,6 +270,8 @@ export class ProductBatchGroupRepository extends Repository<ProductBatchGroupEnt
     let query = this.createQueryBuilder('pbg')
       .leftJoinAndSelect('pbg.productBatchList', 'productBatchList')
       .leftJoinAndSelect('productBatchList.product', 'product')
+      .leftJoinAndSelect('product.setItems', 'setItems')
+      .leftJoinAndSelect('setItems.product', 'setItemsProduct')
       .leftJoinAndSelect('pbg.status', 'status')
       .where('pbg.deleted_date is null');
 
@@ -295,6 +297,13 @@ export class ProductBatchGroupRepository extends Repository<ProductBatchGroupEnt
         ...batch,
         volume: batch.volume,
         weight: batch.weight,
+        product: {
+          ...batch.product,
+          setItems: batch.product.setItems.map(item => ({
+            ...item,
+            ...item.product,
+          })),
+        },
       })),
     }));
   }

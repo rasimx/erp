@@ -1,26 +1,19 @@
 import { SyntheticListenerMap } from '@dnd-kit/core/dist/hooks/utilities/useSyntheticListeners';
 import { useModal } from '@ebay/nice-modal-react';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
-import OpenWithIcon from '@mui/icons-material/OpenWith';
 import { IconButton, Menu, MenuItem, Typography } from '@mui/material';
 import Box from '@mui/material/Box';
-import omit from 'lodash/omit';
 import React, { useCallback } from 'react';
 
+import { Product } from '../../api/product/product.gql';
 import { useProductBatchMutations } from '../../api/product-batch/product-batch.hook';
-import { useProductBatchGroupMutations } from '../../api/product-batch-group/product-batch-group.hook';
-import {
-  ProductBatchFragment,
-  ProductFragment,
-  StatusFragment,
-} from '../../gql-types/graphql';
-import CreateProductBatchForm from '../CreateProductBatch/ProductBatchForm';
-import ProductBatchModal from '../CreateProductBatch/ProductBatchModal';
-import CreateProductBatchGroupForm from '../CreateProductBatchGroup/ProductBatchGroupForm';
+import { ProductBatchFragment, StatusFragment } from '../../gql-types/graphql';
+// import CreateProductBatchForm from '../CreateProductBatch/ProductBatchForm';
+import ProductBatchModal from '../CreateProductBatch/SelectProductBatch';
 
 export interface Props {
   status: StatusFragment;
-  product: ProductFragment;
+  product: Product;
   sortableData?: {
     listeners?: SyntheticListenerMap;
     setActivatorNodeRef: (element: HTMLElement | null) => void;
@@ -40,27 +33,27 @@ export const ColumnHeader = React.memo<Props>(props => {
     setAnchorEl(null);
   };
 
-  const createProductBatchModal = useModal(CreateProductBatchForm);
+  // const createProductBatchModal = useModal(CreateProductBatchForm);
   const showCreateProductBatchModal = useCallback(() => {
-    createProductBatchModal.show({
-      initialValues: {
-        product,
-      },
-      onSubmit: async values => {
-        createProductBatch({
-          ...omit(values, ['product']),
-          productId: values.product.id,
-          statusId: status.id,
-          groupId: null,
-        })
-          .then(result => {
-            // refetch();
-          })
-          .catch(err => {
-            alert('ERROR');
-          });
-      },
-    });
+    // createProductBatchModal.show({
+    //   initialValues: {
+    //     product,
+    //   },
+    //   onSubmit: async values => {
+    //     createProductBatch({
+    //       ...omit(values, ['product']),
+    //       productId: values.product.id,
+    //       statusId: status.id,
+    //       groupId: null,
+    //     })
+    //       .then(result => {
+    //         // refetch();
+    //       })
+    //       .catch(err => {
+    //         alert('ERROR');
+    //       });
+    //   },
+    // });
     handleClose();
   }, [status]);
 

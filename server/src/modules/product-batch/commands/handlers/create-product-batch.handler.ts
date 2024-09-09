@@ -3,9 +3,8 @@ import { InjectDataSource } from '@nestjs/typeorm';
 
 import { ContextService } from '@/context/context.service.js';
 import type { CustomDataSource } from '@/database/custom.data-source.js';
-import { OzonPostingProductMicroservice } from '@/microservices/erp_ozon/ozon-posting-product-microservice.service.js';
 import { CreateProductBatchCommand } from '@/product-batch/commands/impl/create-product-batch.command.js';
-import { ProductBatchEventStore } from '@/product-batch/product-batch.eventstore.js';
+import { ProductBatchEventStore } from '@/product-batch/eventstore/product-batch.eventstore.js';
 import { ProductBatchRepository } from '@/product-batch/product-batch.repository.js';
 import { ProductBatchService } from '@/product-batch/product-batch.service.js';
 
@@ -36,32 +35,30 @@ export class CreateProductBatchHandler
         this.productBatchRepository,
       );
 
-      const entity = await productBatchRepository.createFromDto(dto);
-      const affectedIds: number[] = [entity.id];
-
-      if (entity.parentId) affectedIds.push(entity.parentId);
+      const affectedIds: number[] = [];
+      const newEntity = await productBatchRepository.createNew(dto);
+      affectedIds.push(newEntity.id);
 
       await this.productBatchService.relinkPostings({
         queryRunner,
         affectedIds,
       });
 
-      await this.productBatchEventStore.createProductBatch({
-        eventId: requestId,
-        productBatchId: entity.id,
-        dto,
-      });
-      if (dto.parentId) {
-        // todo: если вдруг второй ивент упадет с ошибкой. нужно предыдущее отменить
-        await this.productBatchEventStore.moveProductBatchItems({
+      const { appendResult, cancel } =
+        await this.productBatchEventStore.appendProductBatchCreatedEvent({
           eventId: requestId,
-          dto: {
-            donorId: dto.parentId,
-            count: dto.count,
-            recipientId: entity.id,
+          data: {
+            id: newEntity.id,
+            count: newEntity.count,
+            productId: newEntity.productId,
+            groupId: newEntity.groupId,
+            operationsPrice: newEntity.operationsPrice,
+            operationsPricePerUnit: newEntity.operationsPricePerUnit,
+            statusId: newEntity.statusId,
+            costPricePerUnit: newEntity.costPricePerUnit,
           },
         });
-      }
+      if (!appendResult.success) throw new Error('????');
 
       await queryRunner.commitTransaction();
     } catch (err) {

@@ -9,16 +9,21 @@ import type {
   EventData,
   EventType,
 } from '@eventstore/db-client/dist/types/index.js';
+import { v4 as uuidv4 } from 'uuid';
 
 import { getEnv, type JSONCompatible } from '@/common/helpers/utils.js';
 import type { ContextService } from '@/context/context.service.js';
 import type { CreateProductBatchDto } from '@/product-batch/dtos/create-product-batch.dto.js';
-import type { CreateProductBatchEvent } from '@/product-batch/product-batch.eventstore.js';
 
 export type UserEvent = JSONEventType<
   'CreateProductBatch',
   JSONCompatible<CreateProductBatchDto>
 >;
+
+const client = new EventStoreDBClient(
+  { endpoint: 'localhost:2113' },
+  { insecure: true },
+);
 
 export class EventStoreService extends EventStoreDBClient {
   // private readonly eventStore: EventStoreDBClient;
@@ -54,5 +59,23 @@ export class EventStoreService extends EventStoreDBClient {
     // await super.appendToStream(STREAM_NAME, event);
 
     return super.appendToStream(streamName, events, options);
+  }
+
+  // Функция для создания компенсирующего события
+  async appendTransactionCompensatingEvent(
+    streamName: string,
+    originalEvent: EventData<JSONEventType>,
+  ) {
+    const compensatingEvent = jsonEvent({
+      type: `${originalEvent.type}Rollback`,
+      data: {
+        ...(originalEvent.data as Record<string | number, unknown>),
+        originalEventId: originalEvent.id,
+        reason: 'Compensating for failed transaction',
+      },
+      id: uuidv4(),
+    });
+
+    await this.appendToStream(streamName, compensatingEvent);
   }
 }

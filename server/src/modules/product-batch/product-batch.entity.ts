@@ -4,6 +4,8 @@ import {
   DeleteDateColumn,
   Entity,
   JoinColumn,
+  JoinTable,
+  ManyToMany,
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
@@ -13,6 +15,8 @@ import {
 } from 'typeorm';
 
 import { ProductEntity } from '@/product/product.entity.js';
+import { ProductSetClosureEntity } from '@/product/product-set-closure.entity.js';
+import { ProductBatchClosureEntity } from '@/product-batch/product-batch-closure.entity.js';
 import { ProductBatchGroupEntity } from '@/product-batch-group/product-batch-group.entity.js';
 import { ProductBatchOperationEntity } from '@/product-batch-operation/product-batch-operation.entity.js';
 import { StatusEntity } from '@/status/status.entity.js';
@@ -27,9 +31,6 @@ export class ProductBatchEntity {
     default: () => "(current_setting('rls.user_id'))",
   })
   userId: number;
-
-  @Column()
-  name: string;
 
   @ManyToOne(() => ProductEntity, { cascade: ['insert'] })
   @JoinColumn()
@@ -58,6 +59,12 @@ export class ProductBatchEntity {
   @Column('integer', { nullable: true })
   parentId: number | null;
 
+  @OneToMany(() => ProductBatchClosureEntity, entity => entity.destination)
+  destinationsClosure: ProductBatchClosureEntity[];
+
+  @OneToMany(() => ProductBatchClosureEntity, entity => entity.source)
+  sourcesClosure: ProductBatchClosureEntity[];
+
   @ManyToOne(() => ProductBatchGroupEntity, { cascade: ['insert'] })
   @JoinColumn()
   group: Relation<ProductBatchGroupEntity> | null;
@@ -80,12 +87,6 @@ export class ProductBatchEntity {
 
   @Column()
   operationsPrice: number;
-
-  @Column('date')
-  date: string;
-
-  @Column({ default: '#fff' })
-  color: string;
 
   @CreateDateColumn()
   createdAt: Date;

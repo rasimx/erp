@@ -4,7 +4,7 @@ import { InjectDataSource } from '@nestjs/typeorm';
 import { ContextService } from '@/context/context.service.js';
 import type { CustomDataSource } from '@/database/custom.data-source.js';
 import { MoveProductBatchCommand } from '@/product-batch/commands/impl/move-product-batch.command.js';
-import { ProductBatchEventStore } from '@/product-batch/product-batch.eventstore.js';
+import { ProductBatchEventStore } from '@/product-batch/eventstore/product-batch.eventstore.js';
 import { ProductBatchRepository } from '@/product-batch/product-batch.repository.js';
 import { ProductBatchService } from '@/product-batch/product-batch.service.js';
 import { ProductBatchGroupRepository } from '@/product-batch-group/product-batch-group.repository.js';
@@ -66,10 +66,13 @@ export class MoveProductBatchHandler
       });
 
       // eventStore
-      await this.productBatchEventStore.moveProductBatch({
-        eventId: requestId,
-        dto,
-      });
+      const { appendResult } =
+        await this.productBatchEventStore.moveProductBatch({
+          eventId: requestId,
+          data: dto,
+        });
+
+      if (!appendResult.success) throw new Error('????');
 
       await queryRunner.commitTransaction();
     } catch (err) {

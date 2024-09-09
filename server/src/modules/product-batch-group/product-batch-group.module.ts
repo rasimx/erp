@@ -14,7 +14,7 @@ import { StatusModule } from '@/status/status.module.js';
 import { CreateProductBatchGroupHandler } from './commands/handlers/create-product-batch-group.handler.js';
 import { DeleteProductBatchGroupHandler } from './commands/handlers/delete-product-batch-group.handler.js';
 import { MoveProductBatchGroupHandler } from './commands/handlers/move-product-batch-group.handler.js';
-import { ProductBatchGroupEventStore } from './prodict-batch-group.eventstore.js';
+import { ProductBatchGroupEventStore } from './eventstore/prodict-batch-group.eventstore.js';
 import { ProductBatchGroupEntity } from './product-batch-group.entity.js';
 import { ProductBatchGroupRepositoryProvider } from './product-batch-group.repository.js';
 import { ProductBatchGroupResolver } from './product-batch-group.resolver.js';

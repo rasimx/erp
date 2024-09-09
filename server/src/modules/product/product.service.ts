@@ -3,8 +3,6 @@ import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
 import { type FindOptionsWhere, In, Repository } from 'typeorm';
 
 import type { CustomDataSource } from '@/database/custom.data-source.js';
-import type { CreateProductResponse } from '@/graphql.schema.js';
-import type { CreateProductDto } from '@/product/dtos/create-product.dto.js';
 import { ProductListDto } from '@/product/dtos/product-list.dto.js';
 import {
   ProductEntity,
@@ -85,8 +83,38 @@ export class ProductService {
     }
     const [items, totalCount] = await this.repository.findAndCount({
       where,
+      relations: ['setItems', 'setItems.product'],
     });
-    return { items, totalCount };
+    return {
+      items: items.map(item => ({
+        ...item,
+        setItems: item.setItems.map(setItem => ({
+          ...setItem,
+          ...setItem.product,
+        })),
+      })),
+      totalCount,
+    };
+  }
+
+  async productSetList(): Promise<ProductListDto> {
+    const [items, totalCount] = await this.repository
+      .createQueryBuilder('p')
+      .leftJoinAndSelect('p.setItems', 'setItems')
+      .leftJoinAndSelect('setItems.product', 'setItemsProduct')
+      .where('setItems.id is not null')
+      .getManyAndCount();
+
+    return {
+      items: items.map(item => ({
+        ...item,
+        setItems: item.setItems.map(setItem => ({
+          ...setItem,
+          ...setItem.product,
+        })),
+      })),
+      totalCount,
+    };
   }
 
   // async createProduct(dto: CreateProductDto): Promise<CreateProductResponse> {

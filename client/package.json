@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "pnpm run --parallel /:watch$/",
+    "dev": "pnpm run dev:watch & pnpm run codegen:watch",
     "dev:watch": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
@@ -24,6 +24,7 @@
     "@emotion/react": "^11.11.0",
     "@emotion/styled": "^11.11.0",
     "@graphql-typed-document-node/core": "^3.2.0",
+    "@mui/base": "5.0.0-beta.40",
     "@mui/icons-material": "^5.15.20",
     "@mui/material": "6.0.0-beta.5",
     "@mui/x-charts": "^6.19.8",
@@ -49,6 +50,9 @@
     "lodash": "^4.17.21",
     "match-sorter": "^6.3.4",
     "notistack": "^3.0.1",
+    "primeflex": "^3.3.1",
+    "primeicons": "^7.0.0",
+    "primereact": "^10.8.2",
     "react": "18.3.1",
     "react-cookie": "^7.1.4",
     "react-dnd": "^16.0.1",
@@ -63,7 +67,8 @@
     "use-debounce": "^10.0.1",
     "use-immer": "^0.10.0",
     "usehooks-ts": "^2.16.0",
-    "yup": "^1.4.0"
+    "yup": "^1.4.0",
+    "server": "workspace:*"
   },
   "devDependencies": {
     "@0no-co/graphqlsp": "^1.12.8",

@@ -20,6 +20,12 @@ export class ProductResolver {
   ): Promise<ProductListDto> {
     return this.service.productList(ids);
   }
+
+  @Query(() => ProductListDto)
+  async productSetList(): Promise<ProductListDto> {
+    return this.service.productSetList();
+  }
+
   @Mutation(() => ProductDto)
   async createProduct(
     @Args('input', { type: () => CreateProductDto }) dto: CreateProductDto,

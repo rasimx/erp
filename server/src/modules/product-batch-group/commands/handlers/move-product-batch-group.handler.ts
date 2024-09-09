@@ -6,7 +6,7 @@ import type { CustomDataSource } from '@/database/custom.data-source.js';
 import { ProductBatchRepository } from '@/product-batch/product-batch.repository.js';
 import { ProductBatchService } from '@/product-batch/product-batch.service.js';
 import { MoveProductBatchGroupCommand } from '@/product-batch-group/commands/impl/move-product-batch-group.command.js';
-import { ProductBatchGroupEventStore } from '@/product-batch-group/prodict-batch-group.eventstore.js';
+import { ProductBatchGroupEventStore } from '@/product-batch-group/eventstore/prodict-batch-group.eventstore.js';
 import { ProductBatchGroupRepository } from '@/product-batch-group/product-batch-group.repository.js';
 
 @CommandHandler(MoveProductBatchGroupCommand)
@@ -57,7 +57,7 @@ export class MoveProductBatchGroupHandler
       });
 
       // eventStore
-      await this.productBatchGroupEventStore.moveProductBatchGroup({
+      await this.productBatchGroupEventStore.appendProductBatchGroupMovedEvent({
         eventId: requestId,
         dto,
       });

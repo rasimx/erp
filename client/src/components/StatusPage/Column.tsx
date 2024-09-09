@@ -3,15 +3,15 @@ import { Card, Stack } from '@mui/material';
 import Box from '@mui/material/Box';
 import React, { type FC } from 'react';
 
+import { Product } from '../../api/product/product.gql';
 import { ProductBatch } from '../../api/product-batch/product-batch.gql';
-import { ProductFragment, StatusFragment } from '../../gql-types/graphql';
-import { toRouble } from '../../utils';
+import { StatusFragment } from '../../gql-types/graphql';
 import { ProductBatchCard } from '../ProductBatchPage/ProductBatchCard';
 import { useStoreStateByProductId } from '../StoreState';
 import ColumnHeader from './ColumnHeader';
 
 export type A = {
-  product: ProductFragment;
+  product: Product;
   productBatchList: ProductBatch[];
 };
 

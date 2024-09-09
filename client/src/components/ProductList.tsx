@@ -2,8 +2,8 @@ import { Card, Stack } from '@mui/material';
 import React, { type FC } from 'react';
 import { Link } from 'react-router-dom';
 
+import { Product } from '../api/product/product.gql';
 import { useProductList } from '../api/product/product.hooks';
-import { ProductFragment } from '../gql-types/graphql';
 
 export interface Props {}
 
@@ -12,7 +12,7 @@ const ProductList: FC<Props> = ({}) => {
 
   return (
     <Stack spacing={2} sx={{ p: 1 }}>
-      {productList.map((product: ProductFragment) => (
+      {productList.map((product: Product) => (
         <Card
           elevation={3}
           component={Link}

@@ -5,12 +5,12 @@ import { In } from 'typeorm';
 
 import { ContextService } from '@/context/context.service.js';
 import type { CustomDataSource } from '@/database/custom.data-source.js';
+import { ProductBatchEventStore } from '@/product-batch/eventstore/product-batch.eventstore.js';
 import { ProductBatchEntity } from '@/product-batch/product-batch.entity.js';
-import { ProductBatchEventStore } from '@/product-batch/product-batch.eventstore.js';
 import { ProductBatchRepository } from '@/product-batch/product-batch.repository.js';
 import { ProductBatchService } from '@/product-batch/product-batch.service.js';
 import { CreateProductBatchGroupCommand } from '@/product-batch-group/commands/impl/create-product-batch-group.command.js';
-import { ProductBatchGroupEventStore } from '@/product-batch-group/prodict-batch-group.eventstore.js';
+import { ProductBatchGroupEventStore } from '@/product-batch-group/eventstore/prodict-batch-group.eventstore.js';
 import { ProductBatchGroupRepository } from '@/product-batch-group/product-batch-group.repository.js';
 import { StatusRepository } from '@/status/status.repository.js';
 
@@ -51,24 +51,24 @@ export class CreateProductBatchGroupHandler
 
       const allAffectedIds: number[] = [];
       const newProductBatches: ProductBatchEntity[] = [];
-      if (dto.newProductBatches.length) {
-        for (const item of dto.newProductBatches) {
-          newProductBatches.push(
-            await productBatchRepository.createFromDto({
-              ...item,
-              groupId: newEntity.id,
-              statusId: null,
-            }),
-          );
-        }
-        allAffectedIds.push(
-          ...newProductBatches.flatMap(({ id, parentId }) => {
-            const affectedIds = [id];
-            if (parentId) affectedIds.push(parentId);
-            return affectedIds;
-          }),
-        );
-      }
+      // if (dto.newProductBatches.length) {
+      //   for (const item of dto.newProductBatches) {
+      //     newProductBatches.push(
+      //       await productBatchRepository.createFromDto({
+      //         ...item,
+      //         groupId: newEntity.id,
+      //         statusId: null,
+      //       }),
+      //     );
+      //   }
+      //   allAffectedIds.push(
+      //     ...newProductBatches.flatMap(({ id, parentId }) => {
+      //       const affectedIds = [id];
+      //       if (parentId) affectedIds.push(parentId);
+      //       return affectedIds;
+      //     }),
+      //   );
+      // }
       newEntity.productBatchList = newProductBatches;
       newEntity = await productBatchGroupRepository.save(newEntity);
 
@@ -106,17 +106,20 @@ export class CreateProductBatchGroupHandler
       });
 
       // EventStore
-      await this.productBatchGroupEventStore.createProductBatchGroup({
-        eventId: requestId,
-        productBatchGroupId: newEntity.id,
-        dto,
-      });
+      await this.productBatchGroupEventStore.appendProductBatchGroupCreatedEvent(
+        {
+          eventId: requestId,
+          data: {
+            id: newEntity.id,
+            ...dto,
+          },
+        },
+      );
       if (newProductBatches.length) {
         for (const newProductBatch of newProductBatches) {
-          await this.productBatchEventStore.createProductBatch({
+          await this.productBatchEventStore.appendProductBatchCreatedEvent({
             eventId: requestId,
-            productBatchId: newProductBatch.id,
-            dto: newProductBatch,
+            data: newProductBatch,
           });
         }
       }
@@ -124,7 +127,7 @@ export class CreateProductBatchGroupHandler
         for (const { id } of existProductBatches) {
           await this.productBatchEventStore.moveProductBatch({
             eventId: requestId,
-            dto: {
+            data: {
               id,
               groupId: newEntity.id,
               statusId: null,

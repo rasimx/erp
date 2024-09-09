@@ -3,7 +3,7 @@ import { InjectDataSource } from '@nestjs/typeorm';
 
 import { ContextService } from '@/context/context.service.js';
 import type { CustomDataSource } from '@/database/custom.data-source.js';
-import { ProductBatchEventStore } from '@/product-batch/product-batch.eventstore.js';
+import { ProductBatchEventStore } from '@/product-batch/eventstore/product-batch.eventstore.js';
 import { ProductBatchRepository } from '@/product-batch/product-batch.repository.js';
 import { ProductBatchService } from '@/product-batch/product-batch.service.js';
 
@@ -42,10 +42,13 @@ export class DeleteProductBatchHandler
         deletedIds: [id],
       });
 
-      await this.productBatchEventStore.deleteProductBatch({
-        eventId: requestId,
-        productBatchId: id,
-      });
+      const { appendResult } =
+        await this.productBatchEventStore.deleteProductBatch({
+          eventId: requestId,
+          productBatchId: id,
+        });
+
+      if (!appendResult.success) throw new Error('????');
 
       await queryRunner.commitTransaction();
     } catch (err) {

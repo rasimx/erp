@@ -17,7 +17,6 @@ COPY --from=build /prod/node_modules           /app/server/node_modules
 COPY --from=build /prod/package.json           /app/server/package.json
 COPY --from=build /app/server/dist             /app/server/dist
 COPY --from=build /app/server/views            /app/server/views
-COPY --from=build /app/server/certs            /app/server/certs
 
 WORKDIR /app
 EXPOSE 3000

@@ -1,10 +1,10 @@
-import * as fs from 'fs';
-import * as process from 'process';
 import { registerAs } from '@nestjs/config';
-import { join } from 'path';
+import * as fs from 'fs';
+
+import { getPathRelativeToRoot } from '@/common/helpers/paths.js';
 
 export default registerAs('json', () =>
-  JSON.parse(fs.readFileSync(join(process.cwd(), 'config.json')).toString()),
+  JSON.parse(fs.readFileSync(getPathRelativeToRoot('config.json')).toString()),
 );
 
 export interface JsonConfig {

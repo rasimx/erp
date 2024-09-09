@@ -7,7 +7,7 @@ import { OzonPostingProductMicroservice } from '@/microservices/erp_ozon/ozon-po
 import { DeleteProductBatchCommand } from '@/product-batch/commands/impl/delete-product-batch.command.js';
 import { ProductBatchService } from '@/product-batch/product-batch.service.js';
 import { DeleteProductBatchGroupCommand } from '@/product-batch-group/commands/impl/delete-product-batch-group.command.js';
-import { ProductBatchGroupEventStore } from '@/product-batch-group/prodict-batch-group.eventstore.js';
+import { ProductBatchGroupEventStore } from '@/product-batch-group/eventstore/prodict-batch-group.eventstore.js';
 import { ProductBatchGroupRepository } from '@/product-batch-group/product-batch-group.repository.js';
 
 @CommandHandler(DeleteProductBatchGroupCommand)
@@ -55,10 +55,12 @@ export class DeleteProductBatchGroupHandler
       });
 
       // eventStore
-      await this.productBatchGroupEventStore.deleteProductBatchGroup({
-        eventId: requestId,
-        productBatchGroupId: entity.id,
-      });
+      await this.productBatchGroupEventStore.appendProductBatchGroupDeletedEvent(
+        {
+          eventId: requestId,
+          productBatchGroupId: entity.id,
+        },
+      );
 
       await queryRunner.commitTransaction();
     } catch (err) {

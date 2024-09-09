@@ -1,17 +1,14 @@
-import { Operation } from '@apollo/client';
-
 import { FragmentType, getFragmentData, graphql } from '@/gql-types';
 
 import {
   EventFragment,
   OperationFragment,
   ProductBatchDetailFragment,
-  ProductFragment,
 } from '../../gql-types/graphql';
-import { PRODUCT_FRAGMENT } from '../product/product.gql';
+import { getProductFragment, Product } from '../product/product.gql';
 
 export interface ProductBatchDetail extends ProductBatchDetailFragment {
-  product: ProductFragment;
+  product: Product;
   events: EventFragment[];
   operations: OperationFragment[];
 }
@@ -37,7 +34,6 @@ export const OPERATION_FRAGMENT = graphql(`
 export const PRODUCT_BATCH_DETAIL_FRAGMENT = graphql(`
   fragment ProductBatchDetail on ProductBatchDetailDto {
     id
-    name
     groupId
     productId
     product {
@@ -53,11 +49,9 @@ export const PRODUCT_BATCH_DETAIL_FRAGMENT = graphql(`
     count
     costPricePerUnit
     operationsPricePerUnit
-    date
     order
     volume
     weight
-    color
     group {
       id
       order
@@ -94,7 +88,7 @@ export function getProductBatchDetailFragment(
   if (Array.isArray(data)) {
     return getFragmentData(PRODUCT_BATCH_DETAIL_FRAGMENT, data).map(item => ({
       ...item,
-      product: getFragmentData(PRODUCT_FRAGMENT, item.product),
+      product: getProductFragment(item.product),
       events: getFragmentData(EVENT_FRAGMENT, item.events),
       operations: getFragmentData(OPERATION_FRAGMENT, item.operations),
     }));
@@ -102,7 +96,7 @@ export function getProductBatchDetailFragment(
     const productBatch = getFragmentData(PRODUCT_BATCH_DETAIL_FRAGMENT, data);
     return {
       ...productBatch,
-      product: getFragmentData(PRODUCT_FRAGMENT, productBatch.product),
+      product: getProductFragment(productBatch.product),
       events: getFragmentData(EVENT_FRAGMENT, productBatch.events),
       operations: getFragmentData(OPERATION_FRAGMENT, productBatch.operations),
     };

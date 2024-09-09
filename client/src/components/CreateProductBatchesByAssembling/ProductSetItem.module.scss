@@ -1,0 +1,29 @@
+.container {
+  display: flex;
+  margin-top: 10px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+}
+
+.left {
+  flex-shrink: 0;
+  border-right: 1px solid #ddd;
+  padding: 0;
+}
+.right {
+  flex-shrink: 0;
+  padding: 10px;
+}
+
+.header{
+  display: flex;
+  border-bottom: 1px solid #ddd;
+  >div{
+    width: 50%;
+    text-align: center;
+  }
+}
+.sku{
+  font-weight: 600;
+  background: #caf1d8;
+}

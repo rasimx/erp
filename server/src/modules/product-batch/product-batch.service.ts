@@ -7,8 +7,9 @@ import { ContextService } from '@/context/context.service.js';
 import { CustomDataSource } from '@/database/custom.data-source.js';
 import type { CustomPostgresQueryRunner } from '@/database/custom.query-runner.js';
 import { OzonPostingProductMicroservice } from '@/microservices/erp_ozon/ozon-posting-product-microservice.service.js';
+import { ProductRepository } from '@/product/product.repository.js';
 import { ProductService } from '@/product/product.service.js';
-import type { ProductBatchEntity } from '@/product-batch/product-batch.entity.js';
+import { ProductBatchEntity } from '@/product-batch/product-batch.entity.js';
 import { ProductBatchRepository } from '@/product-batch/product-batch.repository.js';
 import { StatusService } from '@/status/status.service.js';
 
@@ -22,6 +23,7 @@ export class ProductBatchService {
     private dataSource: CustomDataSource,
     private commandBus: CommandBus,
     private queryBus: QueryBus,
+    private readonly productRepository: ProductRepository,
     private readonly productBatchRepository: ProductBatchRepository,
     private readonly ozonPostingProductMicroservice: OzonPostingProductMicroservice,
   ) {}

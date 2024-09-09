@@ -1,64 +1,122 @@
-import { useModal } from '@ebay/nice-modal-react';
-import ClearIcon from '@mui/icons-material/Clear';
-import { Button, ButtonGroup } from '@mui/material';
-import React, { type FC, useCallback, useEffect, useState } from 'react';
-
-import { getFragmentData } from '@/gql-types';
+import NiceModal from '@ebay/nice-modal-react';
+import React, { type FC, useCallback, useEffect, useMemo } from 'react';
 
 import { useKanban } from '../../api/kanban/kanban.hook';
-import { PRODUCT_BATCH_FRAGMENT } from '../../api/product-batch/product-batch.gql';
-import { ProductBatchFragment } from '../../gql-types/graphql';
-import ProductBatchModal from './ProductBatchModal';
+import { ProductBatch } from '../../api/product-batch/product-batch.gql';
+import withModal from '../withModal';
 
 export interface Props {
-  onChange: (data: ProductBatchFragment | undefined) => void;
-  valueId?: number | null;
+  onSelect: (data: ProductBatch) => void;
   productId: number;
+  excludedIds?: number[];
+  initialId?: number | null;
+  closeModal: () => void;
 }
 
-const SelectProductBatch: FC<Props> = ({ onChange, productId, valueId }) => {
-  const [selected, setSelected] = useState<ProductBatchFragment | undefined>();
+export const SelectProductBatch: FC<Props> = ({
+  onSelect,
+  productId,
+  excludedIds = [],
+  initialId,
+  closeModal,
+}) => {
+  const query = useMemo(() => ({ productIds: [productId] }), [productId]);
+  const { kanbanCards } = useKanban(query);
+
+  const cards = useMemo(
+    () => kanbanCards.filter(item => !excludedIds.includes(item.id)),
+    [kanbanCards],
+  );
+
+  const columns = useMemo(() => {
+    const map = new Map<number, { id: number; title: string; order: number }>();
+    cards.forEach(item => {
+      if (item.status) {
+        map.set(item.status.id, item.status);
+      }
+    });
+    return [...map.values()].toSorted((a, b) => a.order - b.order);
+  }, [cards]);
 
   useEffect(() => {
-    if (selected) {
-      onChange(selected);
+    if (initialId && cards.length) {
+      cards.forEach(item => {
+        if (item.__typename == 'ProductBatchGroupDto') {
+          item.productBatchList.forEach(child => {
+            if (child.id == initialId) {
+              onSelect(child);
+              return;
+            }
+          });
+        } else if (item.__typename == 'ProductBatchDto') {
+          if (item.id == initialId) {
+            onSelect(item);
+            return;
+          }
+        }
+      });
     }
-  }, [selected]);
+  }, [initialId, cards]);
 
-  const clear = useCallback(() => {
-    setSelected(undefined);
-    onChange(undefined);
-  }, [onChange]);
-
-  const productBatchModal = useModal(ProductBatchModal);
-  const showProductBatchModal = useCallback(() => {
-    productBatchModal.show({
-      productId,
-      initialId: valueId,
-      onSelect: (data: ProductBatchFragment) => {
-        setSelected(data);
-        onChange(data);
-      },
-    });
-  }, [onChange, setSelected]);
+  const onSelectHandle = useCallback(
+    (value: ProductBatch) => {
+      onSelect(value);
+      closeModal();
+    },
+    [onSelect, closeModal],
+  );
 
   return (
-    <>
-      <ButtonGroup
-        variant="contained"
-        aria-label="Button group with a nested menu"
-      >
-        <Button onClick={showProductBatchModal}>
-          {selected?.id ?? `Выбрать партию`}
-        </Button>
-        {selected && (
-          <Button size="small" onClick={clear}>
-            <ClearIcon />
-          </Button>
-        )}
-      </ButtonGroup>
-    </>
+    <div>
+      <h3>Выбрать исходную партию</h3>
+      <div>
+        <div className="flex">
+          {columns.map((column, index) => (
+            <div key={column.id}>
+              <h6>{column.title}</h6>
+              <div>
+                <div className="flex flex-column">
+                  {cards
+                    .filter(item => item.statusId == column.id)
+                    .map(item =>
+                      item.__typename == 'ProductBatchGroupDto' ? (
+                        <div style={{ cursor: 'pointer' }} key={item.id}>
+                          <div>
+                            {item.productBatchList.map(item => {
+                              return (
+                                <div
+                                  style={{ cursor: 'pointer' }}
+                                  key={item.id}
+                                  onClick={() => onSelectHandle(item)}
+                                >
+                                  {item.id}: {item.order}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      ) : (
+                        <div
+                          style={{ cursor: 'pointer' }}
+                          key={item.id}
+                          onClick={() => onSelectHandle(item as ProductBatch)}
+                        >
+                          {item.id}: {item.order}
+                        </div>
+                      ),
+                    )}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
   );
 };
 
-export default SelectProductBatch;
+export const SelectProductBatchModal = NiceModal.create(
+  withModal(SelectProductBatch, {
+    header: 'Выберите партию',
+  }),
+);

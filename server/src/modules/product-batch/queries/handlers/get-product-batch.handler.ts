@@ -1,6 +1,6 @@
 import { type IQueryHandler, QueryHandler } from '@nestjs/cqrs';
 
-import { ProductBatchEventStore } from '@/product-batch/product-batch.eventstore.js';
+import { ProductBatchEventStore } from '@/product-batch/eventstore/product-batch.eventstore.js';
 import { ProductBatchRepository } from '@/product-batch/product-batch.repository.js';
 import { GetProductBatchQuery } from '@/product-batch/queries/impl/get-product-batch.query.js';
 

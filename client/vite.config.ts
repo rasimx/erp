@@ -1,3 +1,4 @@
+import * as fs from 'node:fs';
 import * as path from 'node:path';
 
 import federation from '@originjs/vite-plugin-federation';
@@ -55,7 +56,6 @@ export default defineConfig({
         'react-use-disclosure',
       ],
     }),
-    mkcert(),
   ],
   build: {
     target: 'esnext',
@@ -63,7 +63,7 @@ export default defineConfig({
     emptyOutDir: false, // This is done during the build of the server
     // outDir: `${PROJECT_ROOT}/dist/public`,
     // outDir: `../server/dist/public`,
-
+    cssCodeSplit: true,
     outDir: `dist`,
     rollupOptions: {
       input: '/src/main.tsx',
@@ -78,6 +78,10 @@ export default defineConfig({
     // sourcemap: 'inline',
   },
   server: {
+    https: {
+      key: fs.readFileSync('/etc/ssl/certs/localhost.key'),
+      cert: fs.readFileSync('/etc/ssl/certs/localhost.crt'),
+    },
     proxy: {
       '/graphql': {
         target: 'http://localhost:3000',

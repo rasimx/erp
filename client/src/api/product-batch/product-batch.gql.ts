@@ -1,15 +1,7 @@
-import { gql } from '@apollo/client';
-import { DocumentTypeDecoration } from '@graphql-typed-document-node/core';
+import { FragmentType, getFragmentData, graphql } from '@/gql-types';
 
-import {
-  DocumentType,
-  FragmentType,
-  getFragmentData,
-  graphql,
-} from '@/gql-types';
-
-import { ProductBatchFragment, ProductFragment } from '../../gql-types/graphql';
-import { PRODUCT_FRAGMENT } from '../product/product.gql';
+import { ProductBatchFragment } from '../../gql-types/graphql';
+import { getProductFragment, Product } from '../product/product.gql';
 
 export const PRODUCT_BATCH_LIST_QUERY = graphql(`
   query productBatchList($dto: GetProductBatchListDto!) {
@@ -22,7 +14,6 @@ export const PRODUCT_BATCH_LIST_QUERY = graphql(`
 export const PRODUCT_BATCH_FRAGMENT = graphql(`
   fragment ProductBatch on ProductBatchDto {
     id
-    name
     groupId
     productId
     product {
@@ -38,11 +29,9 @@ export const PRODUCT_BATCH_FRAGMENT = graphql(`
     count
     costPricePerUnit
     operationsPricePerUnit
-    date
     order
     volume
     weight
-    color
     group {
       id
       order
@@ -51,7 +40,7 @@ export const PRODUCT_BATCH_FRAGMENT = graphql(`
 `);
 
 export interface ProductBatch extends ProductBatchFragment {
-  product: ProductFragment;
+  product: Product;
 }
 
 export function getProductBatchFragment(
@@ -69,13 +58,13 @@ export function getProductBatchFragment(
   if (Array.isArray(data)) {
     return getFragmentData(PRODUCT_BATCH_FRAGMENT, data).map(item => ({
       ...item,
-      product: getFragmentData(PRODUCT_FRAGMENT, item.product),
+      product: getProductFragment(item.product),
     }));
   } else if (data) {
     const productBatch = getFragmentData(PRODUCT_BATCH_FRAGMENT, data);
     return {
       ...productBatch,
-      product: getFragmentData(PRODUCT_FRAGMENT, productBatch.product),
+      product: getProductFragment(productBatch.product),
     };
   }
 }
@@ -91,6 +80,26 @@ export const MOVE_PRODUCT_BATCH_MUTATION = graphql(`
 export const CREATE_PRODUCT_BATCH_MUTATION = graphql(`
   mutation createProductBatch($dto: CreateProductBatchDto!) {
     createProductBatch(dto: $dto) {
+      success
+    }
+  }
+`);
+
+export const CREATE_PRODUCT_BATCHES_BY_ASSEMBLING_MUTATION = graphql(`
+  mutation createProductBatchesByAssembling(
+    $dto: CreateProductBatchesByAssemblingDto!
+  ) {
+    createProductBatchesByAssembling(dto: $dto) {
+      success
+    }
+  }
+`);
+
+export const CREATE_PRODUCT_BATCHES_FROM_SOURCES_MUTATION = graphql(`
+  mutation createProductBatchesFromSources(
+    $dto: CreateProductBatchesFromSourcesDto!
+  ) {
+    createProductBatchesFromSources(dto: $dto) {
       success
     }
   }

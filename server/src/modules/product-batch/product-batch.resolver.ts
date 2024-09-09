@@ -4,9 +4,13 @@ import { Args, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
 
 import { UserInterceptor } from '@/auth/user.interceptor.js';
 import { CreateProductBatchCommand } from '@/product-batch/commands/impl/create-product-batch.command.js';
+import { CreateProductBatchesByAssemblingCommand } from '@/product-batch/commands/impl/create-product-batches-by-assembling.command.js';
+import { CreateProductBatchesFromSourcesCommand } from '@/product-batch/commands/impl/create-product-batches-from-sources.command.js';
 import { DeleteProductBatchCommand } from '@/product-batch/commands/impl/delete-product-batch.command.js';
 import { MoveProductBatchCommand } from '@/product-batch/commands/impl/move-product-batch.command.js';
 import { CreateProductBatchDto } from '@/product-batch/dtos/create-product-batch.dto.js';
+import { CreateProductBatchesByAssemblingDto } from '@/product-batch/dtos/create-product-batches-by-assembling.dto.js';
+import { CreateProductBatchesFromSourcesDto } from '@/product-batch/dtos/create-product-batches-from-sources.dto.js';
 import { GetProductBatchListDto } from '@/product-batch/dtos/get-product-batch-list.dto.js';
 import { MoveProductBatchDto } from '@/product-batch/dtos/move-product-batch.dto.js';
 import { ProductBatchDto } from '@/product-batch/dtos/product-batch.dto.js';
@@ -32,6 +36,7 @@ export class ProductBatchResolver {
   ): Promise<ProductBatchDto[]> {
     return this.queryBus.execute(new GetProductBatchListQuery(dto));
   }
+
   @Query(() => ProductBatchDetailDto)
   async productBatchDetail(
     @Args('id', { type: () => Int })
@@ -53,6 +58,28 @@ export class ProductBatchResolver {
     dto: CreateProductBatchDto,
   ): Promise<CommandResponse> {
     await this.commandBus.execute(new CreateProductBatchCommand(dto));
+    return { success: true };
+  }
+
+  @Mutation(() => CommandResponse)
+  async createProductBatchesByAssembling(
+    @Args('dto', { type: () => CreateProductBatchesByAssemblingDto })
+    dto: CreateProductBatchesByAssemblingDto,
+  ): Promise<CommandResponse> {
+    await this.commandBus.execute(
+      new CreateProductBatchesByAssemblingCommand(dto),
+    );
+    return { success: true };
+  }
+
+  @Mutation(() => CommandResponse)
+  async createProductBatchesFromSources(
+    @Args('dto', { type: () => CreateProductBatchesFromSourcesDto })
+    dto: CreateProductBatchesFromSourcesDto,
+  ): Promise<CommandResponse> {
+    await this.commandBus.execute(
+      new CreateProductBatchesFromSourcesCommand(dto),
+    );
     return { success: true };
   }
 

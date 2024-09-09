@@ -3,12 +3,12 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { objectToCamel } from 'ts-case-convert';
 import { type FindOptionsWhere, In, IsNull, Repository } from 'typeorm';
 
-import type { FindLatestRequest } from '@/microservices/proto/erp.pb.js';
-import type { CreateProductBatchDto } from '@/product-batch/dtos/create-product-batch.dto.js';
+import type { ResultProductBatch } from '@/common/assembleProduct.js';
+import { type CreateProductBatchDto } from '@/product-batch/dtos/create-product-batch.dto.js';
 import type { GetProductBatchListDto } from '@/product-batch/dtos/get-product-batch-list.dto.js';
 import type { MoveProductBatchDto } from '@/product-batch/dtos/move-product-batch.dto.js';
-import type { ProductBatchDto } from '@/product-batch/dtos/product-batch.dto.js';
 import { ProductBatchEntity } from '@/product-batch/product-batch.entity.js';
+import { ProductBatchClosureEntity } from '@/product-batch/product-batch-closure.entity.js';
 import { ProductBatchGroupEntity } from '@/product-batch-group/product-batch-group.entity.js';
 import { StatusEntity } from '@/status/status.entity.js';
 
@@ -20,7 +20,8 @@ export class ProductBatchRepository extends Repository<ProductBatchEntity> {
     let query = this.createQueryBuilder('pb')
       .leftJoinAndSelect('pb.product', 'product')
       .leftJoinAndSelect('pb.status', 'status')
-      .where('pb.deleted_date is null');
+      .leftJoinAndSelect('product.setItems', 'setItems')
+      .leftJoinAndSelect('setItems.product', 'setItemsProduct');
     if (productIds.length) {
       query = query.andWhere('pb.productId in (:...productIds)', {
         productIds,
@@ -33,36 +34,23 @@ export class ProductBatchRepository extends Repository<ProductBatchEntity> {
     }
 
     const items = await query.orderBy('pb.order', 'ASC').getMany();
+    // @ts-ignore
     return items.map(item => ({
       ...item,
       volume: item.volume,
       weight: item.weight,
+      product: {
+        ...item.product,
+        setItems: item.product.setItems.map(item => ({
+          ...item,
+          ...item.product,
+        })),
+      },
     }));
   }
 
-  async createFromDto(dto: CreateProductBatchDto) {
+  async createNew(dto: CreateProductBatchDto) {
     const { statusId, groupId } = dto;
-    /*
-     * если создается в новой колонке то order - последний
-     * если создается в той же партии
-     * */
-
-    let parent: ProductBatchEntity | null = null;
-    if (dto.parentId) {
-      parent = await this.findOneOrFail({
-        where: { id: dto.parentId },
-      });
-      if (dto.count >= parent.count) {
-        throw new BadRequestException(
-          `количество не может быть больше или равно чем у предка`,
-        );
-      }
-      if (dto.productId && parent.productId != dto.productId) {
-        throw new BadRequestException(`разные товары`);
-      }
-      parent.count = parent.count - dto.count;
-      await this.save(parent);
-    }
 
     let order = 1;
     if (groupId) {
@@ -84,14 +72,206 @@ export class ProductBatchRepository extends Repository<ProductBatchEntity> {
     Object.assign(newEntity, dto, {
       order,
       costPricePerUnit: dto.costPricePerUnit,
-      operationsPricePerUnit: parent?.operationsPricePerUnit ?? 0,
-      operationsPrice: parent?.operationsPrice ?? 0,
+      operationsPricePerUnit: dto.operationsPricePerUnit ?? 0,
+      operationsPrice: dto.operationsPrice ?? 0,
       statusId,
       groupId,
     });
     newEntity = await this.save(newEntity);
+
     return newEntity;
   }
+
+  async createByAssembling(
+    dto: ResultProductBatch & {
+      productSetId: number;
+      statusId: number | null;
+      groupId: number | null;
+    },
+  ) {
+    const { statusId, groupId } = dto;
+
+    let order = 1;
+    if (groupId) {
+      const lastBatch = await this.findOne({
+        where: { groupId },
+        order: { order: 'DESC' },
+      });
+      if (lastBatch) {
+        order = lastBatch.order + 1;
+      }
+    } else if (statusId) {
+      const lastOrderInStatus = await this.getLastOrderInStatus(statusId);
+      if (lastOrderInStatus) {
+        order = lastOrderInStatus + 1;
+      }
+    }
+
+    let sourceProductBatches = await this.find({
+      where: { id: In(dto.sources.map(item => item.productBatch.id)) },
+    });
+    const sourceMap = new Map(
+      sourceProductBatches.map(item => [item.id, item]),
+    );
+
+    let newEntity = new ProductBatchEntity();
+    newEntity.productId = dto.productSetId;
+    newEntity.count = dto.count;
+    newEntity.costPricePerUnit = dto.sources.reduce(
+      (prev, cur) => prev + cur.productBatch.costPricePerUnit * cur.qty,
+      0,
+    );
+    newEntity.operationsPricePerUnit = dto.sources.reduce(
+      (prev, cur) => prev + cur.productBatch.operationsPricePerUnit * cur.qty,
+      0,
+    );
+    newEntity.operationsPrice =
+      newEntity.count * newEntity.operationsPricePerUnit;
+    newEntity.statusId = statusId;
+    newEntity.groupId = groupId;
+    newEntity.order = order;
+
+    newEntity = await this.save(newEntity);
+
+    const forSave = dto.sources.map(source => {
+      const sourceBatch = sourceMap.get(source.productBatch.id);
+      if (!sourceBatch)
+        throw new Error(
+          `Source ${source.productBatch.id.toString()} not found`,
+        );
+
+      const closureEntity = new ProductBatchClosureEntity();
+      closureEntity.destination = newEntity;
+      closureEntity.source = sourceBatch;
+      closureEntity.count = source.selectedCount;
+      closureEntity.qty = source.qty;
+
+      sourceBatch.count -= source.selectedCount;
+      if (sourceBatch.count < 0)
+        throw new Error(`количество в исходной партии меньше, чем требуется`);
+      return { sourceBatch, closureEntity };
+    });
+
+    await this.manager.save(
+      ProductBatchClosureEntity,
+      forSave.map(({ closureEntity }) => closureEntity),
+    );
+    sourceProductBatches = await this.save(
+      forSave.map(({ sourceBatch }) => sourceBatch),
+    );
+
+    return { newEntity, sourceProductBatches };
+  }
+
+  async createFromSources(dto: {
+    statusId: number | null;
+    groupId: number | null;
+    productId: number;
+    sourceId: number;
+    selectedCount: number;
+  }) {
+    const { statusId, groupId } = dto;
+
+    let order = 1;
+    if (groupId) {
+      const lastBatch = await this.findOne({
+        where: { groupId },
+        order: { order: 'DESC' },
+      });
+      if (lastBatch) {
+        order = lastBatch.order + 1;
+      }
+    } else if (statusId) {
+      const lastOrderInStatus = await this.getLastOrderInStatus(statusId);
+      if (lastOrderInStatus) {
+        order = lastOrderInStatus + 1;
+      }
+    }
+
+    const sourceBatch = await this.findOneOrFail({
+      where: { id: dto.sourceId },
+    });
+
+    let newEntity = new ProductBatchEntity();
+    newEntity.productId = sourceBatch.productId;
+    newEntity.costPricePerUnit = sourceBatch.costPricePerUnit;
+    newEntity.operationsPricePerUnit = sourceBatch.operationsPricePerUnit;
+    newEntity.operationsPrice = sourceBatch.operationsPrice;
+    newEntity.statusId = statusId;
+    newEntity.groupId = groupId;
+    newEntity.order = order;
+    newEntity.count = dto.selectedCount;
+
+    newEntity = await this.save(newEntity);
+
+    const closureEntity = new ProductBatchClosureEntity();
+    closureEntity.destination = newEntity;
+    closureEntity.source = sourceBatch;
+    closureEntity.count = dto.selectedCount;
+    await this.manager.save(ProductBatchClosureEntity, closureEntity);
+
+    sourceBatch.count -= dto.selectedCount;
+    if (sourceBatch.count <= 0)
+      throw new Error(
+        `количество в исходной партии меньше, чем требуется, либо равно 0`,
+      );
+    await this.save(sourceBatch);
+
+    return { newEntity, sourceBatch };
+  }
+
+  // async createFromDto(dto: CreateProductBatchDto) {
+  //   const { statusId, groupId } = dto;
+  //   /*
+  //    * если создается в новой колонке то order - последний
+  //    * если создается в той же партии
+  //    * */
+  //
+  //   let parent: ProductBatchEntity | null = null;
+  //   if (dto.parentId) {
+  //     parent = await this.findOneOrFail({
+  //       where: { id: dto.parentId },
+  //     });
+  //     if (dto.count >= parent.count) {
+  //       throw new BadRequestException(
+  //         `количество не может быть больше или равно чем у предка`,
+  //       );
+  //     }
+  //     if (dto.productId && parent.productId != dto.productId) {
+  //       throw new BadRequestException(`разные товары`);
+  //     }
+  //     parent.count = parent.count - dto.count;
+  //     await this.save(parent);
+  //   }
+  //
+  //   let order = 1;
+  //   if (groupId) {
+  //     const lastBatch = await this.findOne({
+  //       where: { groupId },
+  //       order: { order: 'DESC' },
+  //     });
+  //     if (lastBatch) {
+  //       order = lastBatch.order + 1;
+  //     }
+  //   } else if (statusId) {
+  //     const lastOrderInStatus = await this.getLastOrderInStatus(statusId);
+  //     if (lastOrderInStatus) {
+  //       order = lastOrderInStatus + 1;
+  //     }
+  //   }
+  //
+  //   let newEntity = new ProductBatchEntity();
+  //   Object.assign(newEntity, dto, {
+  //     order,
+  //     costPricePerUnit: dto.costPricePerUnit,
+  //     operationsPricePerUnit: parent?.operationsPricePerUnit ?? 0,
+  //     operationsPrice: parent?.operationsPrice ?? 0,
+  //     statusId,
+  //     groupId,
+  //   });
+  //   newEntity = await this.save(newEntity);
+  //   return newEntity;
+  // }
 
   async getLastOrderInStatus(statusId: number): Promise<number | null> {
     const lastItems: (ProductBatchEntity | ProductBatchGroupEntity)[] = [];

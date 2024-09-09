@@ -1,5 +1,5 @@
 import { Field, InputType, Int } from '@nestjs/graphql';
-import { IsNotEmpty, IsNumber, IsOptional } from 'class-validator';
+import { IsNotEmpty, IsNumber } from 'class-validator';
 
 @InputType()
 export class CreateProductBatchDto {
@@ -14,28 +14,19 @@ export class CreateProductBatchDto {
   @Field(() => Int)
   count: number;
 
-  @IsOptional()
-  @IsNumber()
-  @Field(() => Int, { nullable: true })
-  parentId?: number | null;
-
   @IsNumber()
   @Field(() => Int)
   productId: number;
-
-  @IsNotEmpty()
-  @Field(() => String)
-  date: string;
-
-  @IsNotEmpty()
-  @Field(() => String)
-  name: string;
 
   @IsNumber()
   @Field(() => Int)
   costPricePerUnit: number;
 
-  @IsNotEmpty()
-  @Field(() => String)
-  color: string;
+  @IsNumber()
+  @Field(() => Int, { nullable: true, defaultValue: 0 })
+  operationsPricePerUnit: number | null;
+
+  @IsNumber()
+  @Field(() => Int, { nullable: true, defaultValue: 0 })
+  operationsPrice: number | null;
 }

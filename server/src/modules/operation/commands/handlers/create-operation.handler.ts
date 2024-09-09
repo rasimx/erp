@@ -7,9 +7,9 @@ import { ContextService } from '@/context/context.service.js';
 import type { CustomDataSource } from '@/database/custom.data-source.js';
 import { CreateOperationCommand } from '@/operation/commands/impl/create-operation.command.js';
 import { OperationEntity } from '@/operation/operation.entity.js';
+import { ProductBatchEventStore } from '@/product-batch/eventstore/product-batch.eventstore.js';
 import { ProductBatchEntity } from '@/product-batch/product-batch.entity.js';
-import { ProductBatchEventStore } from '@/product-batch/product-batch.eventstore.js';
-import { ProductBatchGroupEventStore } from '@/product-batch-group/prodict-batch-group.eventstore.js';
+import { ProductBatchGroupEventStore } from '@/product-batch-group/eventstore/prodict-batch-group.eventstore.js';
 import { ProductBatchOperationEntity } from '@/product-batch-operation/product-batch-operation.entity.js';
 
 @CommandHandler(CreateOperationCommand)
@@ -103,7 +103,7 @@ export class CreateOperationHandler
       );
 
       if (dto.groupId) {
-        await this.productBatchGroupEventStore.createOperation({
+        await this.productBatchGroupEventStore.appendOperationCreatedEvent({
           eventId: requestId,
           productBatchGroupId: dto.groupId,
           dto,
@@ -112,7 +112,7 @@ export class CreateOperationHandler
         await this.productBatchEventStore.createOperation({
           eventId: requestId,
           productBatchId: dto.productBatchProportions[0].productBatchId,
-          dto,
+          data: dto,
         });
       }
 

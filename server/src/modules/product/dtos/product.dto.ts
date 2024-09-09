@@ -1,6 +1,21 @@
 import { Field, Int, ObjectType } from '@nestjs/graphql';
 
 @ObjectType()
+export class SetItemDto {
+  @Field(() => Int)
+  productId: number;
+
+  @Field(() => String)
+  name: string;
+
+  @Field(() => String)
+  sku: string;
+
+  @Field(() => Int)
+  qty: number;
+}
+
+@ObjectType()
 export class ProductDto {
   @Field(() => Int)
   id: number;
@@ -22,4 +37,7 @@ export class ProductDto {
 
   @Field(() => Int)
   weight: number; // в граммах
+
+  @Field(() => [SetItemDto], { defaultValue: [] })
+  setItems: SetItemDto[];
 }

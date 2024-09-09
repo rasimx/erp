@@ -9,9 +9,10 @@ import { FormikErrors, FormikProps, withFormik } from 'formik';
 import React, { type FC, useEffect, useState } from 'react';
 import { object, ObjectSchema } from 'yup';
 
+import { Product } from '../../api/product/product.gql';
 import { useProductList } from '../../api/product/product.hooks';
-import { ProductBatchFragment, ProductFragment } from '../../gql-types/graphql';
-import SelectProductBatch from '../CreateProductBatch/SelectProductBatch';
+import { ProductBatch } from '../../api/product-batch/product-batch.gql';
+import SelectProductBatchButton from '../CreateProductBatch/SelectProductBatchButton';
 import withModal from '../withModal';
 
 const style = {
@@ -27,8 +28,8 @@ const style = {
 };
 
 export interface FormValues {
-  product: ProductFragment;
-  productBatch: ProductBatchFragment;
+  product: Product;
+  productBatch: ProductBatch;
 }
 
 export interface Props {
@@ -51,7 +52,7 @@ const Form: FC<Props & FormikProps<FormValues>> = ({
   const [activeStep, setActiveStep] = useState(0);
   const [skipped, setSkipped] = useState(new Set<number>());
 
-  const [product, setProduct] = useState<ProductFragment | null>(null);
+  const [product, setProduct] = useState<Product | null>(null);
 
   useEffect(() => {
     if (productList.length && values.product) {
@@ -113,7 +114,7 @@ const Form: FC<Props & FormikProps<FormValues>> = ({
   };
 
   return (
-    <Box sx={style}>
+    <div>
       <Typography id="modal-modal-title" variant="h6" component="h2">
         Добавить существующую партию
       </Typography>
@@ -142,7 +143,7 @@ const Form: FC<Props & FormikProps<FormValues>> = ({
             <StepLabel>Новая парти</StepLabel>
           </Step>
         </Stepper>
-        <Box sx={{ pt: 2, pb: 2, minHeight: 200 }}>
+        <div className="pb-2 pt-2" style={{ minHeight: 200 }}>
           {(() => {
             switch (activeStep) {
               case 0:
@@ -191,7 +192,7 @@ const Form: FC<Props & FormikProps<FormValues>> = ({
                   <Grid container spacing={2}>
                     <Grid size={6}>
                       {values.product ? (
-                        <SelectProductBatch
+                        <SelectProductBatchButton
                           valueId={values.productBatch?.id}
                           productId={values.product.id}
                           onChange={batch => {
@@ -214,7 +215,7 @@ const Form: FC<Props & FormikProps<FormValues>> = ({
                 return null;
             }
           })()}
-        </Box>
+        </div>
 
         <Box sx={{ display: 'flex', flexDirection: 'row', pt: 2 }}>
           <Button
@@ -237,7 +238,7 @@ const Form: FC<Props & FormikProps<FormValues>> = ({
           </Button>
         </Box>
       </Box>
-    </Box>
+    </div>
   );
 };
 
@@ -276,4 +277,6 @@ const SelectExistsProductBatchForm = withFormik<Props, FormValues>({
   },
 })(Form);
 
-export default NiceModal.create(withModal(SelectExistsProductBatchForm));
+export const SelectExistsProductBatchModal = NiceModal.create(
+  withModal(SelectExistsProductBatchForm),
+);

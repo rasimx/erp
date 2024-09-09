@@ -1,5 +1,3 @@
-import NodeCache from 'node-cache';
-
 export const getEnv = (envVar: string): string => {
   if (!process.env[envVar]) {
     throw new Error(`${envVar} is not defined`);
