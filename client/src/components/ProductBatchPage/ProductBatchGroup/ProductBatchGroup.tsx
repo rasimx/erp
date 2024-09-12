@@ -55,8 +55,11 @@ export const ProductBatchGroupComponent = React.memo<Props>(props => {
           <FontAwesomeIcon icon={openCollapse ? faAngleUp : faAngleDown} />
         </ActionIcon>
       </div>
+      <div className={classes.info}>
+        {group.productBatchList.length} позиций
+      </div>
       <Collapse in={openCollapse}>
-        <div className={classes.inner}>{children}</div>
+        <div className={classes.collapsible}>{children}</div>
       </Collapse>
     </div>
   );

@@ -3,10 +3,17 @@ ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 RUN corepack enable
 
-FROM base AS build
-COPY . /app
+FROM base AS install
+COPY pnpm-lock.yaml  /app/
+COPY pnpm-workspace.yaml /app/
+COPY package.json  /app/
+COPY client/package.json  /app/client/package.json
+COPY server/package.json  /app/server/package.json
 WORKDIR /app
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
+
+FROM install AS build
+COPY . /app
 RUN pnpm run -r build
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm deploy --filter=server --prod /prod
 
