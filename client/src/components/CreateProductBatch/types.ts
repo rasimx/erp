@@ -1,17 +1,13 @@
 import { FormikProps } from 'formik';
 import { number, object, ObjectSchema } from 'yup';
 
-import {
-  CreateProductBatchDto,
-  CreateProductBatchesByAssemblingDto,
-} from '@/gql-types/graphql';
+import { CreateProductBatchDto } from '@/gql-types/graphql';
 
 import { Product } from '../../api/product/product.gql';
-import { RecursiveNullable } from '../../utils';
+import { RecursivePartial } from '../../utils';
 
-export interface FormState
-  extends Partial<RecursiveNullable<CreateProductBatchDto>> {
-  product?: Product | null;
+export interface FormState extends RecursivePartial<CreateProductBatchDto> {
+  product?: Product | undefined;
 }
 
 export const createProductBatchValidationSchema =
@@ -27,5 +23,5 @@ export const createProductBatchValidationSchema =
     });
   };
 
-export type FormValues = Partial<RecursiveNullable<CreateProductBatchDto>>;
+export type FormValues = RecursivePartial<CreateProductBatchDto>;
 export type FormProps = FormikProps<FormValues>;

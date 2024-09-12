@@ -1,21 +1,15 @@
 import NiceModal from '@ebay/nice-modal-react';
-import styled from '@emotion/styled';
 import {
-  Box,
   Button,
-  Paper,
+  NumberInput,
   Radio,
   Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  TextField,
+  TextInput,
   Tooltip,
-} from '@mui/material';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+} from '@mantine/core';
+import { DateInput, DateInputProps } from '@mantine/dates';
 import { format, parse } from 'date-fns';
+import dayjs from 'dayjs';
 import { FormikErrors, FormikProps, withFormik } from 'formik';
 import { FormikBag } from 'formik/dist/withFormik';
 import pick from 'lodash/pick';
@@ -28,80 +22,13 @@ import { ProductBatchDetail } from '../../api/product-batch/product-batch-detail
 import { CreateOperationDto, ProportionType } from '../../gql-types/graphql';
 import { fromRouble, toRouble } from '../../utils';
 import withModal from '../withModal';
-
-const style = {
-  display: 'flex',
-  flexDirection: 'column',
-  position: 'absolute' as const,
-  top: '50%',
-  left: '50%',
-  transform: 'translate(-50%, -50%)',
-  width: 800,
-  bgcolor: 'background.paper',
-  border: '2px solid #000',
-  boxShadow: 24,
-  p: 2,
-};
+import classes from './OperationForm.module.scss';
 
 // import {
 //   ProductBatchStateItem,
 //   selectCheckedProductBatchList,
 // } from '../../api/product-batch/product-batch.slice';
 // import { createOperation } from './operation.api';
-
-const Value = styled('div')`
-  display: flex;
-  justify-content: space-between;
-  box-sizing: border-box;
-  overflow: hidden;
-  text-align: center;
-  text-wrap: nowrap;
-  height: 40px;
-  line-height: 40px;
-  width: 100%;
-
-  div {
-    flex-grow: 1;
-    box-sizing: border-box;
-    padding: 0 15px;
-
-    &:nth-of-type(1) {
-      background: antiquewhite;
-      position: relative;
-      padding-right: 10px;
-
-      &:after {
-        content: '';
-        position: absolute;
-        top: 0;
-        bottom: 0;
-        right: 0;
-        border-left: 10px solid transparent;
-        border-bottom: 40px solid #eede93;
-      }
-    }
-
-    &:nth-of-type(2) {
-      background: #eede93;
-      position: relative;
-
-      &:after {
-        content: '';
-        position: absolute;
-        top: 0;
-        bottom: 0;
-        right: 0;
-        border-left: 10px solid transparent;
-        border-bottom: 40px solid #efefef;
-      }
-    }
-
-    &:nth-of-type(3) {
-      font-weight: bold;
-      background: #efefef;
-    }
-  }
-`;
 
 export interface Props {
   productBatches: ProductBatch[] | ProductBatchDetail[];
@@ -143,26 +70,24 @@ const DataCell: FC<DataCellProps> = ({ type, row, items, label, getValue }) => {
   if (!item) throw new Error();
 
   return (
-    <TableCell sx={{ padding: 0, border: '1px solid gray' }}>
+    <Table.Td style={{ padding: 0, border: '1px solid gray' }}>
       <Tooltip
-        arrow
-        title={
+        withArrow
+        label={
           <div>
-            <div>
-              Цена за единицу товара - {(item.cost / row.count).toFixed(2)} р
-            </div>
+            Цена за единицу товара - {(item.cost / row.count).toFixed(2)} р
           </div>
         }
       >
-        <Value>
+        <div className={classes.value}>
           <div>
             {getValue ? getValue(item.value) : item.value} {label}
           </div>
           <div>{item.proportion} %</div>
           <div>{Number.isNaN(item.cost) ? '—' : toRouble(item.cost)} р</div>
-        </Value>
+        </div>
       </Tooltip>
-    </TableCell>
+    </Table.Td>
   );
 };
 
@@ -258,17 +183,18 @@ const Form: FC<Props & FormikProps<CreateOperationDto>> = props => {
     }
   }, [items, values.proportionType]);
 
+  const dateParser: DateInputProps['dateParser'] = input => {
+    if (input === 'WW2') {
+      return new Date(1939, 8, 1);
+    }
+
+    return dayjs(input, 'YYYY-MM-DD').toDate();
+  };
+
   return (
-    <Box
-      sx={style}
-      component="form"
-      onSubmit={handleSubmit}
-      noValidate
-      autoComplete="off"
-    >
-      <TextField
+    <form onSubmit={handleSubmit} noValidate autoComplete="off">
+      <TextInput
         required
-        id="outlined-required"
         label="Название"
         name="name"
         value={values.name}
@@ -276,23 +202,25 @@ const Form: FC<Props & FormikProps<CreateOperationDto>> = props => {
         onChange={handleChange}
         error={touched.name && Boolean(errors.name)}
       />
-
-      <TextField
+      <NumberInput
         required
         id="outlined-required"
-        sx={{ mt: 1 }}
-        type="number"
         label="стоимость за партию"
-        name="cost"
-        value={values.cost || ''}
+        allowNegative={false}
+        fixedDecimalScale
+        suffix="₽"
+        decimalScale={2}
+        value={values.cost ?? ''}
         onBlur={handleBlur}
-        onChange={handleChange}
+        onChange={val => {
+          setFieldValue('cost', val);
+        }}
         error={touched.cost && Boolean(errors.cost)}
       />
-
-      <DatePicker
-        format="yyyy-MM-dd"
-        sx={{ mt: 1 }}
+      <DateInput
+        dateParser={dateParser}
+        valueFormat="YYYY-MM-DD"
+        label="Дата"
         value={
           values.date ? parse(values.date, 'yyyy-MM-dd', new Date()) : null
         }
@@ -305,42 +233,38 @@ const Form: FC<Props & FormikProps<CreateOperationDto>> = props => {
           );
         }}
       />
+
       <div>
         {productBatches.length > 1 && (
-          <TableContainer component={Paper} sx={{ mt: 2 }}>
-            <Table
-              sx={{ minWidth: 650 }}
-              size="small"
-              aria-label="a dense table"
-            >
-              <TableHead>
-                <TableRow sx={{ textWrap: 'nowrap' }}>
-                  <TableCell>Распределить стоимость</TableCell>
-                  <TableCell>
+          <div style={{ marginTop: '10px' }}>
+            <Table style={{ minWidth: 650 }}>
+              <Table.Thead>
+                <Table.Tr style={{ textWrap: 'nowrap' }}>
+                  <Table.Th>Распределить стоимость</Table.Th>
+                  <Table.Th>
                     <Radio
-                      size="small"
+                      label="По весу"
+                      variant="outline"
                       name="proportionType"
                       checked={values.proportionType == ProportionType.weight}
                       value={ProportionType.weight}
                       onBlur={handleBlur}
                       onChange={handleChange}
                     />
-                    <span>По весу</span>
-                  </TableCell>
-                  <TableCell>
+                  </Table.Th>
+                  <Table.Th>
                     <Radio
-                      size="small"
+                      label="По объему"
                       name="proportionType"
                       checked={values.proportionType == ProportionType.volume}
                       value={ProportionType.volume}
                       onBlur={handleBlur}
                       onChange={handleChange}
                     />
-                    <span>По объему</span>
-                  </TableCell>
-                  <TableCell>
+                  </Table.Th>
+                  <Table.Th>
                     <Radio
-                      size="small"
+                      label="По с/с"
                       name="proportionType"
                       checked={
                         values.proportionType == ProportionType.costPrice
@@ -349,8 +273,7 @@ const Form: FC<Props & FormikProps<CreateOperationDto>> = props => {
                       onBlur={handleBlur}
                       onChange={handleChange}
                     />
-                    <span>По с/с</span>
-                  </TableCell>
+                  </Table.Th>
                   {/*<TableCell>*/}
                   {/*  <Radio*/}
                   {/*    size="small"*/}
@@ -360,14 +283,14 @@ const Form: FC<Props & FormikProps<CreateOperationDto>> = props => {
                   {/*  />*/}
                   {/*  <span>Произвольно</span>*/}
                   {/*</TableCell>*/}
-                </TableRow>
-              </TableHead>
-              <TableBody>
+                </Table.Tr>
+              </Table.Thead>
+              <Table.Tbody>
                 {productBatches.map(row => (
-                  <TableRow key={row.id}>
-                    <TableCell component="th" scope="row">
+                  <Table.Tr key={row.id}>
+                    <Table.Td component="th" scope="row">
                       {row.id}
-                    </TableCell>
+                    </Table.Td>
                     <DataCell
                       items={items}
                       type={ProportionType.weight}
@@ -390,17 +313,17 @@ const Form: FC<Props & FormikProps<CreateOperationDto>> = props => {
                     {/*<TableCell sx={{ padding: '0 10px' }}>*/}
                     {/*  <Input />*/}
                     {/*</TableCell>*/}
-                  </TableRow>
+                  </Table.Tr>
                 ))}
-              </TableBody>
+              </Table.Tbody>
             </Table>
-          </TableContainer>
+          </div>
         )}
       </div>
-      <Button variant="contained" type="submit" sx={{ mt: 1 }}>
+      <Button variant="contained" type="submit" style={{ marginTop: '10px' }}>
         Добавить
       </Button>
-    </Box>
+    </form>
   );
 };
 

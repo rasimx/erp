@@ -1,0 +1,24 @@
+.card{
+  position: relative;
+}
+
+.inner{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+  background: var(--mantine-primary-color-light);
+}
+
+.sku {
+  cursor: pointer;
+  font-weight: 600;
+  flex-grow: 1;
+  margin-left: 1px;
+}
+.name {
+  cursor: pointer;
+  font-weight: 600;
+  flex-grow: 1;
+  margin-left: 1px;
+}

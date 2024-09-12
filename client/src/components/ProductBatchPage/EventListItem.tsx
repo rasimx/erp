@@ -1,5 +1,4 @@
-import { Card, Collapse } from '@mui/material';
-import Box from '@mui/material/Box';
+import { Card, Collapse } from '@mantine/core';
 import React, { FC } from 'react';
 
 import { EventFragment } from '../../gql-types/graphql';
@@ -17,14 +16,14 @@ const EventListItem: FC<Props> = props => {
   };
 
   return (
-    <Card sx={{ p: 1, mb: 1 }}>
-      <Box onClick={handleClick} sx={{ cursor: 'pointer' }}>
+    <Card style={{ p: 1, mb: 1 }}>
+      <div onClick={handleClick} style={{ cursor: 'pointer' }}>
         {event.type}
-      </Box>
-      <Collapse in={open} timeout="auto" unmountOnExit>
-        <Box>
+      </div>
+      <Collapse in={open}>
+        <div>
           <pre>{JSON.stringify(event.data, null, 2)}</pre>
-        </Box>
+        </div>
       </Collapse>
     </Card>
   );

@@ -20,12 +20,13 @@ import { restrictToHorizontalAxis } from '@dnd-kit/modifiers';
 // import { restrictToHorizontalAxis } from '@dnd-kit/modifiers';
 import { arrayMove, SortableContext } from '@dnd-kit/sortable';
 import { Coordinates } from '@dnd-kit/utilities';
-import { Box, Divider, Stack } from '@mui/material';
+import { Divider, Flex } from '@mantine/core';
 import { over } from 'lodash';
 import cloneDeep from 'lodash/cloneDeep';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 
+import classes from './KanbanBoard.module.scss';
 import KanbanCard from './KanbanCard';
 import KanbanColumn from './KanbanColumn';
 import KanbanGroup, { isInsteadGroup } from './KanbanGroup';
@@ -601,54 +602,35 @@ const KanbanBoard = <
 
   return (
     <KanbanBoardContext.Provider value={props}>
-      <Box
-        sx={{ p: 2, height: '90vh', display: 'flex', flexDirection: 'column' }}
+      <DndContext
+        measuring={measuring}
+        collisionDetection={customCollisionDetectionAlgorithm}
+        sensors={sensors}
+        onDragStart={onDragStart}
+        onDragEnd={onDragEnd}
+        modifiers={allModifiers}
       >
-        {/*<Backdrop*/}
-        {/*  sx={{ color: '#fff', zIndex: theme => theme.zIndex.drawer + 1 }}*/}
-        {/*  open={statusListLoading || productBatchListLoading}*/}
-        {/*>*/}
-        {/*  <CircularProgress color="inherit" />*/}
-        {/*</Backdrop>*/}
-
-        <DndContext
-          measuring={measuring}
-          collisionDetection={customCollisionDetectionAlgorithm}
-          sensors={sensors}
-          onDragStart={onDragStart}
-          onDragEnd={onDragEnd}
-          modifiers={allModifiers}
-        >
-          <Stack
-            direction="row"
-            alignContent="stretch"
-            sx={{ flexGrow: 1, maxHeight: '100%' }}
-          >
-            <SortableContext items={columnsId}>
-              {columns?.map((column, index) => (
-                <React.Fragment key={column.id}>
-                  {index != 0 && <Divider orientation="vertical" />}
-                  <KanbanColumn
-                    column={column}
-                    cards={cards}
-                    // loading={column.id === statusInLoadingId}
-                  />
-                </React.Fragment>
-              ))}
-            </SortableContext>
-          </Stack>
-          {createPortal(
-            <DragOverlay>
-              {activeColumn && (
-                <KanbanColumn isActive column={activeColumn} cards={cards} />
-              )}
-              {activeCard && <KanbanCard card={activeCard} isActive />}
-              {activeGroup && <KanbanGroup group={activeGroup} isActive />}
-            </DragOverlay>,
-            document.body,
-          )}
-        </DndContext>
-      </Box>
+        <div className={classes.kanban}>
+          <SortableContext items={columnsId}>
+            {columns?.map((column, index) => (
+              <React.Fragment key={column.id}>
+                {index != 0 && <Divider orientation="vertical" />}
+                <KanbanColumn column={column} cards={cards} />
+              </React.Fragment>
+            ))}
+          </SortableContext>
+        </div>
+        {createPortal(
+          <DragOverlay>
+            {activeColumn && (
+              <KanbanColumn isActive column={activeColumn} cards={cards} />
+            )}
+            {activeCard && <KanbanCard card={activeCard} isActive />}
+            {activeGroup && <KanbanGroup group={activeGroup} isActive />}
+          </DragOverlay>,
+          document.body,
+        )}
+      </DndContext>
     </KanbanBoardContext.Provider>
   );
 };

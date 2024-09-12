@@ -1,43 +1,13 @@
 import { SortableContext, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import styled from '@emotion/styled';
-import { Stack } from '@mui/material';
-import Box from '@mui/material/Box';
-import React, { useEffect, useMemo } from 'react';
-
-import { transientOptions } from '@/utils';
+import { Stack } from '@mantine/core';
+import cx from 'clsx';
+import React, { useMemo } from 'react';
 
 import KanbanCard, { getCardSortId } from './KanbanCard';
+import classes from './KanbanColumn.module.scss';
 import KanbanGroup, { getGroupSortId } from './KanbanGroup';
 import { DraggableType, SortableType, useKanbanBoardContext } from './types';
-
-const Column = styled(Box, transientOptions)<{ $showAfter: boolean }>`
-  height: 100%;
-  flex-grow: 1;
-  background-color: rgba(0, 0, 0, 0.1);
-  width: 300px;
-  position: relative;
-  flex-shrink: 0;
-  flex-grow: 0;
-  &::after {
-    content: '';
-    display: ${props => (props.$showAfter ? 'block' : 'none')};
-    position: absolute;
-    //background: rgba(0, 0, 0, 0.5);
-    opacity: 0.2;
-    background: repeating-linear-gradient(
-      45deg,
-      #606dbc,
-      #606dbc 10px,
-      #465298 10px,
-      #465298 20px
-    );
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-  }
-`;
 
 export type Props<
   Column extends SortableType,
@@ -161,7 +131,7 @@ const KanbanColumn = <
   //         <SortableContext items={itemsIds}>
   //           {items.map(item =>
   //             isGroup(item) ? (
-  //               <KanbanGroup group={item as Group} key={`group_${item.id}`} />
+  //               <KanbanGroup group={item as ProductBatchGroup} key={`group_${item.id}`} />
   //             ) : (
   //               <KanbanCard card={item as Card} key={`card_${item.id}`} />
   //             ),
@@ -185,9 +155,10 @@ const KanbanColumn = <
   // }
 
   return (
-    <Column
-      $showAfter={showAfter}
+    <div
+      className={cx(classes.column, showAfter && classes.showAfter)}
       ref={setNodeRef}
+      // $showAfter={showAfter}
       {...attributes}
       // @ts-expect-error .....
       style={style}
@@ -198,13 +169,13 @@ const KanbanColumn = <
         isActive,
         sortableData: { setActivatorNodeRef, listeners },
         children: (
-          <Box
-            sx={{
+          <div
+            style={{
               overflowY: 'auto',
               overflowX: 'visible',
             }}
           >
-            <Stack spacing={2} sx={{ p: 1 }}>
+            <Stack>
               <SortableContext items={itemsIds}>
                 {items.map(item =>
                   isGroup(item) ? (
@@ -218,10 +189,10 @@ const KanbanColumn = <
                 )}
               </SortableContext>
             </Stack>
-          </Box>
+          </div>
         ),
       })}
-    </Column>
+    </div>
   );
 };
 export default KanbanColumn;

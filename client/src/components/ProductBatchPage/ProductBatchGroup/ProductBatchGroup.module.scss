@@ -1,0 +1,32 @@
+.group {
+  padding: 0;
+  border-radius: var(--mantine-radius-default);
+  overflow: hidden;
+}
+.header{
+  background: var(--mantine-primary-color-light);
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  text-decoration: none;
+  margin: 0;
+}
+
+.headerInner{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.section{
+}
+
+.inner {
+  padding: rem(5px);
+  background: var(--mantine-primary-color-filled);
+  flex-grow: 1;
+  margin: 0;
+  overflow: auto;
+}

@@ -1,7 +1,7 @@
 import { useModal } from '@ebay/nice-modal-react';
-import classNames from 'classnames';
-import { Button } from 'primereact/button';
-import { InputNumber } from 'primereact/inputnumber';
+import { faEllipsisV } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { ActionIcon, Button, Flex, NumberInput } from '@mantine/core';
 import React, { FC, useCallback, useMemo } from 'react';
 
 import { ProductBatch } from '../../api/product-batch/product-batch.gql';
@@ -31,20 +31,20 @@ const ProductSetItem: FC<Props> = props => {
       productId,
       excludedIds: productBathes.map(({ id }) => id),
       onSelect: (batch: ProductBatch) => {
-        updateSelectedSetSource(batch.id, { ...batch, selectedCount: null });
+        updateSelectedSetSource(batch.id, {
+          ...batch,
+          selectedCount: undefined,
+        });
       },
     });
   }, []);
 
   return (
-    <div
-      className={classNames(styles.container, 'flex')}
-      key={setItem.productId}
-    >
-      <div className={classNames(styles.left, 'col-4')}>
-        <div className={classNames(styles.sku, 'p-1')}>{setItem.sku}</div>
-        <div className="p-2">
-          <div className="mb-2">{setItem.name}</div>
+    <div className={styles.container} key={setItem.productId}>
+      <div className={styles.left}>
+        <div className={styles.sku}>{setItem.sku}</div>
+        <div>
+          <div>{setItem.name}</div>
 
           <Button
             onClick={() => showProductBatchModal(setItem.productId)}
@@ -55,7 +55,7 @@ const ProductSetItem: FC<Props> = props => {
           </Button>
         </div>
       </div>
-      <div className={classNames(styles.right, 'col-8')}>
+      <div className={styles.right}>
         <div className={styles.header}>
           <div>
             <strong>x{setItem.qty}</strong> :{' '}
@@ -71,33 +71,39 @@ const ProductSetItem: FC<Props> = props => {
 
         {productBathes.map(item => {
           return (
-            <div key={item.id} className="mt-2">
+            <div key={item.id}>
               <div>
                 партия <strong>#{item.id}</strong>, кол-во: {item.count}
               </div>
-              <div className="flex align-items-center justify-content-between  mt-1">
-                <div className="flex-grow-1">
-                  <InputNumber
-                    id={`set-item-count-${item.id}`}
+              <Flex>
+                <div>
+                  <NumberInput
+                    required
+                    label="Количество"
+                    placeholder="шт"
+                    allowNegative={false}
+                    suffix=" шт"
+                    decimalScale={0}
                     value={item.selectedCount}
                     min={0}
                     max={item.count}
-                    placeholder="Количество"
-                    onValueChange={e =>
+                    onChange={value =>
                       updateSelectedSetSource(item.id, {
                         ...item,
-                        selectedCount: e.value ? Number(e.value) : null,
+                        selectedCount: value ? Number(value) : undefined,
                       })
                     }
-                    className="w-full"
+                    hideControls
                   />
                 </div>
-                <Button
-                  icon="pi pi-times"
-                  className="p-button-danger ml-1"
-                  onClick={() => updateSelectedSetSource(item.id, null)}
-                />
-              </div>
+
+                <ActionIcon
+                  variant="light"
+                  onClick={() => updateSelectedSetSource(item.id, undefined)}
+                >
+                  <FontAwesomeIcon icon={faEllipsisV} />
+                </ActionIcon>
+              </Flex>
             </div>
           );
         })}

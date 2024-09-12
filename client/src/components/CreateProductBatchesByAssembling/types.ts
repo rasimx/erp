@@ -21,12 +21,16 @@ import {
   AssemblingSourceDto,
   CreateProductBatchesByAssemblingDto,
 } from '../../gql-types/graphql';
-import { RecursiveNullable } from '../../utils';
+import { RecursivePartial } from '../../utils';
+
+export interface SelectedProductBatch extends ProductBatch {
+  selectedCount?: number | undefined;
+}
 
 export interface FormState
-  extends Partial<RecursiveNullable<CreateProductBatchesByAssemblingDto>> {
-  productSet?: Product | null;
-  sources?: SelectedProductBatch[] | null;
+  extends RecursivePartial<CreateProductBatchesByAssemblingDto> {
+  productSet?: Product | undefined;
+  sources?: SelectedProductBatch[] | undefined;
 }
 export const FormContext = createContext<{
   state: FormState;
@@ -38,7 +42,7 @@ export const useFormState = () => {
   console.log(state);
 
   const updateSelectedSetSource = useCallback(
-    (id: number, batch: SelectedProductBatch | null) => {
+    (id: number, batch: SelectedProductBatch | undefined) => {
       setState(state => {
         const sources = state?.sources ? [...state.sources] : [];
         const index = sources.findIndex(item => item.id === id);
@@ -79,13 +83,7 @@ export const useFormState = () => {
   return { state, setState, updateSelectedSetSource, newBathes };
 };
 
-export interface SelectedProductBatch extends ProductBatch {
-  selectedCount: number | null;
-}
-
-export type FormValues = Partial<
-  RecursiveNullable<CreateProductBatchesByAssemblingDto>
->;
+export type FormValues = RecursivePartial<CreateProductBatchesByAssemblingDto>;
 export type FormProps = FormikProps<FormValues>;
 
 export interface Props {

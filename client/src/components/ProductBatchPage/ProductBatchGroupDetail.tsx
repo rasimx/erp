@@ -1,8 +1,8 @@
 import { useQuery } from '@apollo/client';
 import NiceModal, { useModal } from '@ebay/nice-modal-react';
-import MoreVertIcon from '@mui/icons-material/MoreVert';
-import { IconButton, Menu, MenuItem } from '@mui/material';
-import Box from '@mui/material/Box';
+import { faEllipsisV } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { ActionIcon, Menu } from '@mantine/core';
 import React, { useCallback, useMemo } from 'react';
 
 import { useOperation } from '../../api/operation/operation.hooks';
@@ -76,50 +76,47 @@ export const ProductBatchGroupDetail = React.memo<Props>(props => {
 
   return (
     group && (
-      <Box
-        sx={{
+      <div
+        style={{
           width: '500px',
           backgroundColor: 'white',
         }}
       >
-        <Box>
-          <Box
-            sx={{
+        <div>
+          <div
+            style={{
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
             }}
           >
-            <Box sx={{ cursor: 'pointer', fontWeight: 600, fontSize: 12 }}>
+            <div style={{ cursor: 'pointer', fontWeight: 600, fontSize: 12 }}>
               {group.name}
-            </Box>
+            </div>
 
-            <IconButton
-              aria-label="more"
-              id="long-button"
-              aria-controls={open ? 'long-menu' : undefined}
-              aria-expanded={open ? 'true' : undefined}
-              aria-haspopup="true"
-              onClick={handleClick}
-            >
-              <MoreVertIcon />
-            </IconButton>
             <Menu
-              id="long-menu"
-              MenuListProps={{
-                'aria-labelledby': 'long-button',
-              }}
-              anchorEl={anchorEl}
-              open={open}
-              onClose={handleClose}
+              shadow="md"
+              width={200}
+              trigger="hover"
+              openDelay={100}
+              closeDelay={400}
+              position="bottom-end"
             >
-              <MenuItem onClick={showOperationFormModal}>
-                Добавить операцию
-              </MenuItem>
-              <MenuItem onClick={handleDelete}>Удалить группу</MenuItem>
+              <Menu.Target>
+                <ActionIcon variant="light" onClick={handleClick}>
+                  <FontAwesomeIcon icon={faEllipsisV} />
+                </ActionIcon>
+              </Menu.Target>
+
+              <Menu.Dropdown>
+                <Menu.Item onClick={showOperationFormModal}>
+                  Добавить операцию
+                </Menu.Item>
+                <Menu.Item onClick={handleDelete}>Удалить группу</Menu.Item>
+              </Menu.Dropdown>
             </Menu>
-          </Box>
-          <Box sx={{ display: 'flex', p: 1 }}>
+          </div>
+          <div style={{ display: 'flex' }}>
             id: {group.id} <br />
             order: {group.order} <br />
             С/с группы, р.:
@@ -144,15 +141,15 @@ export const ProductBatchGroupDetail = React.memo<Props>(props => {
             {group.productBatchList.reduce((prev, data) => {
               return prev + data.count;
             }, 0)}
-          </Box>
-        </Box>
+          </div>
+        </div>
         <br />
-        <Box sx={{ fontSize: 12 }}>
+        <div style={{ fontSize: 12 }}>
           {group.events.map((event, index) => (
             <EventListItem event={event} />
           ))}
-        </Box>
-      </Box>
+        </div>
+      </div>
     )
   );
 });

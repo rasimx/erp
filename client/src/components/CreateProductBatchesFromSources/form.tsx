@@ -1,6 +1,5 @@
-import { Stepper, StepperRefAttributes } from 'primereact/stepper';
-import { StepperPanel } from 'primereact/stepperpanel';
-import React, { FC, useEffect, useRef, useState } from 'react';
+import { Button, Group, Stepper } from '@mantine/core';
+import React, { FC, useEffect, useMemo, useRef, useState } from 'react';
 
 import Step_1 from './Step_1';
 import Step_2 from './Step_2';
@@ -24,23 +23,52 @@ const CreateProductBatchesFromSourcesForm: FC<Props & FormProps> = props => {
     }));
   }, [state]);
 
-  const stepperRef = useRef<StepperRefAttributes>(null);
+  const [active, setActive] = useState(0);
+  const nextStep = () =>
+    setActive(current => (current < 2 ? current + 1 : current));
+  const prevStep = () =>
+    setActive(current => (current > 0 ? current - 1 : current));
+
+  const nextStepDisabled = useMemo(() => {
+    switch (active) {
+      case 1:
+        return !state.product || !state.fullCount;
+      case 2:
+        return (
+          state.fullCount !=
+          state.sources?.reduce(
+            (prev, cur) => prev + (cur.selectedCount || 0),
+            0,
+          )
+        );
+      default:
+        return false;
+    }
+  }, [active, state]);
 
   return (
     <FormContext.Provider value={{ state, setState }}>
       <form onSubmit={handleSubmit} noValidate autoComplete="off">
-        <Stepper ref={stepperRef} linear>
-          <StepperPanel header="Выбор товара">
-            <Step_1 stepperRef={stepperRef} />
-          </StepperPanel>
-
-          <StepperPanel header="Откуда берем?">
-            <Step_2 stepperRef={stepperRef} />
-          </StepperPanel>
-          <StepperPanel header="Фасовка 2">
-            <Step_3 stepperRef={stepperRef} />
-          </StepperPanel>
+        <Stepper active={active} onStepClick={setActive}>
+          <Stepper.Step label="First step" description="Create an account">
+            <Step_1 />
+          </Stepper.Step>
+          <Stepper.Step label="Second step" description="Verify email">
+            <Step_2 />
+          </Stepper.Step>
+          <Stepper.Completed>
+            <Step_3 />
+          </Stepper.Completed>
         </Stepper>
+
+        <Group justify="center" mt="xl">
+          <Button variant="default" onClick={prevStep}>
+            Back
+          </Button>
+          <Button onClick={nextStep} disabled={nextStepDisabled}>
+            Next step
+          </Button>
+        </Group>
       </form>
     </FormContext.Provider>
   );

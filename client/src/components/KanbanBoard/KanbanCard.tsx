@@ -1,7 +1,6 @@
 import { Active, Over } from '@dnd-kit/core';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Card } from '@mui/material';
 import React, { useMemo } from 'react';
 
 import { DraggableType, SortableType, useKanbanBoardContext } from './types';
@@ -87,36 +86,32 @@ const KanbanCard = <Card extends SortableType>({
 
   if (isDragging) {
     return (
-      <Card
-        elevation={3}
+      <div
         ref={setNodeRef}
-        style={style}
-        sx={{ height: 150, backgroundColor: 'rgba(0,0,0,.1)' }}
+        style={{ ...style, height: 150, backgroundColor: 'rgba(0,0,0,.1)' }}
       >
         {card.id}
-      </Card>
+      </div>
     );
   }
 
   return (
     <React.Fragment>
       {showPrev && (
-        <Card
-          elevation={3}
-          sx={{
+        <div
+          style={{
             height: 5,
             backgroundColor: 'rgba(0,255,0,.5)',
             marginBottom: 1,
             flexShrink: 0,
           }}
-        ></Card>
+        ></div>
       )}
-      <Card
+      <div
         ref={setNodeRef}
         {...attributes}
-        style={style}
-        elevation={3}
-        sx={{
+        style={{
+          ...style,
           flexShrink: 0,
         }}
       >
@@ -125,7 +120,7 @@ const KanbanCard = <Card extends SortableType>({
           isActive,
           sortableData: { listeners, setActivatorNodeRef },
         })}
-      </Card>
+      </div>
     </React.Fragment>
   );
 };

@@ -9,9 +9,9 @@ import { useKanban } from '../../api/kanban/kanban.hook';
 import { ProductBatch } from '../../api/product-batch/product-batch.gql';
 import { ProductBatchGroup } from '../../api/product-batch-group/product-batch-group.gql';
 import { StatusDto, StatusType } from '../../gql-types/graphql';
-import Column from './Column';
-import Group from './Group';
-import { ProductBatchCard } from './ProductBatchCard';
+import { ProductBatchCard } from './ProductBatchCard/ProductBatchCard';
+import ProductBatchColumn from './ProductBatchColumn/ProductBatchColumn';
+import ProductBatchGroupComponent from './ProductBatchGroup/ProductBatchGroup';
 
 export const ProductBatchPage: FC = () => {
   const { productId } = useParams();
@@ -77,38 +77,40 @@ export const ProductBatchPage: FC = () => {
   );
 
   return (
-    <div>
-      <KanbanBoard
-        columnItems={statusList}
-        renderColumn={props => <Column {...props} refetch={refetch} />}
-        moveColumn={moveStatus}
-        setColumnId={(item, newColumnId) => (item.statusId = newColumnId)}
-        setGroupId={(item, newGroupId) => (item.groupId = newGroupId)}
-        getColumnId={item => item.statusId ?? null}
-        getGroupId={item => item.groupId ?? null}
-        cardItems={cards}
-        moveCard={data => {
-          moveProductBatch({
-            id: data.id,
-            statusId: data.columnId,
-            groupId: data.groupId,
-            order: data.order,
-          });
-        }}
-        isGroup={item => item.__typename == 'ProductBatchGroupDto'}
-        renderGroup={props => <Group {...props} refetch={refetch} />}
-        getGroupItems={item => item.productBatchList}
-        setGroupItems={(group, items) => (group.productBatchList = items)}
-        moveGroup={data => {
-          moveProductBatchGroup({
-            id: data.id,
-            statusId: data.columnId,
-            order: data.order,
-          });
-        }}
-        isForbiddenMove={isForbiddenMove}
-        renderCard={props => <ProductBatchCard {...props} refetch={refetch} />}
-      />
-    </div>
+    <KanbanBoard
+      columnItems={statusList}
+      renderColumn={props => (
+        <ProductBatchColumn {...props} refetch={refetch} />
+      )}
+      moveColumn={moveStatus}
+      setColumnId={(item, newColumnId) => (item.statusId = newColumnId)}
+      setGroupId={(item, newGroupId) => (item.groupId = newGroupId)}
+      getColumnId={item => item.statusId ?? null}
+      getGroupId={item => item.groupId ?? null}
+      cardItems={cards}
+      moveCard={data => {
+        moveProductBatch({
+          id: data.id,
+          statusId: data.columnId,
+          groupId: data.groupId,
+          order: data.order,
+        });
+      }}
+      isGroup={item => item.__typename == 'ProductBatchGroupDto'}
+      renderGroup={props => (
+        <ProductBatchGroupComponent {...props} refetch={refetch} />
+      )}
+      getGroupItems={item => item.productBatchList}
+      setGroupItems={(group, items) => (group.productBatchList = items)}
+      moveGroup={data => {
+        moveProductBatchGroup({
+          id: data.id,
+          statusId: data.columnId,
+          order: data.order,
+        });
+      }}
+      isForbiddenMove={isForbiddenMove}
+      renderCard={props => <ProductBatchCard {...props} refetch={refetch} />}
+    />
   );
 };

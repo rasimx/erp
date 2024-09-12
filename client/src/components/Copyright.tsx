@@ -1,22 +1,16 @@
-import Link from '@mui/material/Link';
-import Typography from '@mui/material/Typography';
+import { Title } from '@mantine/core';
 import * as React from 'react';
 
 const Copyright = (props: any) => {
   return (
-    <Typography
-      variant="body2"
-      color="text.secondary"
-      align="center"
-      {...props}
-    >
+    <Title variant="body2" color="text.secondary" align="center" {...props}>
       {'Copyright © '}
-      <Link color="inherit" href="https://mui.com/">
+      <a color="inherit" href="https://site.com/">
         Your Website
-      </Link>{' '}
+      </a>{' '}
       {new Date().getFullYear()}
       {'.'}
-    </Typography>
+    </Title>
   );
 };
 

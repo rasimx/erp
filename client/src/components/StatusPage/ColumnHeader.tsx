@@ -1,15 +1,15 @@
 import { SyntheticListenerMap } from '@dnd-kit/core/dist/hooks/utilities/useSyntheticListeners';
 import { useModal } from '@ebay/nice-modal-react';
-import MoreVertIcon from '@mui/icons-material/MoreVert';
-import { IconButton, Menu, MenuItem, Typography } from '@mui/material';
-import Box from '@mui/material/Box';
+import { faEllipsisV } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { ActionIcon, Menu, Title } from '@mantine/core';
 import React, { useCallback } from 'react';
 
 import { Product } from '../../api/product/product.gql';
 import { useProductBatchMutations } from '../../api/product-batch/product-batch.hook';
 import { ProductBatchFragment, StatusFragment } from '../../gql-types/graphql';
 // import CreateProductBatchForm from '../CreateProductBatch/ProductBatchForm';
-import ProductBatchModal from '../CreateProductBatch/SelectProductBatch';
+import { SelectProductBatchModal } from '../CreateProductBatch/SelectProductBatch';
 
 export interface Props {
   status: StatusFragment;
@@ -57,7 +57,7 @@ export const ColumnHeader = React.memo<Props>(props => {
     handleClose();
   }, [status]);
 
-  const productBatchModal = useModal(ProductBatchModal);
+  const productBatchModal = useModal(SelectProductBatchModal);
   const showProductBatchModal = useCallback(() => {
     productBatchModal.show({
       productId: product.id,
@@ -69,49 +69,39 @@ export const ColumnHeader = React.memo<Props>(props => {
   }, []);
 
   return (
-    <Box
-      sx={{
+    <div
+      style={{
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
       }}
     >
-      <Typography
-        id="modal-modal-title"
-        variant="h6"
-        fontSize={14}
-        component="h2"
-        sx={{ flexGrow: 1 }}
-      >
-        {product.name}
-      </Typography>
-      <IconButton
-        aria-label="more"
-        id="long-button"
-        aria-controls={open ? 'long-menu' : undefined}
-        aria-expanded={open ? 'true' : undefined}
-        aria-haspopup="true"
-        onClick={handleClick}
-      >
-        <MoreVertIcon />
-      </IconButton>
+      <Title style={{ flexGrow: 1 }}>{product.name}</Title>
+
       <Menu
-        id="long-menu"
-        MenuListProps={{
-          'aria-labelledby': 'long-button',
-        }}
-        anchorEl={anchorEl}
-        open={open}
-        onClose={handleClose}
+        shadow="md"
+        width={200}
+        trigger="hover"
+        openDelay={100}
+        closeDelay={400}
+        position="bottom-end"
       >
-        <MenuItem onClick={showProductBatchModal}>
-          Переместить сюда партию
-        </MenuItem>
-        <MenuItem onClick={showCreateProductBatchModal}>
-          Добавить партию
-        </MenuItem>
+        <Menu.Target>
+          <ActionIcon onClick={handleClick} variant="light">
+            <FontAwesomeIcon icon={faEllipsisV} />
+          </ActionIcon>
+        </Menu.Target>
+
+        <Menu.Dropdown>
+          <Menu.Item onClick={showProductBatchModal}>
+            Переместить сюда партию
+          </Menu.Item>
+          <Menu.Item onClick={showCreateProductBatchModal}>
+            Добавить партию
+          </Menu.Item>
+        </Menu.Dropdown>
       </Menu>
-    </Box>
+    </div>
   );
 });
 

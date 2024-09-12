@@ -1,5 +1,4 @@
-import { Stack } from '@mui/material';
-import Box from '@mui/material/Box';
+import { Flex, Stack } from '@mantine/core';
 import React, { FC, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 
@@ -72,15 +71,11 @@ export const StatusPage: FC = () => {
         productIds={productIds}
         items={productBatchList}
       >
-        <Box sx={{ height: '90vh' }}>
-          <Stack
-            spacing={1}
-            sx={{ p: 1, width: '100%', overflow: 'auto', height: '100%' }}
-            direction="row"
-          >
+        <div style={{ height: '90vh' }}>
+          <Flex style={{ width: '100%', overflow: 'auto', height: '100%' }}>
             {columns?.map(item => <Column item={item} status={status} />)}
-          </Stack>
-        </Box>
+          </Flex>
+        </div>
       </StoreStateProvider>
     )
   );

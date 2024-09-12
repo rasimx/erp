@@ -7,10 +7,10 @@
   "scripts": {
     "build": "pnpm --parallel build",
     "dev": "pnpm --parallel -r dev",
-    "docker:build": "docker build -t 192.168.0.2:5000/erp:1.0.0 .",
+    "docker:build": "docker build --platform linux/amd64 -t 192.168.0.2:5000/erp:1.0.0 . --push",
     "docker:push": "docker image push 192.168.0.2:5000/erp:1.0.0",
     "docker:bake1": "docker rmi $(docker images -q 192.168.0.2:5000/erp:1.0.0) && docker buildx bake -f docker-bake.hcl --push",
-    "docker:bake": "docker buildx bake -f docker-bake.hcl --push"
+    "docker:bake": "docker bake -f docker-bake.hcl --push"
   },
   "packageManager": "pnpm@9.1.1",
   "devDependencies": {

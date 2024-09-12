@@ -4,19 +4,16 @@ import * as path from 'node:path';
 import federation from '@originjs/vite-plugin-federation';
 import react from '@vitejs/plugin-react-swc';
 import { defineConfig } from 'vite';
-import mkcert from 'vite-plugin-mkcert';
 
 // https://vitejs.dev/config/
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
     },
   },
   plugins: [
-    react({
-      jsxImportSource: '@emotion/react',
-    }),
+    react(),
     federation({
       name: 'remote_app',
       filename: 'remoteEntry.js',
@@ -29,11 +26,6 @@ export default defineConfig({
         'react',
         'react-dom',
         '@apollo/client',
-        '@mui/material',
-        '@mui/x-date-pickers',
-        '@mui/icons-material',
-        '@emotion/react',
-        '@emotion/styled',
         'react-redux',
         'react-use-disclosure',
         // 'react-router-dom',
@@ -49,22 +41,29 @@ export default defineConfig({
         'react',
         'react-dom',
         '@apollo/client',
-        '@mui/material',
-        '@emotion/react',
-        '@emotion/styled',
         'react-redux',
         'react-use-disclosure',
       ],
     }),
   ],
+  css: {
+    postcss: './postcss.config.cjs', // Можно явно указать файл конфигурации PostCSS
+    devSourcemap: true,
+    preprocessorOptions: {
+      scss: {
+        additionalData: `@import "./src/_mantine";`,
+      },
+    },
+  },
   build: {
     target: 'esnext',
     manifest: true,
-    emptyOutDir: false, // This is done during the build of the server
+    emptyOutDir: true, // This is done during the build of the server
     // outDir: `${PROJECT_ROOT}/dist/public`,
     // outDir: `../server/dist/public`,
-    cssCodeSplit: true,
+    cssCodeSplit: false,
     outDir: `dist`,
+    minify: 'esbuild',
     rollupOptions: {
       input: '/src/main.tsx',
       // external: ['react', 'react-dom'],
@@ -75,13 +74,16 @@ export default defineConfig({
       //   },
       // },
     },
-    // sourcemap: 'inline',
+    sourcemap: false,
   },
   server: {
-    https: {
-      key: fs.readFileSync('/etc/ssl/certs/localhost.key'),
-      cert: fs.readFileSync('/etc/ssl/certs/localhost.crt'),
-    },
+    https:
+      mode == 'development'
+        ? {
+            key: fs.readFileSync('/etc/ssl/certs/tls.key'),
+            cert: fs.readFileSync('/etc/ssl/certs/tls.crt'),
+          }
+        : false,
     proxy: {
       '/graphql': {
         target: 'http://localhost:3000',
@@ -90,4 +92,4 @@ export default defineConfig({
       },
     },
   },
-});
+}));

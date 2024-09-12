@@ -1,41 +1,14 @@
 import { Active, DragMoveEvent, Over, useDndMonitor } from '@dnd-kit/core';
 import { SortableContext, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import styled from '@emotion/styled';
-import { Card, Stack } from '@mui/material';
+import { Stack } from '@mantine/core';
+import cx from 'clsx';
 import throttle from 'lodash/throttle';
 import React, { useMemo } from 'react';
 
-import { transientOptions } from '@/utils';
-
 import KanbanCard, { getCardSortId } from './KanbanCard';
+import classes from './KanbanColumn.module.scss';
 import { DraggableType, SortableType, useKanbanBoardContext } from './types';
-
-const Group = styled(Card, transientOptions)<{ $showAfter: boolean }>`
-  height: 100%;
-  overflow: auto;
-  flex-grow: 1;
-  background-color: rgba(0, 0, 0, 0.1);
-  position: relative;
-  &::after {
-    content: '';
-    display: ${props => (props.$showAfter ? 'block' : 'none')};
-    position: absolute;
-    //background: rgba(0, 0, 0, 0.5);
-    opacity: 0.2;
-    background: repeating-linear-gradient(
-      45deg,
-      #606dbc,
-      #606dbc 10px,
-      #465298 10px,
-      #465298 20px
-    );
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-  }
-`;
 
 export const isInsteadGroup = (active: Active | null, over: Over | null) => {
   if (!(active && over)) return;
@@ -151,36 +124,31 @@ const KanbanGroup = <Group extends SortableType, Card extends SortableType>({
 
   if (isDragging) {
     return (
-      <Card
-        elevation={3}
+      <div
         ref={setNodeRef}
-        style={style}
-        sx={{ height: 150, backgroundColor: 'rgba(0,0,0,.1)' }}
+        style={{ ...style, height: 150, backgroundColor: 'rgba(0,0,0,.1)' }}
       >
         {group.id}
-      </Card>
+      </div>
     );
   }
 
   return (
     <React.Fragment>
       {showPrev && (
-        <Card
-          elevation={3}
-          sx={{
+        <div
+          style={{
             height: 5,
             backgroundColor: 'rgba(0,255,0,.5)',
             marginBottom: 1,
           }}
         />
       )}
-      <Group
-        $showAfter={showOver}
-        elevation={3}
-        variant="elevation"
+      <div
+        className={cx(classes.column, showOver && classes.showOver)}
         ref={setNodeRef}
-        style={style}
-        sx={{
+        style={{
+          ...style,
           width: '100%',
           position: 'relative',
           // minHeight: '250px',
@@ -194,7 +162,7 @@ const KanbanGroup = <Group extends SortableType, Card extends SortableType>({
           isActive,
           sortableData: { setActivatorNodeRef, listeners },
           children: (
-            <Stack spacing={2} sx={{ p: 1 }}>
+            <Stack>
               <SortableContext items={itemsIds}>
                 {items.map(card => (
                   <KanbanCard card={card} key={card.id} />
@@ -203,7 +171,7 @@ const KanbanGroup = <Group extends SortableType, Card extends SortableType>({
             </Stack>
           ),
         })}
-      </Group>
+      </div>
     </React.Fragment>
   );
 };

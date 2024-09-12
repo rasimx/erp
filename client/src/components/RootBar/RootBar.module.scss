@@ -1,0 +1,16 @@
+.header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 1;
+  border-bottom: 1px solid var(--mantine-color-default-border);
+  background: var(--mantine-color-white);
+}
+
+.inner {
+  height: rem(65px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}

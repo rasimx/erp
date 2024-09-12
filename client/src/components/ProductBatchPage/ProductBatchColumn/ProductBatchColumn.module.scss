@@ -1,0 +1,33 @@
+.column {
+  margin: 0 rem(5px);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+.header{
+  background: var(--mantine-primary-color-light);
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  text-decoration: none;
+}
+
+.headerInner{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.link{
+  text-decoration: none;
+  flex-grow: 1;
+  display: block;
+  color: var(--mantine-primary-color-9);
+}
+
+.inner {
+  padding: rem(5px);
+  flex-grow: 1;overflow: auto;
+}

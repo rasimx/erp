@@ -1,26 +1,18 @@
-import styled from '@emotion/styled';
-import { Card, Stack } from '@mui/material';
-import Box from '@mui/material/Box';
+import { Card, Stack } from '@mantine/core';
 import React, { type FC } from 'react';
 
 import { Product } from '../../api/product/product.gql';
 import { ProductBatch } from '../../api/product-batch/product-batch.gql';
 import { StatusFragment } from '../../gql-types/graphql';
-import { ProductBatchCard } from '../ProductBatchPage/ProductBatchCard';
+import { ProductBatchCard } from '../ProductBatchPage/ProductBatchCard/ProductBatchCard';
 import { useStoreStateByProductId } from '../StoreState';
+import classes from './Column.module.scss';
 import ColumnHeader from './ColumnHeader';
 
 export type A = {
   product: Product;
   productBatchList: ProductBatch[];
 };
-
-const Item = styled(Card)<A>`
-  padding: 10px;
-  flex-shrink: 0;
-  width: 280px;
-  position: relative;
-`;
 
 interface Props {
   item: A;
@@ -64,25 +56,25 @@ const Column: FC<Props> = props => {
   }
 
   return (
-    <Item {...item}>
+    <div className={classes.column} {...item}>
       <ColumnHeader status={status} product={product} />
-      <Card sx={{ fontSize: 12, mb: 2, mt: 2, p: 2 }}>
+      <Card style={{ fontSize: 12, mb: 2, mt: 2, p: 2 }}>
         {listItems.map((item, index) => (
-          <Box
-            sx={{ display: 'flex', justifyContent: 'space-between' }}
+          <div
+            style={{ display: 'flex', justifyContent: 'space-between' }}
             key={index}
           >
-            <Box>{item.label}</Box>
-            <Box>{item.value}</Box>
-          </Box>
+            <div>{item.label}</div>
+            <div>{item.value}</div>
+          </div>
         ))}
       </Card>
-      <Stack spacing={1} sx={{ position: 'relative', zIndex: 1 }}>
+      <Stack style={{ position: 'relative', zIndex: 1 }}>
         {productBatchList.map(item => (
           <ProductBatchCard card={item} refetch={() => {}} />
         ))}
       </Stack>
-    </Item>
+    </div>
   );
 };
 

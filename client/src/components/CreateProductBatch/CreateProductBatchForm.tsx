@@ -1,22 +1,22 @@
 import NiceModal from '@ebay/nice-modal-react';
-import { Box, Typography } from '@mui/material';
-import { FormikErrors, FormikProps, withFormik } from 'formik';
+import { Autocomplete, Button, NumberInput } from '@mantine/core';
+import { FormikErrors, withFormik } from 'formik';
 import { FormikBag } from 'formik/dist/withFormik';
-import {
-  AutoComplete,
-  AutoCompleteCompleteEvent,
-  AutoCompleteSelectEvent,
-} from 'primereact/autocomplete';
-import { Button } from 'primereact/button';
-import { InputNumber, InputNumberChangeEvent } from 'primereact/inputnumber';
-import React, { type FC, useCallback, useEffect, useState } from 'react';
+import React, {
+  type FC,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 
 import { Product } from '../../api/product/product.gql';
-import { useProductSetList } from '../../api/product/product.hooks';
+import { useProductList } from '../../api/product/product.hooks';
 import { CREATE_PRODUCT_BATCH_MUTATION } from '../../api/product-batch/product-batch.gql';
 import apolloClient from '../../apollo-client';
 import { CreateProductBatchDto } from '../../gql-types/graphql';
 import { fromRouble } from '../../utils';
+import AutocompleteObject from '../AutocompleteObject/AutocompleteObject';
 import withModal from '../withModal';
 import {
   createProductBatchValidationSchema,
@@ -37,6 +37,9 @@ export interface Props {
 const Form: FC<Props & FormProps> = props => {
   const { setValues, handleSubmit } = props;
   const [state, setState] = useState<FormState>({});
+  const [lastCountField, setLastCountField] = useState<
+    'operationsPricePerUnit' | 'operationsPrice'
+  >();
 
   useEffect(() => {
     setValues(values => ({
@@ -49,9 +52,12 @@ const Form: FC<Props & FormProps> = props => {
     }));
   }, [state]);
 
-  const { items: productList } = useProductSetList();
+  const { items: productList } = useProductList();
 
-  const [autocompleteInput, setAutocompleteInput] = useState('');
+  const autocompleteValue = useCallback(
+    (item: Product) => `${item.sku}: ${item.name}`,
+    [],
+  );
 
   useEffect(() => {
     if (
@@ -62,162 +68,138 @@ const Form: FC<Props & FormProps> = props => {
       const product = productList.find(item => item.id === state.productId);
       if (product) setState(state => ({ ...state, product }));
     }
-    if (!state.productId && !!state.product)
-      setState(state => ({ ...state, productSet: null }));
   }, [productList, state]);
 
   const changeProduct = useCallback(
-    (e: AutoCompleteSelectEvent) => {
-      if (e.value.id) {
-        setState(state => ({ ...state, productId: e.value.id }));
-      } else setState(state => ({ ...state, productId: null }));
+    (product: Product | undefined) => {
+      if (product) {
+        setState(state => ({ ...state, productId: product.id, product }));
+      } else
+        setState(state => ({
+          ...state,
+          productId: undefined,
+          product: undefined,
+        }));
     },
     [setState],
   );
 
-  const [filteredProducts, setFilteredProducts] = useState<Product[]>([
-    ...productList,
-  ]);
-
-  const search = useCallback(
-    (event: AutoCompleteCompleteEvent) => {
-      let _filteredProducts;
-      if (!event.query.trim().length) {
-        _filteredProducts = [...productList];
-      } else {
-        _filteredProducts = productList.filter(product => {
-          return (
-            product.name.toLowerCase().includes(event.query.toLowerCase()) ||
-            product.sku.toLowerCase().includes(event.query.toLowerCase())
-          );
-        });
-      }
-      setFilteredProducts(
-        _filteredProducts.map(item => ({
-          ...item,
-          name: `${item.sku}: ${item.name}`,
-        })),
-      );
-    },
-    [productList],
-  );
-
   const changeNumberValue = useCallback(
-    (fieldName: keyof FormState) => (e: InputNumberChangeEvent) => {
+    (fieldName: keyof FormState) => (value: number | string) => {
+      value = Number(value);
       switch (fieldName) {
         case 'operationsPricePerUnit':
           setState(state => ({
             ...state,
-            operationsPricePerUnit: e.value,
+            operationsPricePerUnit: value,
             operationsPrice:
-              state.count != null && e.value != null
-                ? state.count * e.value
+              state.count != null && value != null
+                ? state.count * value
                 : state.operationsPrice,
           }));
+          setLastCountField(fieldName);
           break;
         case 'operationsPrice':
           setState(state => ({
             ...state,
-            operationsPrice: e.value,
+            operationsPrice: value,
             operationsPricePerUnit:
-              state.count != null && e.value != null
-                ? e.value / state.count
+              state.count != null && value != null
+                ? value / state.count
+                : state.operationsPricePerUnit,
+          }));
+          setLastCountField(fieldName);
+          break;
+        case 'count':
+          setState(state => ({
+            ...state,
+            count: value,
+            operationsPrice:
+              lastCountField == 'operationsPricePerUnit' &&
+              !!state.operationsPricePerUnit &&
+              value
+                ? Number((value * state.operationsPricePerUnit).toFixed(2))
+                : state.operationsPrice,
+            operationsPricePerUnit:
+              lastCountField == 'operationsPrice' &&
+              !!state.operationsPrice &&
+              value
+                ? Number((state.operationsPrice / value).toFixed(2))
                 : state.operationsPricePerUnit,
           }));
           break;
         default:
           setState(state => ({
             ...state,
-            [fieldName]: e.value,
+            [fieldName]: value,
           }));
       }
     },
-    [setState],
+    [setState, state],
   );
 
   return (
     <form onSubmit={handleSubmit} noValidate autoComplete="off">
-      <div className="w-30rem">
-        <div className="p-float-label mt-5 field">
-          <AutoComplete
-            id="ac"
-            field="name"
-            onClear={e => {
-              setState(state => ({ ...state, productId: null }));
-            }}
-            removeTokenIcon="pi pi-times"
-            value={state.product ?? autocompleteInput}
-            completeMethod={search}
-            suggestions={filteredProducts}
-            onChange={e => setAutocompleteInput(e.value)}
-            onSelect={changeProduct}
-            className="w-full block"
-            inputClassName="w-full"
-          />
+      <AutocompleteObject
+        data={productList}
+        value={state.product}
+        onChange={changeProduct}
+        getValue={autocompleteValue}
+      />
 
-          <label htmlFor="ac">Выбрать товар</label>
-        </div>
-        <div className="p-float-label mt-5 field">
-          <InputNumber
-            className="w-full"
-            id="fullCount"
-            value={state.count}
-            min={0}
-            onChange={changeNumberValue('count')}
-          />
-          <label>Количество</label>
-        </div>
-        <div className="p-float-label mt-5">
-          <InputNumber
-            className="w-full"
-            id="costPricePerUnit"
-            min={0}
-            minFractionDigits={2}
-            mode="currency"
-            currency="RUB"
-            locale="ru-RU"
-            value={state.costPricePerUnit}
-            onChange={changeNumberValue('costPricePerUnit')}
-          />
-          <label>Себестоимость единицы</label>
-        </div>
-        <div className="p-float-label mt-5">
-          <InputNumber
-            className="w-full"
-            id="operationsPricePerUnit"
-            min={0}
-            minFractionDigits={2}
-            mode="currency"
-            currency="RUB"
-            locale="ru-RU"
-            value={state.operationsPricePerUnit}
-            onChange={changeNumberValue('operationsPricePerUnit')}
-          />
-          <label>Сопутствующие расходы за единицу</label>
-        </div>
-        <div className="p-float-label mt-5">
-          <InputNumber
-            className="w-full"
-            id="operationsPrice"
-            min={0}
-            minFractionDigits={2}
-            mode="currency"
-            currency="RUB"
-            locale="ru-RU"
-            value={state.operationsPrice}
-            onChange={changeNumberValue('operationsPrice')}
-          />
-          <label>Сопутствующие расходы на всю партию</label>
-        </div>
-        <Button
-          className="mt-5"
-          label="Next"
-          icon="pi pi-arrow-right"
-          iconPos="right"
-          type="submit"
-          // disabled={!newBathes.length}
-        />
-      </div>
+      <NumberInput
+        required
+        label="Количество"
+        placeholder="шт"
+        allowNegative={false}
+        suffix=" шт"
+        decimalScale={0}
+        value={state.count ?? undefined}
+        onChange={changeNumberValue('count')}
+        hideControls
+      />
+      <NumberInput
+        required
+        label="Себестоимость единицы"
+        placeholder="₽"
+        allowNegative={false}
+        fixedDecimalScale
+        suffix="₽"
+        decimalScale={2}
+        value={state.costPricePerUnit ?? ''}
+        onChange={changeNumberValue('costPricePerUnit')}
+        hideControls
+      />
+      <NumberInput
+        required
+        label="Сопутствующие расходы за единицу"
+        placeholder="₽"
+        allowNegative={false}
+        fixedDecimalScale
+        suffix="₽"
+        decimalScale={2}
+        value={state.operationsPricePerUnit ?? ''}
+        onChange={changeNumberValue('operationsPricePerUnit')}
+        hideControls
+      />
+      <NumberInput
+        required
+        label="Сопутствующие расходы на всю партию"
+        placeholder="₽"
+        allowNegative={false}
+        fixedDecimalScale
+        suffix="₽"
+        decimalScale={2}
+        value={state.operationsPrice ?? ''}
+        onChange={changeNumberValue('operationsPrice')}
+        hideControls
+      />
+      <Button
+        type="submit"
+        // disabled={!newBathes.length}
+      >
+        Добавить
+      </Button>
     </form>
   );
 };

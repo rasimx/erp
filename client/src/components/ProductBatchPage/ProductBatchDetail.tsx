@@ -1,8 +1,8 @@
 import { useQuery } from '@apollo/client';
 import NiceModal, { useModal } from '@ebay/nice-modal-react';
-import MoreVertIcon from '@mui/icons-material/MoreVert';
-import { CardContent, IconButton, Menu, MenuItem } from '@mui/material';
-import Box from '@mui/material/Box';
+import { faEllipsisV } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { ActionIcon, Menu } from '@mantine/core';
 import React, { useCallback, useMemo } from 'react';
 
 import { useOperation } from '../../api/operation/operation.hooks';
@@ -113,9 +113,9 @@ export const ProductBatchDetail = React.memo<Props>(props => {
 
   return (
     productBatch && (
-      <Box>
-        <Box
-          sx={{
+      <div>
+        <div
+          style={{
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
@@ -123,53 +123,50 @@ export const ProductBatchDetail = React.memo<Props>(props => {
             backgroundColor: 'rgba(0,0,0,.1)',
           }}
         >
-          <Box sx={{ cursor: 'pointer', fontWeight: 600, fontSize: 12 }}>
-            {productBatch.name}
-          </Box>
+          <div style={{ cursor: 'pointer', fontWeight: 600, fontSize: 12 }}>
+            {productBatch.product.name}
+          </div>
 
-          <IconButton
-            aria-label="more"
-            id="long-button"
-            aria-controls={open ? 'long-menu' : undefined}
-            aria-expanded={open ? 'true' : undefined}
-            aria-haspopup="true"
-            onClick={handleClick}
-          >
-            <MoreVertIcon />
-          </IconButton>
           <Menu
-            id="long-menu"
-            MenuListProps={{
-              'aria-labelledby': 'long-button',
-            }}
-            anchorEl={anchorEl}
-            open={open}
-            onClose={handleClose}
+            shadow="md"
+            width={200}
+            trigger="hover"
+            openDelay={100}
+            closeDelay={400}
+            position="bottom-end"
           >
-            <MenuItem onClick={showOperationFormModal}>
-              Добавить операцию
-            </MenuItem>
-            <MenuItem onClick={handleDelete}>Удалить</MenuItem>
+            <Menu.Target>
+              <ActionIcon variant="light" onClick={handleClick}>
+                <FontAwesomeIcon icon={faEllipsisV} />
+              </ActionIcon>
+            </Menu.Target>
+
+            <Menu.Dropdown>
+              <Menu.Item onClick={showOperationFormModal}>
+                Добавить операцию
+              </Menu.Item>
+              <Menu.Item onClick={handleDelete}>Удалить</Menu.Item>
+            </Menu.Dropdown>
           </Menu>
-        </Box>
-        <Box sx={{ fontSize: 12 }}>
+        </div>
+        <div style={{ fontSize: 12 }}>
           {listItems.map((item, index) => (
-            <Box
-              sx={{ display: 'flex', justifyContent: 'space-between' }}
+            <div
+              style={{ display: 'flex', justifyContent: 'space-between' }}
               key={index}
             >
-              <Box>{item.label}</Box>
-              <Box>{item.value}</Box>
-            </Box>
+              <div>{item.label}</div>
+              <div>{item.value}</div>
+            </div>
           ))}
-        </Box>
+        </div>
         <br />
-        <Box sx={{ fontSize: 12 }}>
+        <div style={{ fontSize: 12 }}>
           {productBatch.events.map((event, index) => (
             <EventListItem event={event} />
           ))}
-        </Box>
-      </Box>
+        </div>
+      </div>
     )
   );
 });

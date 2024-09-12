@@ -4,8 +4,8 @@ import { createBrowserRouter, RouteObject } from 'react-router-dom';
 
 import { ProductBatchPage } from './components/ProductBatchPage/ProductBatchPage';
 import ProductList from './components/ProductList';
+import Root from './components/Root/Root';
 import { StatusPage } from './components/StatusPage/StatusPage';
-import Root from './Root';
 
 export const routeObject: RouteObject[] = [
   {
