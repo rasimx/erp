@@ -1,40 +1,41 @@
 import { Autocomplete } from '@mantine/core';
 import { CloseButton } from '@mantine/core';
+import { AutocompleteProps } from '@mantine/core/lib/components/Autocomplete/Autocomplete';
+import omit from 'lodash/omit';
 import React, { useCallback, useMemo } from 'react';
 
-export interface Props<T> {
-  data: T[];
+export interface Props<T> extends AutocompleteProps {
+  objDataList: T[];
   getValue: (item: T) => string;
-  value: T | undefined;
-  onChange: (value: T | undefined) => void;
+  valueObj: T | undefined;
+  onChangeObj: (value: T | undefined) => void;
 }
 
 function AutocompleteObject<T>(props: Props<T>) {
-  const { data, getValue, value, onChange } = props;
+  const { objDataList, getValue, valueObj, onChangeObj } = props;
 
   const dataMap = useMemo(
-    () => new Map(data.map(item => [getValue(item), item])),
-    [data],
+    () => new Map(objDataList.map(item => [getValue(item), item])),
+    [objDataList],
   );
 
   const changeHandle = useCallback(
     (strValue: string) => {
       const value = dataMap.get(strValue);
-      onChange(value);
+      onChangeObj(value);
     },
-    [onChange, dataMap],
+    [onChangeObj, dataMap],
   );
 
   const clearIcon = useMemo(() => {
-    return <CloseButton onClick={() => onChange(undefined)} />;
+    return <CloseButton onClick={() => onChangeObj(undefined)} />;
   }, []);
 
   return (
     <Autocomplete
-      label="Товар"
-      placeholder="Выберите товар"
+      {...omit(props, ['objDataList', 'valueObj', 'onChangeObj', 'getValue'])}
       data={[...dataMap.keys()]}
-      value={value ? getValue(value) : ''}
+      value={valueObj ? getValue(valueObj) : ''}
       onChange={changeHandle}
       rightSection={clearIcon}
     />

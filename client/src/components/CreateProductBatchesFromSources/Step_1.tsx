@@ -46,9 +46,11 @@ const Step_1: FC<Props> = props => {
   return (
     <>
       <AutocompleteObject
-        data={productList}
-        value={state.product}
-        onChange={changeProduct}
+        label="Товар"
+        placeholder="Выберите товар"
+        objDataList={productList}
+        valueObj={state.product}
+        onChangeObj={changeProduct}
         getValue={autocompleteValue}
       />
 

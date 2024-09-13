@@ -50,7 +50,6 @@ export type CreateProductBatchDto = {
 export type CreateProductBatchGroupDto = {
   existProductBatchIds: Array<Scalars['Int']['input']>;
   name: Scalars['String']['input'];
-  newProductBatches: Array<CreateProductBatchDto>;
   statusId: Scalars['Int']['input'];
 };
 

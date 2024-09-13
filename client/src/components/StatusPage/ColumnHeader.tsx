@@ -8,7 +8,7 @@ import React, { useCallback } from 'react';
 import { Product } from '../../api/product/product.gql';
 import { useProductBatchMutations } from '../../api/product-batch/product-batch.hook';
 import { ProductBatchFragment, StatusFragment } from '../../gql-types/graphql';
-// import CreateProductBatchForm from '../CreateProductBatch/ProductBatchForm';
+// import CreateProductBatchGroupForm from '../CreateProductBatch/ProductBatchForm';
 import { SelectProductBatchModal } from '../CreateProductBatch/SelectProductBatch';
 
 export interface Props {
@@ -33,7 +33,7 @@ export const ColumnHeader = React.memo<Props>(props => {
     setAnchorEl(null);
   };
 
-  // const createProductBatchModal = useModal(CreateProductBatchForm);
+  // const createProductBatchModal = useModal(CreateProductBatchGroupForm);
   const showCreateProductBatchModal = useCallback(() => {
     // createProductBatchModal.show({
     //   initialValues: {

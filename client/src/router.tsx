@@ -1,16 +1,15 @@
-import { Router } from '@remix-run/router';
 import React from 'react';
-import { createBrowserRouter, RouteObject } from 'react-router-dom';
+import { RouteObject } from 'react-router-dom';
 
+import App from './components/App/App';
 import { ProductBatchPage } from './components/ProductBatchPage/ProductBatchPage';
 import ProductList from './components/ProductList';
-import Root from './components/Root/Root';
 import { StatusPage } from './components/StatusPage/StatusPage';
 
-export const routeObject: RouteObject[] = [
+export const getRoutes = (basename?: string): RouteObject[] => [
   {
-    path: '/',
-    element: <Root />,
+    path: basename ? `${basename}` : '*',
+    element: <App basename={basename} />,
     children: [
       {
         path: 'products',
@@ -32,6 +31,4 @@ export const routeObject: RouteObject[] = [
   },
 ];
 
-export const createRouter = (basename?: string): Router => {
-  return createBrowserRouter(routeObject, { basename });
-};
+export default {};

@@ -4,8 +4,12 @@ import {
   type ThunkAction,
 } from '@reduxjs/toolkit';
 
+import productBatchPageReducer from './components/ProductBatchPage/product-batch-page.slice';
+
 const reduxStore = configureStore({
-  reducer: {},
+  reducer: {
+    productBatchPage: productBatchPageReducer,
+  },
 });
 
 // export const persistor = persistStore(store);

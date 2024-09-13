@@ -141,9 +141,11 @@ const Form: FC<Props & FormProps> = props => {
   return (
     <form onSubmit={handleSubmit} noValidate autoComplete="off">
       <AutocompleteObject
-        data={productList}
-        value={state.product}
-        onChange={changeProduct}
+        label="Товар"
+        placeholder="Выберите товар"
+        objDataList={productList}
+        valueObj={state.product}
+        onChangeObj={changeProduct}
         getValue={autocompleteValue}
       />
 

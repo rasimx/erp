@@ -7,7 +7,6 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { ActionIcon, Card, Menu, Title } from '@mantine/core';
 import omit from 'lodash/omit';
 import React, { useCallback } from 'react';
-import { Link } from 'react-router-dom';
 
 import { ProductBatch } from '../../../api/product-batch/product-batch.gql';
 import { useProductBatchMutations } from '../../../api/product-batch/product-batch.hook';
@@ -16,6 +15,7 @@ import { StatusFragment } from '../../../gql-types/graphql';
 import { CreateProductBatchModal } from '../../CreateProductBatch/CreateProductBatchForm';
 import { CreateProductBatchesByAssemblingModal } from '../../CreateProductBatchesByAssembling/modal';
 import { CreateProductBatchesFromSourcesModal } from '../../CreateProductBatchesFromSources/modal';
+import CustomLink from '../../CustomLink';
 import { ColumnProps } from '../../KanbanBoard/types';
 import { StoreStateProvider } from '../../StoreState';
 import classes from './ProductBatchColumn.module.scss';
@@ -134,9 +134,9 @@ export const ProductBatchColumn = React.memo<Props>(props => {
             </ActionIcon>
 
             <Title order={4}>
-              <Link to={`/status/${status.id}`} className={classes.link}>
+              <CustomLink to={`/status/${status.id}`} className={classes.link}>
                 {status.title}
-              </Link>
+              </CustomLink>
             </Title>
 
             <Menu

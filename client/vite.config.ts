@@ -18,9 +18,9 @@ export default defineConfig(({ mode }) => ({
       name: 'remote_app',
       filename: 'remoteEntry.js',
       exposes: {
-        './App': './src/App',
+        // './App': './src/App',
         './apolloClient': './src/apollo-client/index',
-        './menu': './src/menu',
+        './router': './src/router',
       },
       shared: [
         'react',
@@ -28,7 +28,7 @@ export default defineConfig(({ mode }) => ({
         '@apollo/client',
         'react-redux',
         'react-use-disclosure',
-        // 'react-router-dom',
+        'react-router-dom',
       ],
     }),
 
@@ -43,6 +43,7 @@ export default defineConfig(({ mode }) => ({
         '@apollo/client',
         'react-redux',
         'react-use-disclosure',
+        'react-router-dom',
       ],
     }),
   ],
@@ -66,7 +67,7 @@ export default defineConfig(({ mode }) => ({
     minify: 'esbuild',
     rollupOptions: {
       input: '/src/main.tsx',
-      // external: ['react', 'react-dom'],
+      // external: ['react', 'react-dom', 'react-router-dom'],
       // output: {
       //   globals: {
       //     react: 'React',
