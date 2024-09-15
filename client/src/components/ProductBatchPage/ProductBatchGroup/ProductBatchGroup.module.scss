@@ -1,11 +1,9 @@
 .group {
   padding: 0;
-  border-radius: var(--mantine-radius-default);
-  background: var(--mantine-primary-color-1);
   overflow: hidden;
 }
 .header{
-  background: var(--mantine-primary-color-2);
+  background: gray;
   text-align: center;
   display: flex;
   align-items: center;

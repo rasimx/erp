@@ -1,7 +1,6 @@
 import { Active, DragMoveEvent, Over, useDndMonitor } from '@dnd-kit/core';
 import { SortableContext, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Stack } from '@mantine/core';
 import cx from 'clsx';
 import throttle from 'lodash/throttle';
 import React, { useMemo } from 'react';
@@ -162,13 +161,18 @@ const KanbanGroup = <Group extends SortableType, Card extends SortableType>({
           isActive,
           sortableData: { setActivatorNodeRef, listeners },
           children: (
-            <Stack>
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+              }}
+            >
               <SortableContext items={itemsIds}>
                 {items.map(card => (
                   <KanbanCard card={card} key={card.id} />
                 ))}
               </SortableContext>
-            </Stack>
+            </div>
           ),
         })}
       </div>

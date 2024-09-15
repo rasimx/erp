@@ -1,30 +1,28 @@
-import { Card, Stack } from '@mantine/core';
 import React, { type FC } from 'react';
-import { Link } from 'react-router-dom';
 
 import { Product } from '../api/product/product.gql';
 import { useProductList } from '../api/product/product.hooks';
+import CustomLink from './CustomLink';
 
 export interface Props {}
 
-const ProductList: FC<Props> = ({}) => {
+const ProductList: FC<Props> = props => {
   const { items: productList } = useProductList();
 
   return (
-    <Stack>
+    <div style={{ display: 'flex', flexDirection: 'column' }}>
       {productList.map((product: Product) => (
-        <Card
-          component={Link}
+        <CustomLink
           to={`/kanban/${product.id}`}
-          style={{ textDecoration: 'none', p: 2 }}
+          style={{ textDecoration: 'none' }}
           key={product.id}
         >
           <strong>{product.sku}</strong>
           <br />
           <span>{product.name} </span>
-        </Card>
+        </CustomLink>
       ))}
-    </Stack>
+    </div>
   );
 };
 

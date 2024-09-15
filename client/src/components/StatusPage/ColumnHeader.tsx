@@ -2,7 +2,6 @@ import { SyntheticListenerMap } from '@dnd-kit/core/dist/hooks/utilities/useSynt
 import { useModal } from '@ebay/nice-modal-react';
 import { faEllipsisV } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { ActionIcon, Menu, Title } from '@mantine/core';
 import React, { useCallback } from 'react';
 
 import { Product } from '../../api/product/product.gql';
@@ -76,31 +75,31 @@ export const ColumnHeader = React.memo<Props>(props => {
         alignItems: 'center',
       }}
     >
-      <Title style={{ flexGrow: 1 }}>{product.name}</Title>
+      <div style={{ flexGrow: 1 }}>{product.name}</div>
 
-      <Menu
-        shadow="md"
-        width={200}
-        trigger="hover"
-        openDelay={100}
-        closeDelay={400}
-        position="bottom-end"
-      >
-        <Menu.Target>
-          <ActionIcon onClick={handleClick} variant="light">
-            <FontAwesomeIcon icon={faEllipsisV} />
-          </ActionIcon>
-        </Menu.Target>
+      {/*<Menu*/}
+      {/*  shadow="md"*/}
+      {/*  width={200}*/}
+      {/*  trigger="hover"*/}
+      {/*  openDelay={100}*/}
+      {/*  closeDelay={400}*/}
+      {/*  position="bottom-end"*/}
+      {/*>*/}
+      {/*  <Menu.Target>*/}
+      {/*    <ActionIcon onClick={handleClick} variant="light">*/}
+      {/*      <FontAwesomeIcon icon={faEllipsisV} />*/}
+      {/*    </ActionIcon>*/}
+      {/*  </Menu.Target>*/}
 
-        <Menu.Dropdown>
-          <Menu.Item onClick={showProductBatchModal}>
-            Переместить сюда партию
-          </Menu.Item>
-          <Menu.Item onClick={showCreateProductBatchModal}>
-            Добавить партию
-          </Menu.Item>
-        </Menu.Dropdown>
-      </Menu>
+      {/*  <Menu.Dropdown>*/}
+      {/*    <Menu.Item onClick={showProductBatchModal}>*/}
+      {/*      Переместить сюда партию*/}
+      {/*    </Menu.Item>*/}
+      {/*    <Menu.Item onClick={showCreateProductBatchModal}>*/}
+      {/*      Добавить партию*/}
+      {/*    </Menu.Item>*/}
+      {/*  </Menu.Dropdown>*/}
+      {/*</Menu>*/}
     </div>
   );
 });

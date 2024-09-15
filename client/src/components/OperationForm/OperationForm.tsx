@@ -1,19 +1,16 @@
 import NiceModal from '@ebay/nice-modal-react';
-import {
-  Button,
-  NumberInput,
-  Radio,
-  Table,
-  TextInput,
-  Tooltip,
-} from '@mantine/core';
-import { DateInput, DateInputProps } from '@mantine/dates';
 import { format, parse } from 'date-fns';
 import dayjs from 'dayjs';
 import { FormikErrors, FormikProps, withFormik } from 'formik';
 import { FormikBag } from 'formik/dist/withFormik';
 import pick from 'lodash/pick';
-import React, { type FC, useCallback, useEffect, useMemo } from 'react';
+import { Button } from 'primereact/button';
+import { Calendar } from 'primereact/calendar';
+import { InputNumber } from 'primereact/inputnumber';
+import { InputText } from 'primereact/inputtext';
+import { RadioButton } from 'primereact/radiobutton';
+import { Tooltip } from 'primereact/tooltip';
+import React, { type FC, useCallback, useEffect, useMemo, useRef } from 'react';
 import { array, mixed, number, object, ObjectSchema, string } from 'yup';
 
 import { ProductBatch } from '../../api/product-batch/product-batch.gql';
@@ -69,16 +66,14 @@ const DataCell: FC<DataCellProps> = ({ type, row, items, label, getValue }) => {
   const item = items[type].get(row.id);
   if (!item) throw new Error();
 
+  const ref = useRef<HTMLTableDataCellElement>(null);
+
   return (
-    <Table.Td style={{ padding: 0, border: '1px solid gray' }}>
-      <Tooltip
-        withArrow
-        label={
-          <div>
-            Цена за единицу товара - {(item.cost / row.count).toFixed(2)} р
-          </div>
-        }
-      >
+    <>
+      <Tooltip target={ref.current ?? undefined}>
+        Цена за единицу товара - {(item.cost / row.count).toFixed(2)} р
+      </Tooltip>
+      <td style={{ padding: 0, border: '1px solid gray' }} ref={ref}>
         <div className={classes.value}>
           <div>
             {getValue ? getValue(item.value) : item.value} {label}
@@ -86,8 +81,8 @@ const DataCell: FC<DataCellProps> = ({ type, row, items, label, getValue }) => {
           <div>{item.proportion} %</div>
           <div>{Number.isNaN(item.cost) ? '—' : toRouble(item.cost)} р</div>
         </div>
-      </Tooltip>
-    </Table.Td>
+      </td>
+    </>
   );
 };
 
@@ -183,97 +178,90 @@ const Form: FC<Props & FormikProps<CreateOperationDto>> = props => {
     }
   }, [items, values.proportionType]);
 
-  const dateParser: DateInputProps['dateParser'] = input => {
-    if (input === 'WW2') {
-      return new Date(1939, 8, 1);
-    }
-
-    return dayjs(input, 'YYYY-MM-DD').toDate();
-  };
+  // const dateParser: DateInputProps['dateParser'] = input => {
+  //   if (input === 'WW2') {
+  //     return new Date(1939, 8, 1);
+  //   }
+  //
+  //   return dayjs(input, 'YYYY-MM-DD').toDate();
+  // };
 
   return (
     <form onSubmit={handleSubmit} noValidate autoComplete="off">
-      <TextInput
-        required
-        label="Название"
-        name="name"
+      <InputText
         value={values.name}
-        onBlur={handleBlur}
+        name="name"
         onChange={handleChange}
-        error={touched.name && Boolean(errors.name)}
-      />
-      <NumberInput
-        required
-        id="outlined-required"
-        label="стоимость за партию"
-        allowNegative={false}
-        fixedDecimalScale
-        suffix="₽"
-        decimalScale={2}
-        value={values.cost ?? ''}
         onBlur={handleBlur}
-        onChange={val => {
-          setFieldValue('cost', val);
-        }}
-        error={touched.cost && Boolean(errors.cost)}
+        className="p-inputtext-sm"
+        placeholder="Название"
       />
-      <DateInput
-        dateParser={dateParser}
-        valueFormat="YYYY-MM-DD"
-        label="Дата"
+      <div className="flex-auto">
+        <label htmlFor="operationsPrice">стоимость за партию</label>
+        <InputNumber
+          inputId="operationsPrice"
+          required
+          mode="currency"
+          currency="RUB"
+          locale="ru-RU"
+          value={values.cost}
+          minFractionDigits={2}
+          maxFractionDigits={2}
+          onValueChange={e => setFieldValue('cost', e.value)}
+        />
+      </div>
+      <Calendar
         value={
           values.date ? parse(values.date, 'yyyy-MM-dd', new Date()) : null
         }
-        // error={touched.date && Boolean(errors.date)}
-        // onBlur={handleBlur}
-        onChange={value => {
+        onChange={e =>
           setFieldValue(
             'date',
-            value ? format(value, 'yyyy-MM-dd') : undefined,
-          );
-        }}
+            e.value ? format(e.value, 'yyyy-MM-dd') : undefined,
+          )
+        }
+        dateFormat="yy-mm-dd"
       />
 
       <div>
         {productBatches.length > 1 && (
           <div style={{ marginTop: '10px' }}>
-            <Table style={{ minWidth: 650 }}>
-              <Table.Thead>
-                <Table.Tr style={{ textWrap: 'nowrap' }}>
-                  <Table.Th>Распределить стоимость</Table.Th>
-                  <Table.Th>
-                    <Radio
-                      label="По весу"
-                      variant="outline"
+            <table style={{ minWidth: 650 }}>
+              <thead>
+                <tr style={{ textWrap: 'nowrap' }}>
+                  <th>Распределить стоимость</th>
+                  <th>
+                    <RadioButton
+                      inputId="weightRadio"
                       name="proportionType"
-                      checked={values.proportionType == ProportionType.weight}
                       value={ProportionType.weight}
-                      onBlur={handleBlur}
-                      onChange={handleChange}
+                      onChange={e => setFieldValue('proportionType', e.value)}
+                      checked={values.proportionType == ProportionType.weight}
                     />
-                  </Table.Th>
-                  <Table.Th>
-                    <Radio
-                      label="По объему"
+                    <label htmlFor="weightRadio">По весу</label>
+                  </th>
+                  <th>
+                    <RadioButton
+                      inputId="volumeRadio"
                       name="proportionType"
-                      checked={values.proportionType == ProportionType.volume}
                       value={ProportionType.volume}
-                      onBlur={handleBlur}
-                      onChange={handleChange}
+                      onChange={e => setFieldValue('proportionType', e.value)}
+                      checked={values.proportionType == ProportionType.volume}
                     />
-                  </Table.Th>
-                  <Table.Th>
-                    <Radio
-                      label="По с/с"
+                    <label htmlFor="volumeRadio">По объему</label>
+                  </th>
+                  <th>
+                    <RadioButton
+                      inputId="costPriceRadio"
                       name="proportionType"
+                      value={ProportionType.costPrice}
+                      onChange={e => setFieldValue('proportionType', e.value)}
                       checked={
                         values.proportionType == ProportionType.costPrice
                       }
-                      value={ProportionType.costPrice}
-                      onBlur={handleBlur}
-                      onChange={handleChange}
                     />
-                  </Table.Th>
+                    <label htmlFor="costPriceRadio">По с/с</label>
+                  </th>
                   {/*<TableCell>*/}
                   {/*  <Radio*/}
                   {/*    size="small"*/}
@@ -283,14 +271,12 @@ const Form: FC<Props & FormikProps<CreateOperationDto>> = props => {
                   {/*  />*/}
                   {/*  <span>Произвольно</span>*/}
                   {/*</TableCell>*/}
-                </Table.Tr>
-              </Table.Thead>
-              <Table.Tbody>
+                </tr>
+              </thead>
+              <tbody>
                 {productBatches.map(row => (
-                  <Table.Tr key={row.id}>
-                    <Table.Td component="th" scope="row">
-                      {row.id}
-                    </Table.Td>
+                  <tr key={row.id}>
+                    <td>{row.id}</td>
                     <DataCell
                       items={items}
                       type={ProportionType.weight}
@@ -313,14 +299,14 @@ const Form: FC<Props & FormikProps<CreateOperationDto>> = props => {
                     {/*<TableCell sx={{ padding: '0 10px' }}>*/}
                     {/*  <Input />*/}
                     {/*</TableCell>*/}
-                  </Table.Tr>
+                  </tr>
                 ))}
-              </Table.Tbody>
-            </Table>
+              </tbody>
+            </table>
           </div>
         )}
       </div>
-      <Button variant="contained" type="submit" style={{ marginTop: '10px' }}>
+      <Button type="submit" style={{ marginTop: '10px' }}>
         Добавить
       </Button>
     </form>

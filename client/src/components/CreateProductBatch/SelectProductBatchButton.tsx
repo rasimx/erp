@@ -1,7 +1,7 @@
 import { useModal } from '@ebay/nice-modal-react';
 import { faTrash } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { ActionIcon, Button, Group } from '@mantine/core';
+import { Button } from 'primereact/button';
 import React, { type FC, useCallback, useEffect, useState } from 'react';
 
 import { ProductBatchFragment } from '../../gql-types/graphql';
@@ -44,16 +44,16 @@ const SelectProductBatchButton: FC<Props> = ({
   }, [onChange, setSelected]);
 
   return (
-    <Group>
+    <div>
       <Button onClick={showProductBatchModal}>
         {selected?.id ?? `Выбрать партию`}
       </Button>
       {selected && (
-        <ActionIcon variant="light" onClick={clear}>
+        <Button onClick={clear}>
           <FontAwesomeIcon icon={faTrash} />
-        </ActionIcon>
+        </Button>
       )}
-    </Group>
+    </div>
   );
 };
 

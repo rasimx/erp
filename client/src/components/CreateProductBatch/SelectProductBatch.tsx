@@ -1,5 +1,4 @@
 import NiceModal from '@ebay/nice-modal-react';
-import { Flex, Stack } from '@mantine/core';
 import React, { type FC, useCallback, useEffect, useMemo } from 'react';
 
 import { useKanban } from '../../api/kanban/kanban.hook';
@@ -70,46 +69,44 @@ export const SelectProductBatch: FC<Props> = ({
   return (
     <div>
       <h3>Выбрать исходную партию</h3>
-      <div>
-        <Flex>
-          {columns.map((column, index) => (
-            <div key={column.id}>
-              <h6>{column.title}</h6>
+      <div style={{ display: 'flex' }}>
+        {columns.map((column, index) => (
+          <div key={column.id}>
+            <h6>{column.title}</h6>
 
-              <Stack>
-                {cards
-                  .filter(item => item.statusId == column.id)
-                  .map(item =>
-                    item.__typename == 'ProductBatchGroupDto' ? (
-                      <div style={{ cursor: 'pointer' }} key={item.id}>
-                        <div>
-                          {item.productBatchList.map(item => {
-                            return (
-                              <div
-                                style={{ cursor: 'pointer' }}
-                                key={item.id}
-                                onClick={() => onSelectHandle(item)}
-                              >
-                                {item.id}: {item.order}
-                              </div>
-                            );
-                          })}
-                        </div>
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              {cards
+                .filter(item => item.statusId == column.id)
+                .map(item =>
+                  item.__typename == 'ProductBatchGroupDto' ? (
+                    <div style={{ cursor: 'pointer' }} key={item.id}>
+                      <div>
+                        {item.productBatchList.map(item => {
+                          return (
+                            <div
+                              style={{ cursor: 'pointer' }}
+                              key={item.id}
+                              onClick={() => onSelectHandle(item)}
+                            >
+                              {item.id}: {item.order}
+                            </div>
+                          );
+                        })}
                       </div>
-                    ) : (
-                      <div
-                        style={{ cursor: 'pointer' }}
-                        key={item.id}
-                        onClick={() => onSelectHandle(item as ProductBatch)}
-                      >
-                        {item.id}: {item.order}
-                      </div>
-                    ),
-                  )}
-              </Stack>
+                    </div>
+                  ) : (
+                    <div
+                      style={{ cursor: 'pointer' }}
+                      key={item.id}
+                      onClick={() => onSelectHandle(item as ProductBatch)}
+                    >
+                      {item.id}: {item.order}
+                    </div>
+                  ),
+                )}
             </div>
-          ))}
-        </Flex>
+          </div>
+        ))}
       </div>
     </div>
   );

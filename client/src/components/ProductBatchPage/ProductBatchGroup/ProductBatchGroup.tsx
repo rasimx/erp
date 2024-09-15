@@ -1,12 +1,9 @@
 import { useModal } from '@ebay/nice-modal-react';
-import {
-  faAngleDown,
-  faAngleUp,
-  faUpDownLeftRight,
-} from '@fortawesome/free-solid-svg-icons';
+import { faAngleDown, faAngleUp } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { ActionIcon, Card, Collapse } from '@mantine/core';
-import React, { useCallback } from 'react';
+import { Button } from 'primereact/button';
+import { Panel, PanelHeaderTemplateOptions } from 'primereact/panel';
+import React, { useCallback, useRef } from 'react';
 
 import { ProductBatchGroup } from '../../../api/product-batch-group/product-batch-group.gql';
 import { GroupProps } from '../../KanbanBoard/types';
@@ -22,10 +19,6 @@ export const ProductBatchGroupComponent = React.memo<Props>(props => {
 
   const [openCollapse, setOpenCollapse] = React.useState(false);
 
-  const handleClickCollapse = () => {
-    setOpenCollapse(!openCollapse);
-  };
-
   const productBatchGroupInfoDrawer = useModal(ProductBatchGroupInfo);
   const showProductBatchGroupInfoDrawer = useCallback(() => {
     productBatchGroupInfoDrawer.show({
@@ -33,16 +26,21 @@ export const ProductBatchGroupComponent = React.memo<Props>(props => {
     });
   }, [productBatchGroupInfoDrawer, group]);
 
-  return (
-    <div className={classes.group}>
-      <div className={classes.header}>
-        <ActionIcon
-          variant="light"
+  const ref = useRef<Panel>(null);
+
+  const headerTemplate = (options: PanelHeaderTemplateOptions) => {
+    console.log(options);
+    const className = `${options.className} justify-content-space-between`;
+
+    return (
+      <div className={className}>
+        <Button
+          icon="pi pi-arrows-alt"
+          // @ts-ignore
           ref={sortableData?.setActivatorNodeRef}
           {...sortableData?.listeners}
-        >
-          <FontAwesomeIcon icon={faUpDownLeftRight} />
-        </ActionIcon>
+          className={classes.move}
+        />
 
         <div
           onClick={showProductBatchGroupInfoDrawer}
@@ -51,16 +49,20 @@ export const ProductBatchGroupComponent = React.memo<Props>(props => {
           {group.name} #{group.productBatchList.length}
         </div>
 
-        <ActionIcon variant="light" onClick={handleClickCollapse}>
-          <FontAwesomeIcon icon={openCollapse ? faAngleUp : faAngleDown} />
-        </ActionIcon>
+        {options.iconsElement}
+
+        {/*<Button onClick={e => ref.current?.toggle(e)}>*/}
+        {/*  <FontAwesomeIcon icon={openCollapse ? faAngleUp : faAngleDown} />*/}
+        {/*</Button>*/}
       </div>
-      <div className={classes.info}>
-        {group.productBatchList.length} позиций
-      </div>
-      <Collapse in={openCollapse}>
+    );
+  };
+
+  return (
+    <div className={classes.group}>
+      <Panel headerTemplate={headerTemplate} toggleable ref={ref} collapsed>
         <div className={classes.collapsible}>{children}</div>
-      </Collapse>
+      </Panel>
     </div>
   );
 });

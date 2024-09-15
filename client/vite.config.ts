@@ -52,7 +52,7 @@ export default defineConfig(({ mode }) => ({
     devSourcemap: true,
     preprocessorOptions: {
       scss: {
-        additionalData: `@import "./src/_mantine";`,
+        additionalData: `@import "./src/_utils";`,
       },
     },
   },

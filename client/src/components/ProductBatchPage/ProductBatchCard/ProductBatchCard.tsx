@@ -1,8 +1,7 @@
 import { useModal } from '@ebay/nice-modal-react';
 import { faSquare, faSquareCheck } from '@fortawesome/free-regular-svg-icons';
-import { faUpDownLeftRight } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { ActionIcon, Card } from '@mantine/core';
+import { Button } from 'primereact/button';
 import React, { useCallback, useMemo } from 'react';
 
 import { ProductBatch } from '../../../api/product-batch/product-batch.gql';
@@ -43,26 +42,27 @@ export const ProductBatchCard = React.memo<Props>(props => {
   const selectHandle = useCallback(() => dispatch(toggleSelect(card.id)), []);
 
   return (
-    <Card
-      className={classes.card}
-      shadow="sm"
-      padding="sx"
-      radius="sm"
-      withBorder
-    >
-      <Card.Section className={classes.inner}>
-        <ActionIcon
-          variant="light"
+    <div className={classes.card}>
+      <div className={classes.inner}>
+        <Button
+          icon="pi pi-arrows-alt"
+          // @ts-ignore
           ref={sortableData?.setActivatorNodeRef}
           {...sortableData?.listeners}
-        >
-          <FontAwesomeIcon icon={faUpDownLeftRight} />
-        </ActionIcon>
+          className={classes.move}
+        />
+        {/*<ActionIcon*/}
+        {/*  variant="light"*/}
+        {/*  ref={sortableData?.setActivatorNodeRef}*/}
+        {/*  {...sortableData?.listeners}*/}
+        {/*>*/}
+        {/*  <FontAwesomeIcon icon={faUpDownLeftRight} />*/}
+        {/*</ActionIcon>*/}
         <div className={classes.sku} onClick={showProductBatchInfoDrawer}>
           {card.product.sku}
         </div>
         <div style={{ padding: '0 10px', fontWeight: 600 }}>{card.count}</div>
-      </Card.Section>
+      </div>
       <div
         style={{ padding: '10px', cursor: 'pointer', position: 'relative' }}
         onClick={showProductBatchInfoDrawer}
@@ -78,6 +78,6 @@ export const ProductBatchCard = React.memo<Props>(props => {
           )}
         </div>
       )}
-    </Card>
+    </div>
   );
 });

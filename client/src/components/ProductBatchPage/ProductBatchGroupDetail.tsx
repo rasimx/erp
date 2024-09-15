@@ -2,7 +2,7 @@ import { useQuery } from '@apollo/client';
 import NiceModal, { useModal } from '@ebay/nice-modal-react';
 import { faEllipsisV } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { ActionIcon, Menu } from '@mantine/core';
+import { Button } from 'primereact/button';
 import React, { useCallback, useMemo } from 'react';
 
 import { useOperation } from '../../api/operation/operation.hooks';
@@ -94,27 +94,28 @@ export const ProductBatchGroupDetail = React.memo<Props>(props => {
               {group.name}
             </div>
 
-            <Menu
-              shadow="md"
-              width={200}
-              trigger="hover"
-              openDelay={100}
-              closeDelay={400}
-              position="bottom-end"
-            >
-              <Menu.Target>
-                <ActionIcon variant="light" onClick={handleClick}>
-                  <FontAwesomeIcon icon={faEllipsisV} />
-                </ActionIcon>
-              </Menu.Target>
+            <Button onClick={showOperationFormModal}>Добавить операцию</Button>
+            {/*<Menu*/}
+            {/*  shadow="md"*/}
+            {/*  width={200}*/}
+            {/*  trigger="hover"*/}
+            {/*  openDelay={100}*/}
+            {/*  closeDelay={400}*/}
+            {/*  position="bottom-end"*/}
+            {/*>*/}
+            {/*  <Menu.Target>*/}
+            {/*    <ActionIcon variant="light" onClick={handleClick}>*/}
+            {/*      <FontAwesomeIcon icon={faEllipsisV} />*/}
+            {/*    </ActionIcon>*/}
+            {/*  </Menu.Target>*/}
 
-              <Menu.Dropdown>
-                <Menu.Item onClick={showOperationFormModal}>
-                  Добавить операцию
-                </Menu.Item>
-                <Menu.Item onClick={handleDelete}>Удалить группу</Menu.Item>
-              </Menu.Dropdown>
-            </Menu>
+            {/*  <Menu.Dropdown>*/}
+            {/*    <Menu.Item onClick={showOperationFormModal}>*/}
+            {/*      Добавить операцию*/}
+            {/*    </Menu.Item>*/}
+            {/*    <Menu.Item onClick={handleDelete}>Удалить группу</Menu.Item>*/}
+            {/*  </Menu.Dropdown>*/}
+            {/*</Menu>*/}
           </div>
           <div style={{ display: 'flex' }}>
             id: {group.id} <br />

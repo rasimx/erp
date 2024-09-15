@@ -25,8 +25,8 @@ import { RecursivePartial } from '../../utils';
 
 export interface FormState
   extends RecursivePartial<CreateProductBatchesFromSourcesDto> {
-  product?: Product | undefined;
-  sources?: SelectedProductBatch[] | undefined;
+  product?: Product | null;
+  sources?: SelectedProductBatch[] | null;
 }
 export const FormContext = createContext<{
   state: FormState;
@@ -37,7 +37,7 @@ export const useFormState = () => {
   const { state, setState } = useContext(FormContext);
 
   const updateSelectedSetSource = useCallback(
-    (id: number, batch: SelectedProductBatch | undefined) => {
+    (id: number, batch: SelectedProductBatch | null) => {
       setState(state => {
         const sources = state?.sources ? [...state.sources] : [];
         const index = sources.findIndex(item => item.id === id);
@@ -62,7 +62,7 @@ export const useFormState = () => {
 };
 
 export interface SelectedProductBatch extends ProductBatch {
-  selectedCount: number | undefined;
+  selectedCount: number | null;
 }
 
 export type FormValues = Partial<

@@ -20,7 +20,6 @@ import { restrictToHorizontalAxis } from '@dnd-kit/modifiers';
 // import { restrictToHorizontalAxis } from '@dnd-kit/modifiers';
 import { arrayMove, SortableContext } from '@dnd-kit/sortable';
 import { Coordinates } from '@dnd-kit/utilities';
-import { Divider, Flex } from '@mantine/core';
 import { over } from 'lodash';
 import cloneDeep from 'lodash/cloneDeep';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
@@ -614,7 +613,6 @@ const KanbanBoard = <
           <SortableContext items={columnsId}>
             {columns?.map((column, index) => (
               <React.Fragment key={column.id}>
-                {index != 0 && <Divider orientation="vertical" />}
                 <KanbanColumn column={column} cards={cards} />
               </React.Fragment>
             ))}

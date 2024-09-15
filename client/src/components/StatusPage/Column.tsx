@@ -1,4 +1,3 @@
-import { Card, Stack } from '@mantine/core';
 import React, { type FC } from 'react';
 
 import { Product } from '../../api/product/product.gql';
@@ -58,7 +57,7 @@ const Column: FC<Props> = props => {
   return (
     <div className={classes.column} {...item}>
       <ColumnHeader status={status} product={product} />
-      <Card style={{ fontSize: 12, mb: 2, mt: 2, p: 2 }}>
+      <div style={{ fontSize: 12 }}>
         {listItems.map((item, index) => (
           <div
             style={{ display: 'flex', justifyContent: 'space-between' }}
@@ -68,12 +67,20 @@ const Column: FC<Props> = props => {
             <div>{item.value}</div>
           </div>
         ))}
-      </Card>
-      <Stack style={{ position: 'relative', zIndex: 1 }}>
+      </div>
+
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          position: 'relative',
+          zIndex: 1,
+        }}
+      >
         {productBatchList.map(item => (
           <ProductBatchCard card={item} refetch={() => {}} />
         ))}
-      </Stack>
+      </div>
     </div>
   );
 };

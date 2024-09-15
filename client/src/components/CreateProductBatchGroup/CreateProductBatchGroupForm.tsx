@@ -1,7 +1,8 @@
 import NiceModal from '@ebay/nice-modal-react';
-import { Button, TextInput } from '@mantine/core';
 import { FormikErrors, withFormik } from 'formik';
 import { FormikBag } from 'formik/dist/withFormik';
+import { Button } from 'primereact/button';
+import { InputText } from 'primereact/inputtext';
 import React, { type FC, useCallback, useEffect, useMemo } from 'react';
 
 import { CREATE_PRODUCT_BATCH_MUTATION } from '../../api/product-batch/product-batch.gql';
@@ -16,7 +17,8 @@ import {
 } from '../../gql-types/graphql';
 import { useAppSelector } from '../../hooks';
 import { fromRouble } from '../../utils';
-import AutocompleteObject from '../AutocompleteObject/AutocompleteObject';
+import ProductSelect from '../Autocomplete/ProductSelect';
+import StatusSelect from '../Autocomplete/StatusSelect';
 import { selectSelectedIds } from '../ProductBatchPage/product-batch-page.slice';
 import withModal from '../withModal';
 import {
@@ -52,7 +54,7 @@ const Form: FC<Props & FormProps> = props => {
   );
 
   const changeStatus = useCallback(
-    (status: StatusDto | undefined) => {
+    (status: StatusDto | null) => {
       setFieldValue('statusId', status?.id);
     },
     [setFieldValue],
@@ -65,27 +67,18 @@ const Form: FC<Props & FormProps> = props => {
 
   return (
     <form onSubmit={handleSubmit} noValidate autoComplete="off">
-      <TextInput
-        label="Название группы"
-        name="name"
+      <InputText
         value={values.name}
+        name="name"
         onChange={handleChange}
         onBlur={handleBlur}
+        className="p-inputtext-sm"
+        placeholder="Название группы"
       />
-      <AutocompleteObject
-        label="Колонка"
-        objDataList={statusList}
-        valueObj={statusValue}
-        onChangeObj={changeStatus}
-        getValue={autocompleteValue}
-      />
+
+      <StatusSelect value={statusValue ?? null} onChange={changeStatus} />
       <br />
-      <Button
-        type="submit"
-        // disabled={!newBathes.length}
-      >
-        Добавить
-      </Button>
+      <Button type="submit">Добавить</Button>
     </form>
   );
 };

@@ -4,8 +4,6 @@ type Path = {
   children?: Path[];
 };
 
-export { Link } from 'react-router-dom';
-
 export const menu: Path = {
   label: 'ERP',
   url: '/',

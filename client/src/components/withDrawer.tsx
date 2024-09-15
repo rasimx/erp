@@ -1,5 +1,5 @@
 import { useModal } from '@ebay/nice-modal-react';
-import { Drawer } from '@mantine/core';
+import { Sidebar } from 'primereact/sidebar';
 import React, { ComponentType } from 'react';
 
 export default function withDrawer<P extends object>(
@@ -10,14 +10,10 @@ export default function withDrawer<P extends object>(
   return (props: P) => {
     const modal = useModal();
     return (
-      <Drawer
-        opened={modal.visible}
-        onClose={modal.hide}
-        title={title}
-        position="right"
-      >
+      <Sidebar visible={modal.visible} position="right" onHide={modal.hide}>
+        <h2>Right Sidebar</h2>
         <WrappedComponent {...props} closeModal={() => modal.hide()} />
-      </Drawer>
+      </Sidebar>
     );
   };
 }

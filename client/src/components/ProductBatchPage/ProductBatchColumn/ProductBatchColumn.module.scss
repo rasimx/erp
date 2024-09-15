@@ -5,7 +5,6 @@
   flex-direction: column;
 }
 .header{
-  background: var(--mantine-primary-color-light);
   text-align: center;
   display: flex;
   align-items: center;
@@ -24,7 +23,6 @@
   text-decoration: none;
   flex-grow: 1;
   display: block;
-  color: var(--mantine-primary-color-9);
 }
 
 .inner {

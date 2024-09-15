@@ -1,6 +1,5 @@
 import { SortableContext, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Stack } from '@mantine/core';
 import cx from 'clsx';
 import React, { useMemo } from 'react';
 
@@ -101,59 +100,6 @@ const KanbanColumn = <
     visibility: isDragging ? 'hidden' : 'visible',
   };
 
-  // useEffect(() => {
-  //   console.log('column', isActive);
-  // }, [column]);
-  // useEffect(() => {
-  //   console.log('items', isActive);
-  // }, [items]);
-  // useEffect(() => {
-  //   console.log('isActive', isActive);
-  // }, [isActive]);
-  // useEffect(() => {
-  //   console.log('setActivatorNodeRef', isActive);
-  // }, [setActivatorNodeRef]);
-  // useEffect(() => {
-  //   // console.log('listeners', listeners, isActive);
-  // }, [listeners]);
-  // useEffect(() => {
-  //   console.log('itemsIds', isActive);
-  // }, [itemsIds]);
-
-  // const renderedColumn = useMemo(() => {
-  //   return renderColumn({
-  //     column,
-  //     items,
-  //     isActive,
-  //     sortableData: { setActivatorNodeRef, listeners },
-  //     children: (
-  //       <Stack spacing={2} sx={{ p: 1 }}>
-  //         <SortableContext items={itemsIds}>
-  //           {items.map(item =>
-  //             isGroup(item) ? (
-  //               <KanbanGroup group={item as ProductBatchGroup} key={`group_${item.id}`} />
-  //             ) : (
-  //               <KanbanCard card={item as Card} key={`card_${item.id}`} />
-  //             ),
-  //           )}
-  //         </SortableContext>
-  //       </Stack>
-  //     ),
-  //   });
-  // }, [column, items, isActive, setActivatorNodeRef, listeners, itemsIds]);
-
-  // if (isDragging) {
-  //   return (
-  //     <Box
-  //       // elevation={3}
-  //       // variant="elevation"
-  //       ref={setNodeRef}
-  //       style={style}
-  //       sx={{ width: 300 }}
-  //     ></Box>
-  //   );
-  // }
-
   return (
     <div
       className={cx(classes.column, showAfter && classes.showAfter)}
@@ -171,24 +117,21 @@ const KanbanColumn = <
         children: (
           <div
             style={{
+              display: 'flex',
+              flexDirection: 'column',
               overflowY: 'auto',
               overflowX: 'visible',
             }}
           >
-            <Stack>
-              <SortableContext items={itemsIds}>
-                {items.map(item =>
-                  isGroup(item) ? (
-                    <KanbanGroup
-                      group={item as Group}
-                      key={`group_${item.id}`}
-                    />
-                  ) : (
-                    <KanbanCard card={item as Card} key={`card_${item.id}`} />
-                  ),
-                )}
-              </SortableContext>
-            </Stack>
+            <SortableContext items={itemsIds}>
+              {items.map(item =>
+                isGroup(item) ? (
+                  <KanbanGroup group={item as Group} key={`group_${item.id}`} />
+                ) : (
+                  <KanbanCard card={item as Card} key={`card_${item.id}`} />
+                ),
+              )}
+            </SortableContext>
           </div>
         ),
       })}

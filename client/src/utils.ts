@@ -7,8 +7,8 @@ export type Nullable<T> = {
 
 export type RecursivePartial<T> = {
   [P in keyof T]?: T[P] extends object
-    ? RecursivePartial<T[P]> | undefined
-    : T[P] | undefined;
+    ? RecursivePartial<T[P]> | null
+    : T[P] | null;
 };
 export type RecursiveNonNullable<T> = {
   [P in keyof T]: T[P] extends object ? RecursivePartial<T[P]> : T[P];

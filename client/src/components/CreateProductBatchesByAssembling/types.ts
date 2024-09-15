@@ -24,7 +24,7 @@ import {
 import { RecursivePartial } from '../../utils';
 
 export interface SelectedProductBatch extends ProductBatch {
-  selectedCount?: number | undefined;
+  selectedCount?: number | null;
 }
 
 export interface FormState
@@ -42,7 +42,7 @@ export const useFormState = () => {
   console.log(state);
 
   const updateSelectedSetSource = useCallback(
-    (id: number, batch: SelectedProductBatch | undefined) => {
+    (id: number, batch: SelectedProductBatch | null) => {
       setState(state => {
         const sources = state?.sources ? [...state.sources] : [];
         const index = sources.findIndex(item => item.id === id);

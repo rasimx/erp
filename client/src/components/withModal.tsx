@@ -1,5 +1,5 @@
 import { useModal } from '@ebay/nice-modal-react';
-import { Modal } from '@mantine/core';
+import { Dialog } from 'primereact/dialog';
 import React, { ComponentType } from 'react';
 
 export default function withModal<P extends object>(
@@ -10,14 +10,13 @@ export default function withModal<P extends object>(
   return (props: P) => {
     const modal = useModal();
     return (
-      <Modal
-        opened={modal.visible}
-        onClose={modal.hide}
-        title={header || 'HEADER IS NOT DEFINED'}
-        size="auto"
+      <Dialog
+        visible={modal.visible}
+        onHide={modal.hide}
+        header={header || 'HEADER IS NOT DEFINED'}
       >
         <WrappedComponent {...props} closeModal={() => modal.hide()} />
-      </Modal>
+      </Dialog>
     );
   };
 }

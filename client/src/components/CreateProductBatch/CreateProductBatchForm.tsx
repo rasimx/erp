@@ -1,7 +1,11 @@
 import NiceModal from '@ebay/nice-modal-react';
-import { Autocomplete, Button, NumberInput } from '@mantine/core';
 import { FormikErrors, withFormik } from 'formik';
 import { FormikBag } from 'formik/dist/withFormik';
+import { Button } from 'primereact/button';
+import {
+  InputNumber,
+  InputNumberValueChangeEvent,
+} from 'primereact/inputnumber';
 import React, {
   type FC,
   useCallback,
@@ -16,7 +20,7 @@ import { CREATE_PRODUCT_BATCH_MUTATION } from '../../api/product-batch/product-b
 import apolloClient from '../../apollo-client';
 import { CreateProductBatchDto } from '../../gql-types/graphql';
 import { fromRouble } from '../../utils';
-import AutocompleteObject from '../AutocompleteObject/AutocompleteObject';
+import ProductSelect from '../Autocomplete/ProductSelect';
 import withModal from '../withModal';
 import {
   createProductBatchValidationSchema,
@@ -52,26 +56,8 @@ const Form: FC<Props & FormProps> = props => {
     }));
   }, [state]);
 
-  const { items: productList } = useProductList();
-
-  const autocompleteValue = useCallback(
-    (item: Product) => `${item.sku}: ${item.name}`,
-    [],
-  );
-
-  useEffect(() => {
-    if (
-      state.productId &&
-      state.product?.id != state.productId &&
-      productList.length
-    ) {
-      const product = productList.find(item => item.id === state.productId);
-      if (product) setState(state => ({ ...state, product }));
-    }
-  }, [productList, state]);
-
   const changeProduct = useCallback(
-    (product: Product | undefined) => {
+    (product: Product | null) => {
       if (product) {
         setState(state => ({ ...state, productId: product.id, product }));
       } else
@@ -85,8 +71,8 @@ const Form: FC<Props & FormProps> = props => {
   );
 
   const changeNumberValue = useCallback(
-    (fieldName: keyof FormState) => (value: number | string) => {
-      value = Number(value);
+    (fieldName: keyof FormState) => (event: InputNumberValueChangeEvent) => {
+      const value = event.value;
       switch (fieldName) {
         case 'operationsPricePerUnit':
           setState(state => ({
@@ -140,62 +126,68 @@ const Form: FC<Props & FormProps> = props => {
 
   return (
     <form onSubmit={handleSubmit} noValidate autoComplete="off">
-      <AutocompleteObject
-        label="Товар"
-        placeholder="Выберите товар"
-        objDataList={productList}
-        valueObj={state.product}
-        onChangeObj={changeProduct}
-        getValue={autocompleteValue}
+      <ProductSelect
+        value={state.product ?? null}
+        onChange={changeProduct}
+        initialId={state.productId}
       />
 
-      <NumberInput
+      <InputNumber
         required
-        label="Количество"
-        placeholder="шт"
-        allowNegative={false}
+        placeholder=" шт"
         suffix=" шт"
-        decimalScale={0}
-        value={state.count ?? undefined}
-        onChange={changeNumberValue('count')}
-        hideControls
+        maxFractionDigits={0}
+        value={state.count}
+        onValueChange={changeNumberValue('count')}
       />
-      <NumberInput
-        required
-        label="Себестоимость единицы"
-        placeholder="₽"
-        allowNegative={false}
-        fixedDecimalScale
-        suffix="₽"
-        decimalScale={2}
-        value={state.costPricePerUnit ?? ''}
-        onChange={changeNumberValue('costPricePerUnit')}
-        hideControls
-      />
-      <NumberInput
-        required
-        label="Сопутствующие расходы за единицу"
-        placeholder="₽"
-        allowNegative={false}
-        fixedDecimalScale
-        suffix="₽"
-        decimalScale={2}
-        value={state.operationsPricePerUnit ?? ''}
-        onChange={changeNumberValue('operationsPricePerUnit')}
-        hideControls
-      />
-      <NumberInput
-        required
-        label="Сопутствующие расходы на всю партию"
-        placeholder="₽"
-        allowNegative={false}
-        fixedDecimalScale
-        suffix="₽"
-        decimalScale={2}
-        value={state.operationsPrice ?? ''}
-        onChange={changeNumberValue('operationsPrice')}
-        hideControls
-      />
+
+      <div className="flex-auto">
+        <label htmlFor="operationsPrice">Себестоимость единицы</label>
+        <InputNumber
+          inputId="operationsPrice"
+          required
+          mode="currency"
+          currency="RUB"
+          locale="ru-RU"
+          value={state.costPricePerUnit}
+          minFractionDigits={2}
+          maxFractionDigits={2}
+          onValueChange={changeNumberValue('costPricePerUnit')}
+        />
+      </div>
+      <div className="flex-auto">
+        <label htmlFor="operationsPrice">
+          Сопутствующие расходы на единицу
+        </label>
+        <InputNumber
+          inputId="operationsPrice"
+          required
+          mode="currency"
+          currency="RUB"
+          locale="ru-RU"
+          value={state.operationsPricePerUnit}
+          minFractionDigits={2}
+          maxFractionDigits={2}
+          onValueChange={changeNumberValue('operationsPricePerUnit')}
+        />
+      </div>
+      <div className="flex-auto">
+        <label htmlFor="operationsPrice">
+          Сопутствующие расходы на всю партию
+        </label>
+        <InputNumber
+          inputId="operationsPrice"
+          required
+          mode="currency"
+          currency="RUB"
+          locale="ru-RU"
+          value={state.operationsPrice}
+          minFractionDigits={2}
+          maxFractionDigits={2}
+          onValueChange={changeNumberValue('operationsPrice')}
+        />
+      </div>
+
       <Button
         type="submit"
         // disabled={!newBathes.length}

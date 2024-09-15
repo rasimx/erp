@@ -1,4 +1,3 @@
-import { Flex, Stack } from '@mantine/core';
 import React, { FC, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 
@@ -72,9 +71,16 @@ export const StatusPage: FC = () => {
         items={productBatchList}
       >
         <div style={{ height: '90vh' }}>
-          <Flex style={{ width: '100%', overflow: 'auto', height: '100%' }}>
+          <div
+            style={{
+              display: 'flex',
+              width: '100%',
+              overflow: 'auto',
+              height: '100%',
+            }}
+          >
             {columns?.map(item => <Column item={item} status={status} />)}
-          </Flex>
+          </div>
         </div>
       </StoreStateProvider>
     )

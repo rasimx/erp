@@ -1,9 +1,9 @@
-import { NumberInput } from '@mantine/core';
+import { InputNumber } from 'primereact/inputnumber';
 import React, { FC, useCallback, useEffect } from 'react';
 
 import { Product } from '../../api/product/product.gql';
 import { useProductList } from '../../api/product/product.hooks';
-import AutocompleteObject from '../AutocompleteObject/AutocompleteObject';
+import ProductSelect from '../Autocomplete/ProductSelect';
 import { useFormState } from './types';
 
 export type Props = {};
@@ -13,19 +13,8 @@ const Step_1: FC<Props> = props => {
 
   const { items: productList } = useProductList();
 
-  useEffect(() => {
-    if (
-      state.productId &&
-      state.product?.id != state.productId &&
-      productList.length
-    ) {
-      const product = productList.find(item => item.id === state.productId);
-      if (product) setState(state => ({ ...state, product }));
-    }
-  }, [productList, state]);
-
   const changeProduct = useCallback(
-    (product: Product | undefined) => {
+    (product: Product | null) => {
       if (product) {
         setState(state => ({ ...state, productId: product.id, product }));
       } else
@@ -38,34 +27,23 @@ const Step_1: FC<Props> = props => {
     [setState],
   );
 
-  const autocompleteValue = useCallback(
-    (item: Product) => `${item.sku}: ${item.name}`,
-    [],
-  );
-
   return (
     <>
-      <AutocompleteObject
-        label="Товар"
-        placeholder="Выберите товар"
-        objDataList={productList}
-        valueObj={state.product}
-        onChangeObj={changeProduct}
-        getValue={autocompleteValue}
+      <ProductSelect
+        value={state.product ?? null}
+        onChange={changeProduct}
+        initialId={state.productId}
       />
-
-      <NumberInput
+      <label>Количество</label>
+      <InputNumber
         required
-        label="Количество"
-        placeholder="шт"
-        allowNegative={false}
+        placeholder=" шт"
         suffix=" шт"
-        decimalScale={0}
+        maxFractionDigits={0}
         value={state.fullCount}
-        onChange={value =>
-          value && setState(state => ({ ...state, fullCount: Number(value) }))
+        onValueChange={e =>
+          setState(state => ({ ...state, fullCount: e.value }))
         }
-        hideControls
       />
     </>
   );

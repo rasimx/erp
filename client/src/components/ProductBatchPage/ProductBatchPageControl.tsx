@@ -1,5 +1,5 @@
 import { useModal } from '@ebay/nice-modal-react';
-import { Button } from '@mantine/core';
+import { Button } from 'primereact/button';
 import { FC, useCallback } from 'react';
 
 import { useAppDispatch, useAppSelector } from '../../hooks';
@@ -38,12 +38,16 @@ export const ProductBatchPageControl: FC = () => {
 
   return (
     <div>
-      <Button onClick={selectingHandle}>
-        {isSelecting ? 'Отмена' : 'Выбрать партии'}
-      </Button>
-      <Button onClick={showCreateProductBatchGroupModal}>
-        Объединить в группу
-      </Button>
+      <Button
+        onClick={selectingHandle}
+        size="small"
+        label={isSelecting ? 'Отмена' : 'Выбрать партии'}
+      />
+      <Button
+        onClick={showCreateProductBatchGroupModal}
+        size="small"
+        label="Объединить в группу"
+      />
     </div>
   );
 };

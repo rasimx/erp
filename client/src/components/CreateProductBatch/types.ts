@@ -7,7 +7,7 @@ import { Product } from '../../api/product/product.gql';
 import { RecursivePartial } from '../../utils';
 
 export interface FormState extends RecursivePartial<CreateProductBatchDto> {
-  product?: Product | undefined;
+  product?: Product | null;
 }
 
 export const createProductBatchValidationSchema =

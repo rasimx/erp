@@ -1,7 +1,6 @@
 import { useModal } from '@ebay/nice-modal-react';
-import { faEllipsisV } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { ActionIcon, Button, Flex, NumberInput } from '@mantine/core';
+import { Button } from 'primereact/button';
+import { InputNumber } from 'primereact/inputnumber';
 import React, { FC, useCallback } from 'react';
 
 import { ProductBatch } from '../../api/product-batch/product-batch.gql';
@@ -22,7 +21,7 @@ const Step_1: FC<Props> = props => {
         onSelect: (batch: ProductBatch) => {
           updateSelectedSetSource(batch.id, {
             ...batch,
-            selectedCount: undefined,
+            selectedCount: null,
           });
         },
       });
@@ -40,31 +39,27 @@ const Step_1: FC<Props> = props => {
               <div>
                 партия <strong>#{item.id}</strong>, кол-во: {item.count}
               </div>
-              <Flex>
-                <NumberInput
+              <div style={{ display: 'flex' }}>
+                <label>Количество</label>
+                <InputNumber
                   required
-                  label="Количество"
-                  placeholder="шт"
-                  allowNegative={false}
+                  placeholder=" шт"
                   suffix=" шт"
-                  decimalScale={0}
+                  maxFractionDigits={0}
                   value={item.selectedCount}
-                  onChange={value =>
+                  onValueChange={e =>
                     updateSelectedSetSource(item.id, {
                       ...item,
-                      selectedCount: value ? Number(value) : undefined,
+                      selectedCount: e.value ?? null,
                     })
                   }
-                  hideControls
                 />
 
-                <ActionIcon
-                  variant="light"
-                  onClick={() => updateSelectedSetSource(item.id, undefined)}
-                >
-                  <FontAwesomeIcon icon={faEllipsisV} />
-                </ActionIcon>
-              </Flex>
+                <Button
+                  icon="pi pi-arrows-alt"
+                  onClick={() => updateSelectedSetSource(item.id, null)}
+                />
+              </div>
             </div>
           );
         })}
