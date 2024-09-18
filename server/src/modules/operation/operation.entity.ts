@@ -3,13 +3,12 @@ import {
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
-  ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 
-import { ProportionType } from '@/graphql.schema.js';
+import { ProportionType } from '@/operation/dtos/operation.dto.js';
 import { ProductBatchOperationEntity } from '@/product-batch-operation/product-batch-operation.entity.js';
 
 @Entity({ name: 'operation' })
@@ -34,6 +33,12 @@ export class OperationEntity {
 
   @Column()
   cost: number;
+
+  @Column('integer', { nullable: true })
+  currencyCost: number | null;
+
+  @Column('integer', { nullable: true })
+  exchangeRate: number | null;
 
   @Column()
   date: string;

@@ -12,9 +12,7 @@ import type { CreateOperationDto } from '@/operation/dtos/create-operation.dto.j
 import type { MoveProductBatchDto } from '@/product-batch/dtos/move-product-batch.dto.js';
 import type { MoveProductBatchItemsDto } from '@/product-batch/dtos/move-product-batch-items.dto.js';
 import {
-  type DeleteProductBatchEvent,
-  type MoveProductBatchEvent,
-  type MoveProductBatchItemsEvent,
+  type GroupOperationCreatedEvent,
   type MoveProductsToChildBatchEvent,
   type MoveProductsToChildBatchEventData,
   type OperationCreatedEvent,
@@ -24,6 +22,9 @@ import {
   type ProductBatchCreatedEventData,
   type ProductBatchCreatedFromSourceEvent,
   type ProductBatchCreatedFromSourceEventData,
+  type ProductBatchDeletedEvent,
+  type ProductBatchItemsMovedEvent,
+  type ProductBatchMovedEvent,
   productBatchStreamName,
 } from '@/product-batch/eventstore/types.js';
 
@@ -151,16 +152,16 @@ export class ProductBatchEventStore {
     };
   }
 
-  async deleteProductBatch({
+  async appendProductBatchDeletedEvent({
     eventId,
     productBatchId,
   }: {
     eventId: string;
     productBatchId: number;
   }) {
-    const event = jsonEvent<DeleteProductBatchEvent>({
+    const event = jsonEvent<ProductBatchDeletedEvent>({
       id: eventId,
-      type: 'DeleteProductBatch',
+      type: 'ProductBatchDeleted',
       data: { id: productBatchId },
     });
 
@@ -180,16 +181,16 @@ export class ProductBatchEventStore {
     };
   }
 
-  async moveProductBatch({
+  async appendProductBatchMovedEvent({
     eventId,
     data,
   }: {
     eventId: string;
     data: MoveProductBatchDto;
   }) {
-    const event = jsonEvent<MoveProductBatchEvent>({
+    const event = jsonEvent<ProductBatchMovedEvent>({
       id: eventId,
-      type: 'MoveProductBatch',
+      type: 'ProductBatchMoved',
       data: data,
     });
 
@@ -217,18 +218,18 @@ export class ProductBatchEventStore {
     eventId: string;
     dto: MoveProductBatchItemsDto;
   }) {
-    const event = jsonEvent<MoveProductBatchItemsEvent>({
+    const event = jsonEvent<ProductBatchItemsMovedEvent>({
       id: eventId,
-      type: 'MoveProductBatchItems',
+      type: 'ProductBatchItemsMoved',
       data: dto,
     });
 
-    const STREAM_NAME = `ProductBatch-${dto.donorId.toString()}`;
+    const STREAM_NAME = productBatchStreamName(dto.donorId);
 
     await this.eventStoreService.appendToStream(STREAM_NAME, event);
   }
 
-  async createOperation({
+  async appendOperationCreatedEvent({
     eventId,
     productBatchId,
     data,
@@ -239,11 +240,42 @@ export class ProductBatchEventStore {
   }) {
     const event = jsonEvent<OperationCreatedEvent>({
       id: eventId,
-      type: 'CreateOperation',
+      type: 'OperationCreated',
       data: data,
     });
 
-    const STREAM_NAME = `ProductBatch-${productBatchId.toString()}`;
+    const STREAM_NAME = productBatchStreamName(productBatchId);
+
+    const appendResult = await this.eventStoreService.appendToStream(
+      STREAM_NAME,
+      event,
+    );
+    return {
+      appendResult,
+      cancel: () =>
+        this.eventStoreService.appendTransactionCompensatingEvent(
+          STREAM_NAME,
+          event,
+        ),
+    };
+  }
+
+  async appendGroupOperationCreatedEvent({
+    eventId,
+    productBatchId,
+    data,
+  }: {
+    eventId: string;
+    productBatchId: number;
+    data: CreateOperationDto;
+  }) {
+    const event = jsonEvent<GroupOperationCreatedEvent>({
+      id: eventId,
+      type: 'GroupOperationCreated',
+      data: data,
+    });
+
+    const STREAM_NAME = productBatchStreamName(productBatchId);
 
     const appendResult = await this.eventStoreService.appendToStream(
       STREAM_NAME,

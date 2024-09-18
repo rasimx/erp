@@ -6,7 +6,7 @@ import throttle from 'lodash/throttle';
 import React, { useMemo } from 'react';
 
 import KanbanCard, { getCardSortId } from './KanbanCard';
-import classes from './KanbanColumn.module.scss';
+import classes from './KanbanGroup.module.scss';
 import { DraggableType, SortableType, useKanbanBoardContext } from './types';
 
 export const isInsteadGroup = (active: Active | null, over: Over | null) => {
@@ -123,10 +123,7 @@ const KanbanGroup = <Group extends SortableType, Card extends SortableType>({
 
   if (isDragging) {
     return (
-      <div
-        ref={setNodeRef}
-        style={{ ...style, height: 150, backgroundColor: 'rgba(0,0,0,.1)' }}
-      >
+      <div ref={setNodeRef} style={style} className={classes.fake}>
         {group.id}
       </div>
     );
@@ -134,26 +131,10 @@ const KanbanGroup = <Group extends SortableType, Card extends SortableType>({
 
   return (
     <React.Fragment>
-      {showPrev && (
-        <div
-          style={{
-            height: 5,
-            backgroundColor: 'rgba(0,255,0,.5)',
-            marginBottom: 1,
-          }}
-        />
-      )}
+      {showPrev && <div className={classes.prev} />}
       <div
-        className={cx(classes.column, showOver && classes.showOver)}
+        className={cx(classes.group, showOver && classes.showOver)}
         ref={setNodeRef}
-        style={{
-          ...style,
-          width: '100%',
-          position: 'relative',
-          // minHeight: '250px',
-          display: 'flex',
-          flexDirection: 'column',
-        }}
         {...attributes}
       >
         {renderGroup({
@@ -161,12 +142,7 @@ const KanbanGroup = <Group extends SortableType, Card extends SortableType>({
           isActive,
           sortableData: { setActivatorNodeRef, listeners },
           children: (
-            <div
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-              }}
-            >
+            <div className={classes.cards}>
               <SortableContext items={itemsIds}>
                 {items.map(card => (
                   <KanbanCard card={card} key={card.id} />

@@ -43,7 +43,7 @@ export class DeleteProductBatchHandler
       });
 
       const { appendResult } =
-        await this.productBatchEventStore.deleteProductBatch({
+        await this.productBatchEventStore.appendProductBatchDeletedEvent({
           eventId: requestId,
           productBatchId: id,
         });

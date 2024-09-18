@@ -50,26 +50,6 @@ export class CreateProductBatchGroupHandler
       let newEntity = await productBatchGroupRepository.createFromDto(dto);
 
       const allAffectedIds: number[] = [];
-      const newProductBatches: ProductBatchEntity[] = [];
-      // if (dto.newProductBatches.length) {
-      //   for (const item of dto.newProductBatches) {
-      //     newProductBatches.push(
-      //       await productBatchRepository.createFromDto({
-      //         ...item,
-      //         groupId: newEntity.id,
-      //         statusId: null,
-      //       }),
-      //     );
-      //   }
-      //   allAffectedIds.push(
-      //     ...newProductBatches.flatMap(({ id, parentId }) => {
-      //       const affectedIds = [id];
-      //       if (parentId) affectedIds.push(parentId);
-      //       return affectedIds;
-      //     }),
-      //   );
-      // }
-      newEntity.productBatchList = newProductBatches;
       newEntity = await productBatchGroupRepository.save(newEntity);
 
       let existProductBatches: ProductBatchEntity[] = [];
@@ -77,6 +57,7 @@ export class CreateProductBatchGroupHandler
         existProductBatches = await productBatchRepository.find({
           where: { id: In(dto.existProductBatchIds) },
           relations: ['status', 'group', 'group.status'],
+          order: { order: 'ASC' },
         });
         const existIds = existProductBatches.map(({ id }) => id);
         const notFoundIds = dto.existProductBatchIds.filter(
@@ -115,17 +96,9 @@ export class CreateProductBatchGroupHandler
           },
         },
       );
-      if (newProductBatches.length) {
-        for (const newProductBatch of newProductBatches) {
-          await this.productBatchEventStore.appendProductBatchCreatedEvent({
-            eventId: requestId,
-            data: newProductBatch,
-          });
-        }
-      }
       if (existProductBatches.length) {
         for (const { id } of existProductBatches) {
-          await this.productBatchEventStore.moveProductBatch({
+          await this.productBatchEventStore.appendProductBatchMovedEvent({
             eventId: requestId,
             data: {
               id,

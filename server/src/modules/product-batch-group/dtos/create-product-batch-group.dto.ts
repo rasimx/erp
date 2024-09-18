@@ -16,7 +16,4 @@ export class CreateProductBatchGroupDto {
 
   @Field(() => [Int])
   existProductBatchIds: number[];
-
-  // @Field(() => [CreateProductBatchDto])
-  // newProductBatches: CreateProductBatchDto[];
 }

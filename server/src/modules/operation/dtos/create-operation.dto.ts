@@ -1,18 +1,7 @@
 import { Field, Float, InputType, Int } from '@nestjs/graphql';
 
 import { ProportionType } from '@/operation/dtos/operation.dto.js';
-
-@InputType()
-export class ProductBatchOperationInput {
-  @Field(() => Int)
-  productBatchId: number;
-
-  @Field(() => Float)
-  proportion: number;
-
-  @Field(() => Int)
-  cost: number;
-}
+import { ProductBatchOperationDto } from '@/product-batch-operation/dtos/product-batch-operation.dto.js';
 
 @InputType()
 export class CreateOperationDto {
@@ -21,6 +10,12 @@ export class CreateOperationDto {
 
   @Field(() => Int)
   cost: number;
+
+  @Field(() => Int, { nullable: true, defaultValue: null })
+  currencyCost: number | null;
+
+  @Field(() => Int, { nullable: true, defaultValue: null })
+  exchangeRate: number | null;
 
   @Field(() => Int, { nullable: true, defaultValue: null })
   groupId: number | null;
@@ -34,6 +29,6 @@ export class CreateOperationDto {
   })
   proportionType: ProportionType;
 
-  @Field(() => [ProductBatchOperationInput])
-  productBatchProportions: ProductBatchOperationInput[];
+  @Field(() => [ProductBatchOperationDto])
+  productBatchProportions: ProductBatchOperationDto[];
 }

@@ -22,6 +22,7 @@ import { arrayMove, SortableContext } from '@dnd-kit/sortable';
 import { Coordinates } from '@dnd-kit/utilities';
 import { over } from 'lodash';
 import cloneDeep from 'lodash/cloneDeep';
+import { Divider } from 'primereact/divider';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 
@@ -613,6 +614,13 @@ const KanbanBoard = <
           <SortableContext items={columnsId}>
             {columns?.map((column, index) => (
               <React.Fragment key={column.id}>
+                {index != 0 && (
+                  <Divider
+                    layout="vertical"
+                    type="dashed"
+                    className={classes.divider}
+                  />
+                )}
                 <KanbanColumn column={column} cards={cards} />
               </React.Fragment>
             ))}

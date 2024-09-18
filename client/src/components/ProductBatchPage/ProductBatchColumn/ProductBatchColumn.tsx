@@ -14,6 +14,7 @@ import { CreateProductBatchesFromSourcesModal } from '../../CreateProductBatches
 import CustomLink from '../../CustomLink';
 import { ColumnProps } from '../../KanbanBoard/types';
 import { StoreStateProvider } from '../../StoreState';
+import { MoveBtn } from '../MoveBtn/MoveBtn';
 import classes from './ProductBatchColumn.module.scss';
 
 export interface Props
@@ -52,7 +53,9 @@ export const ProductBatchColumn = React.memo<Props>(props => {
             initialValues: {
               statusId: status.id,
             },
-            onSubmit: async values => {},
+            onSubmit: async values => {
+              refetch();
+            },
           }),
       },
       {
@@ -63,7 +66,9 @@ export const ProductBatchColumn = React.memo<Props>(props => {
             initialValues: {
               statusId: status.id,
             },
-            onSubmit: async values => {},
+            onSubmit: async values => {
+              refetch();
+            },
           }),
       },
       {
@@ -74,7 +79,9 @@ export const ProductBatchColumn = React.memo<Props>(props => {
             initialValues: {
               statusId: status.id,
             },
-            onSubmit: async values => {},
+            onSubmit: async values => {
+              refetch();
+            },
           }),
       },
     ],
@@ -86,13 +93,7 @@ export const ProductBatchColumn = React.memo<Props>(props => {
       <div className={classes.column}>
         <div className={classes.header}>
           <div className={classes.headerInner}>
-            <Button
-              icon="pi pi-arrows-alt"
-              // @ts-ignore
-              ref={sortableData?.setActivatorNodeRef}
-              {...sortableData?.listeners}
-              className={classes.move}
-            />
+            <MoveBtn sortableData={sortableData} />
 
             <div>
               <CustomLink to={`/status/${status.id}`} className={classes.link}>
@@ -107,33 +108,6 @@ export const ProductBatchColumn = React.memo<Props>(props => {
 
             <Toast ref={toast}></Toast>
             <Menu model={menuItems} popup ref={menu} popupAlignment="right" />
-
-            {/*<Menu*/}
-            {/*  shadow="md"*/}
-            {/*  width={200}*/}
-            {/*  trigger="hover"*/}
-            {/*  openDelay={100}*/}
-            {/*  closeDelay={400}*/}
-            {/*  position="bottom-end"*/}
-            {/*>*/}
-            {/*  <Menu.Target>*/}
-            {/*    <ActionIcon onClick={handleClick} variant="light">*/}
-            {/*      <FontAwesomeIcon icon={faEllipsisV} />*/}
-            {/*    </ActionIcon>*/}
-            {/*  </Menu.Target>*/}
-
-            {/*  <Menu.Dropdown>*/}
-            {/*    <Menu.Item onClick={showCreateProductBatchModal}>*/}
-            {/*      Добавить партию товаров*/}
-            {/*    </Menu.Item>*/}
-            {/*    <Menu.Item onClick={showCreateProductBatchesFromSourcesModal}>*/}
-            {/*      Перенос товаров*/}
-            {/*    </Menu.Item>*/}
-            {/*    <Menu.Item onClick={showCreateProductBatchesByAssemblingModal}>*/}
-            {/*      Собрать комбо-товары*/}
-            {/*    </Menu.Item>*/}
-            {/*  </Menu.Dropdown>*/}
-            {/*</Menu>*/}
           </div>
         </div>
         <div className={classes.inner}>{children}</div>

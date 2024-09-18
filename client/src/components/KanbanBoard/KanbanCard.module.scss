@@ -1,0 +1,16 @@
+.card {
+  flex-shrink: 0;
+  margin-top: 10px;
+}
+
+.prev {
+  height: 20px;
+  background: rgba(0,255,0,.5);
+  margin-bottom: 20px;
+  flex-shrink: 0;
+}
+
+.fake{
+  height: 150px;
+  background-color: rgba(0,0,0,.1);
+}

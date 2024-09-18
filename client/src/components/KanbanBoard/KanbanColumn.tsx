@@ -1,7 +1,7 @@
 import { SortableContext, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import cx from 'clsx';
-import React, { useMemo } from 'react';
+import React, { CSSProperties, useMemo } from 'react';
 
 import KanbanCard, { getCardSortId } from './KanbanCard';
 import classes from './KanbanColumn.module.scss';
@@ -94,19 +94,17 @@ const KanbanColumn = <
     );
   }, [isOver, items, over, isForbiddenMove]);
 
-  const style = {
+  const style: CSSProperties = {
     transition,
     transform: CSS.Transform.toString(transform),
-    visibility: isDragging ? 'hidden' : 'visible',
+    opacity: isDragging ? '0.3' : '1',
   };
 
   return (
     <div
       className={cx(classes.column, showAfter && classes.showAfter)}
       ref={setNodeRef}
-      // $showAfter={showAfter}
       {...attributes}
-      // @ts-expect-error .....
       style={style}
     >
       {renderColumn({
@@ -115,14 +113,7 @@ const KanbanColumn = <
         isActive,
         sortableData: { setActivatorNodeRef, listeners },
         children: (
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              overflowY: 'auto',
-              overflowX: 'visible',
-            }}
-          >
+          <div className={classes.items}>
             <SortableContext items={itemsIds}>
               {items.map(item =>
                 isGroup(item) ? (

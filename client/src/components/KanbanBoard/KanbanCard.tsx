@@ -1,8 +1,9 @@
 import { Active, Over } from '@dnd-kit/core';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 
+import classes from './KanbanCard.module.scss';
 import { DraggableType, SortableType, useKanbanBoardContext } from './types';
 
 export interface Props<Card extends SortableType> {
@@ -86,10 +87,7 @@ const KanbanCard = <Card extends SortableType>({
 
   if (isDragging) {
     return (
-      <div
-        ref={setNodeRef}
-        style={{ ...style, height: 150, backgroundColor: 'rgba(0,0,0,.1)' }}
-      >
+      <div ref={setNodeRef} className={classes.fake} style={style}>
         {card.id}
       </div>
     );
@@ -97,23 +95,12 @@ const KanbanCard = <Card extends SortableType>({
 
   return (
     <React.Fragment>
-      {showPrev && (
-        <div
-          style={{
-            height: 5,
-            backgroundColor: 'rgba(0,255,0,.5)',
-            marginBottom: 1,
-            flexShrink: 0,
-          }}
-        ></div>
-      )}
+      {showPrev && <div className={classes.prev}></div>}
       <div
         ref={setNodeRef}
         {...attributes}
-        style={{
-          ...style,
-          flexShrink: 0,
-        }}
+        className={classes.card}
+        style={style}
       >
         {renderCard({
           card,

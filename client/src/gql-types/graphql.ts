@@ -30,16 +30,20 @@ export type CommandResponse = {
 
 export type CreateOperationDto = {
   cost: Scalars['Int']['input'];
+  currencyCost?: InputMaybe<Scalars['Int']['input']>;
   date: Scalars['String']['input'];
+  exchangeRate?: InputMaybe<Scalars['Int']['input']>;
   groupId?: InputMaybe<Scalars['Int']['input']>;
   name: Scalars['String']['input'];
-  productBatchProportions: Array<ProductBatchOperationInput>;
+  productBatchProportions: Array<ProductBatchOperationDto>;
   proportionType?: InputMaybe<ProportionType>;
 };
 
 export type CreateProductBatchDto = {
   costPricePerUnit: Scalars['Int']['input'];
   count: Scalars['Int']['input'];
+  currencyCostPricePerUnit?: InputMaybe<Scalars['Int']['input']>;
+  exchangeRate?: InputMaybe<Scalars['Int']['input']>;
   groupId?: InputMaybe<Scalars['Int']['input']>;
   operationsPrice?: InputMaybe<Scalars['Int']['input']>;
   operationsPricePerUnit?: InputMaybe<Scalars['Int']['input']>;
@@ -248,7 +252,7 @@ export type ProductBatchGroupDto = {
   statusId: Scalars['Int']['output'];
 };
 
-export type ProductBatchOperationInput = {
+export type ProductBatchOperationDto = {
   cost: Scalars['Int']['input'];
   productBatchId: Scalars['Int']['input'];
   proportion: Scalars['Float']['input'];
@@ -274,6 +278,7 @@ export type ProductListDto = {
 
 export enum ProportionType {
   costPrice = 'costPrice',
+  costPricePerUnit = 'costPricePerUnit',
   equal = 'equal',
   manual = 'manual',
   volume = 'volume',

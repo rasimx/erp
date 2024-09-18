@@ -23,3 +23,14 @@
     content: '';
   }
 }
+
+.items {
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  overflow-x: visible;
+}
+
+.fake {
+  background: #caf1d8;
+}

@@ -5,7 +5,7 @@ import type { CreateProductBatchGroupDto } from '@/product-batch-group/dtos/crea
 import type { MoveProductBatchGroupDto } from '@/product-batch-group/dtos/move-product-batch-group.dto.js';
 
 export const productBatchGroupStreamName = (productBatchGroupId: number) =>
-  `ProductBatch-${productBatchGroupId.toString()}`;
+  `ProductBatchGroup-${productBatchGroupId.toString()}`;
 
 export interface ProductBatchGroupCreatedEventData
   extends CreateProductBatchGroupDto {

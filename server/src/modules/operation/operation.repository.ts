@@ -1,11 +1,6 @@
-import { NotFoundException } from '@nestjs/common';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { type QueryRunner, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 
-import type {
-  CreateOperationInput,
-  CreateOperationResponse,
-} from '@/graphql.schema.js';
 import type { CreateOperationDto } from '@/operation/dtos/create-operation.dto.js';
 import { OperationEntity } from '@/operation/operation.entity.js';
 import { ProductBatchOperationEntity } from '@/product-batch-operation/product-batch-operation.entity.js';

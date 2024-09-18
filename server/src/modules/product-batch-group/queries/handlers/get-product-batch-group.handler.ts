@@ -17,8 +17,12 @@ export class GetProductBatchGroupHandler
   async execute(query: GetProductBatchGroupQuery) {
     const entity = await this.productBatchGroupRepository.findById(query.id);
 
-    const events = await this.productBatchGroupEventStore.getEvents(query.id);
-
-    return { ...entity, events };
+    try {
+      const events = await this.productBatchGroupEventStore.getEvents(query.id);
+      return { ...entity, events };
+    } catch (e) {
+      // todo: add logging
+      throw e;
+    }
   }
 }

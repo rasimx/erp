@@ -5,6 +5,7 @@ export enum ProportionType {
   manual = 'manual',
   weight = 'weight',
   volume = 'volume',
+  costPricePerUnit = 'costPricePerUnit',
   costPrice = 'costPrice',
 }
 

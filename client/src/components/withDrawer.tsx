@@ -10,8 +10,13 @@ export default function withDrawer<P extends object>(
   return (props: P) => {
     const modal = useModal();
     return (
-      <Sidebar visible={modal.visible} position="right" onHide={modal.hide}>
-        <h2>Right Sidebar</h2>
+      <Sidebar
+        visible={modal.visible}
+        position="right"
+        onHide={modal.hide}
+        style={{ width: '600px' }}
+      >
+        <h2>{title}</h2>
         <WrappedComponent {...props} closeModal={() => modal.hide()} />
       </Sidebar>
     );

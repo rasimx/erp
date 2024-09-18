@@ -18,6 +18,8 @@ export const createProductBatchValidationSchema =
       count: number().required(),
       productId: number().required(),
       costPricePerUnit: number().required(),
+      currencyCostPricePerUnit: number(),
+      exchangeRate: number(),
       operationsPricePerUnit: number(),
       operationsPrice: number(),
     });

@@ -102,18 +102,49 @@ export class CreateOperationHandler
         }),
       );
 
-      if (dto.groupId) {
-        await this.productBatchGroupEventStore.appendOperationCreatedEvent({
-          eventId: requestId,
-          productBatchGroupId: dto.groupId,
-          dto,
-        });
-      } else {
-        await this.productBatchEventStore.createOperation({
-          eventId: requestId,
-          productBatchId: dto.productBatchProportions[0].productBatchId,
-          data: dto,
-        });
+      const cancels: (() => Promise<void>)[] = [];
+
+      try {
+        if (dto.groupId) {
+          const { appendResult, cancel } =
+            await this.productBatchGroupEventStore.appendOperationCreatedEvent({
+              eventId: requestId,
+              productBatchGroupId: dto.groupId,
+              dto,
+            });
+          if (!appendResult.success) throw new Error('????');
+          cancels.push(cancel);
+        } else {
+          const { appendResult, cancel } =
+            await this.productBatchEventStore.appendOperationCreatedEvent({
+              eventId: requestId,
+              productBatchId: dto.productBatchProportions[0].productBatchId,
+              data: dto,
+            });
+          if (!appendResult.success) throw new Error('????');
+          cancels.push(cancel);
+        }
+
+        if (dto.productBatchProportions.length > 1) {
+          for (const productBatchProportion of dto.productBatchProportions) {
+            const { appendResult, cancel } =
+              await this.productBatchEventStore.appendGroupOperationCreatedEvent(
+                {
+                  eventId: requestId,
+                  productBatchId: productBatchProportion.productBatchId,
+                  data: dto,
+                },
+              );
+
+            if (!appendResult.success) throw new Error('????');
+            cancels.push(cancel);
+          }
+        }
+      } catch (e) {
+        for (const cancel of cancels) {
+          await cancel();
+        }
+        throw e;
       }
 
       await queryRunner.commitTransaction();

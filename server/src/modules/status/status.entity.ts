@@ -8,7 +8,7 @@ import {
 } from 'typeorm';
 
 import type { AtLeast } from '@/common/helpers/utils.js';
-import { StatusType } from '@/graphql.schema.js';
+import { StatusType } from '@/status/dtos/status.dto.js';
 
 @Entity({ name: 'status' })
 export class StatusEntity {

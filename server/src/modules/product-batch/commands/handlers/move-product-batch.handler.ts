@@ -67,7 +67,7 @@ export class MoveProductBatchHandler
 
       // eventStore
       const { appendResult } =
-        await this.productBatchEventStore.moveProductBatch({
+        await this.productBatchEventStore.appendProductBatchMovedEvent({
           eventId: requestId,
           data: dto,
         });

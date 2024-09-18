@@ -7,6 +7,7 @@ import type { CreateOperationDto } from '@/operation/dtos/create-operation.dto.j
 import type { CreateProductBatchDto } from '@/product-batch/dtos/create-product-batch.dto.js';
 import type { MoveProductBatchDto } from '@/product-batch/dtos/move-product-batch.dto.js';
 import type { MoveProductBatchItemsDto } from '@/product-batch/dtos/move-product-batch-items.dto.js';
+import type { ProductBatchOperationDto } from '@/product-batch-operation/dtos/product-batch-operation.dto.js';
 
 export const productBatchStreamName = (productBatchId: number) =>
   `ProductBatch-${productBatchId.toString()}`;
@@ -69,22 +70,27 @@ export type ProductBatchCreatedByAssemblingEvent = JSONEventType<
   JSONCompatible<ProductBatchCreatedByAssemblingEventData>
 >;
 
-export type DeleteProductBatchEvent = JSONEventType<
-  'DeleteProductBatch',
+export type ProductBatchDeletedEvent = JSONEventType<
+  'ProductBatchDeleted',
   JSONCompatible<{ id: number }>
 >;
-export type MoveProductBatchEvent = JSONEventType<
-  'MoveProductBatch',
+export type ProductBatchMovedEvent = JSONEventType<
+  'ProductBatchMoved',
   JSONCompatible<MoveProductBatchDto>
 >;
 
-export type MoveProductBatchItemsEvent = JSONEventType<
-  'MoveProductBatchItems',
+export type ProductBatchItemsMovedEvent = JSONEventType<
+  'ProductBatchItemsMoved',
   JSONCompatible<MoveProductBatchItemsDto>
 >;
 
 export type OperationCreatedEvent = JSONEventType<
-  'CreateOperation',
+  'OperationCreated',
+  JSONCompatible<CreateOperationDto>
+>;
+
+export type GroupOperationCreatedEvent = JSONEventType<
+  'GroupOperationCreated',
   JSONCompatible<CreateOperationDto>
 >;
 

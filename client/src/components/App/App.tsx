@@ -1,6 +1,5 @@
 import './App.scss';
-// import 'primereact/resources/themes/lara-light-cyan/theme.css';
-import 'primereact/resources/themes/nova/theme.css';
+import 'primereact/resources/themes/rhea/theme.css';
 import 'primeicons/primeicons.css';
 
 import { ApolloProvider } from '@apollo/client';

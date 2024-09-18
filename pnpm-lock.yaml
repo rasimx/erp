@@ -139,6 +139,9 @@ importers:
       react-scripts:
         specifier: ^5.0.1
         version: 5.0.1(@babel/plugin-syntax-flow@7.24.7(@babel/core@7.24.7))(@babel/plugin-transform-react-jsx@7.24.7(@babel/core@7.24.7))(@swc/core@1.6.3)(@types/babel__core@7.20.5)(eslint@8.57.0)(react@18.3.1)(sass@1.78.0)(ts-node@10.9.2(@swc/core@1.6.3)(@types/node@20.14.5)(typescript@5.4.5))(type-fest@4.26.1)(typescript@5.4.5)
+      react-transition-group:
+        specifier: ^4.4.5
+        version: 4.4.5(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       react-use-disclosure:
         specifier: ^7.1.0
         version: 7.1.0(react@18.3.1)
@@ -197,6 +200,9 @@ importers:
       '@types/react-dom':
         specifier: ^18.3.0
         version: 18.3.0
+      '@types/react-transition-group':
+        specifier: ^4.4.11
+        version: 4.4.11
       '@vitejs/plugin-react-swc':
         specifier: 3.3.2
         version: 3.3.2(vite@4.3.9(@types/node@20.14.5)(sass@1.78.0)(sugarss@4.0.1(postcss@8.4.45))(terser@5.31.0))
@@ -3617,8 +3623,8 @@ packages:
   '@types/react-dom@18.3.0':
     resolution: {integrity: sha512-EhwApuTmMBmXuFOikhQLIBUn6uFg81SwLMOAUgodJF14SOBOCMdU04gDoYi0WOJJHD144TL32z4yDqCW3dnkQg==}
 
-  '@types/react-transition-group@4.4.10':
-    resolution: {integrity: sha512-hT/+s0VQs2ojCX823m60m5f0sL5idt9SO6Tj6Dg+rdphGPIeJbJ6CxvBYkgkGKrYeDjvIpKTR38UzmtHJOGW3Q==}
+  '@types/react-transition-group@4.4.11':
+    resolution: {integrity: sha512-RM05tAniPZ5DZPzzNFP+DmrcOdD0efDUxMy3145oljWSl3x9ZV5vhme98gTxFrj2lhXvmGNnUiuDyJgY9IKkNA==}
 
   '@types/react@18.2.31':
     resolution: {integrity: sha512-c2UnPv548q+5DFh03y8lEDeMfDwBn9G3dRwfkrxQMo/dOtRHUUO57k6pHvBIfH/VF4Nh+98mZ5aaSe+2echD5g==}
@@ -14595,7 +14601,7 @@ snapshots:
     dependencies:
       '@types/react': 18.2.31
 
-  '@types/react-transition-group@4.4.10':
+  '@types/react-transition-group@4.4.11':
     dependencies:
       '@types/react': 18.2.31
 
@@ -20718,7 +20724,7 @@ snapshots:
 
   primereact@10.8.2(@types/react@18.2.31)(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
     dependencies:
-      '@types/react-transition-group': 4.4.10
+      '@types/react-transition-group': 4.4.11
       react: 18.3.1
       react-dom: 18.3.1(react@18.3.1)
       react-transition-group: 4.4.5(react-dom@18.3.1(react@18.3.1))(react@18.3.1)

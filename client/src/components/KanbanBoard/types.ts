@@ -2,6 +2,7 @@ import { Modifier } from '@dnd-kit/core';
 import { SyntheticListenerMap } from '@dnd-kit/core/dist/hooks/utilities/useSyntheticListeners';
 import { DataRef } from '@dnd-kit/core/dist/store/types';
 import { once } from 'lodash';
+import { Button } from 'primereact/button';
 import { createContext, ReactElement, useContext } from 'react';
 
 export enum DraggableType {

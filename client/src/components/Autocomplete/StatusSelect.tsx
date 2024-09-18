@@ -66,6 +66,7 @@ const StatusSelect: FC<Props> = props => {
       suggestions={filteredOptions}
       completeMethod={search}
       onChange={changeHandle}
+      dropdown
     />
   );
 };

@@ -82,6 +82,12 @@ export class ProductBatchEntity {
   @Column()
   costPricePerUnit: number;
 
+  @Column('integer', { nullable: true })
+  currencyCostPricePerUnit: number;
+
+  @Column('integer', { nullable: true })
+  exchangeRate: number | null;
+
   @Column()
   operationsPricePerUnit: number;
 

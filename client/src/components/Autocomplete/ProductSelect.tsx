@@ -91,18 +91,30 @@ const ProductSelect: FC<Props> = props => {
     },
     [onChange],
   );
-  const selectedItemTemplate = useCallback((value: any) => {
-    return value.name;
+  const selectedItemTemplate = useCallback((value: Product) => {
+    return `${value.sku}: ${value.name}`;
+  }, []);
+
+  const itemTemplate = useCallback((suggestion: Product, index: number) => {
+    return (
+      <div style={{ width: '300px', textWrap: 'wrap' }}>
+        <strong>{suggestion.sku}</strong>: {suggestion.name}
+      </div>
+    );
   }, []);
 
   return (
     <AutoComplete
+      style={{ width: '100%' }}
+      inputStyle={{ width: '100%' }}
       field="name"
       selectedItemTemplate={selectedItemTemplate}
+      itemTemplate={itemTemplate}
       value={value}
       suggestions={filteredOptions}
       completeMethod={search}
       onChange={changeHandle}
+      dropdown
     />
   );
 };

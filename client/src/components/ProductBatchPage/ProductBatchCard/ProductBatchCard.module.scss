@@ -1,28 +1,28 @@
-.card{
+.card {
   position: relative;
+  border: 1px solid rgba(0, 0, 0, .1);
+  border-radius: 5px;
+  background: #fff;
 }
 
-.inner{
+.header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   position: relative;
+  border-bottom: 1px solid rgba(0, 0, 0, .1);
+  overflow: hidden;
 }
 
 .sku {
   cursor: pointer;
   font-weight: 600;
   flex-grow: 1;
-  margin-left: 1px;
-}
-.name {
-  cursor: pointer;
-  font-weight: 600;
-  flex-grow: 1;
-  margin-left: 1px;
+  margin-left: 10px;
 }
 
-.selectingMode{
+
+.selectingMode {
   position: absolute;
   left: 0;
   top: 0;
@@ -35,10 +35,11 @@
   align-items: end;
   justify-content: flex-end;
   padding: rem(5px);
+  background-color: lightblue;
 }
 
-.move {
-  padding: 0;
-  width: 2rem;
-  height: 2rem;
+.name {
+  padding: 10px;
+  cursor: pointer;
+  position: relative;
 }
