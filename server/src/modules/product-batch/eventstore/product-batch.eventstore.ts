@@ -211,24 +211,6 @@ export class ProductBatchEventStore {
     };
   }
 
-  async moveProductBatchItems({
-    eventId,
-    dto,
-  }: {
-    eventId: string;
-    dto: MoveProductBatchItemsDto;
-  }) {
-    const event = jsonEvent<ProductBatchItemsMovedEvent>({
-      id: eventId,
-      type: 'ProductBatchItemsMoved',
-      data: dto,
-    });
-
-    const STREAM_NAME = productBatchStreamName(dto.donorId);
-
-    await this.eventStoreService.appendToStream(STREAM_NAME, event);
-  }
-
   async appendOperationCreatedEvent({
     eventId,
     productBatchId,

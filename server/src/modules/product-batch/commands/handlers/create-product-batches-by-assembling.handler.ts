@@ -61,7 +61,7 @@ export class CreateProductBatchesByAssemblingHandler
         productBatches: sourceBatches,
       });
 
-      const newEntities: ProductBatchEntity[] = [];
+      let newEntities: ProductBatchEntity[] = [];
       const affectedIds: number[] = [];
 
       for (const newItem of newItems) {
@@ -79,6 +79,11 @@ export class CreateProductBatchesByAssemblingHandler
           ...sourceProductBatches.map(({ id }) => id),
         );
       }
+
+      newEntities = await productBatchRepository.find({
+        where: { id: In(newEntities.map(({ id }) => id)) },
+        relations: ['sourcesClosure'],
+      });
 
       await this.productBatchService.relinkPostings({
         queryRunner,
@@ -100,7 +105,7 @@ export class CreateProductBatchesByAssemblingHandler
                     count: item.count,
                     qty: item.qty,
                   })),
-                  count: entity.sourcesClosure[0].count,
+                  count: entity.count,
                   groupId: entity.groupId,
                   costPricePerUnit: entity.costPricePerUnit,
                   operationsPricePerUnit: entity.operationsPricePerUnit,

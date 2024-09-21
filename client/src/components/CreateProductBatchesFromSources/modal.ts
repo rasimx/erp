@@ -1,5 +1,6 @@
 import NiceModal from '@ebay/nice-modal-react';
 import { FormikErrors, withFormik } from 'formik';
+import { FormikBag } from 'formik/dist/withFormik';
 
 import { CREATE_PRODUCT_BATCHES_FROM_SOURCES_MUTATION } from '../../api/product-batch/product-batch.gql';
 import apolloClient from '../../apollo-client';
@@ -37,10 +38,22 @@ const CreateProductBatchesFromSourcesForm = withFormik<Props, FormValues>({
         mutation: CREATE_PRODUCT_BATCHES_FROM_SOURCES_MUTATION,
         variables: { dto: values as CreateProductBatchesFromSourcesDto },
       })
-      .then(res => {})
-      .catch(() => {
-        alert('AAA');
+      .then(result => {
+        console.log(result);
+        if (result.errors?.length) {
+          alert('ERROR');
+        } else {
+          formikBag.props.closeModal();
+          formikBag.props.onSubmit(
+            values as CreateProductBatchesFromSourcesDto,
+            formikBag as FormikBag<Props, CreateProductBatchesFromSourcesDto>,
+          );
+        }
+      })
+      .catch(err => {
+        alert('ERROR');
       });
+
     // debugger;
     // return formikBag.props
     //   .onSubmit(

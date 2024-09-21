@@ -1,5 +1,6 @@
 import { CommandHandler, type ICommandHandler } from '@nestjs/cqrs';
 import { InjectDataSource } from '@nestjs/typeorm';
+import { In } from 'typeorm';
 
 import { ContextService } from '@/context/context.service.js';
 import type { CustomDataSource } from '@/database/custom.data-source.js';
@@ -40,7 +41,7 @@ export class CreateProductBatchesFromSourcesHandler
 
       const affectedIds: number[] = [];
 
-      const newEntities: ProductBatchEntity[] = [];
+      let newEntities: ProductBatchEntity[] = [];
 
       for (const sourceItem of dto.sources) {
         const { newEntity, sourceBatch } =
@@ -53,6 +54,11 @@ export class CreateProductBatchesFromSourcesHandler
         newEntities.push(newEntity);
         affectedIds.push(newEntity.id, sourceBatch.id);
       }
+
+      newEntities = await productBatchRepository.find({
+        where: { id: In(newEntities.map(({ id }) => id)) },
+        relations: ['sourcesClosure', 'destinationsClosure'],
+      });
 
       await this.productBatchService.relinkPostings({
         queryRunner,
@@ -69,8 +75,8 @@ export class CreateProductBatchesFromSourcesHandler
                 data: {
                   id: entity.id,
                   productId: entity.productId,
-                  sourceIds: entity.sourcesClosure.map(item => item.sourceId),
-                  count: entity.sourcesClosure[0].count,
+                  sourceId: entity.sourcesClosure[0].sourceId,
+                  count: entity.count,
                   groupId: entity.groupId,
                   costPricePerUnit: entity.costPricePerUnit,
                   operationsPricePerUnit: entity.operationsPricePerUnit,

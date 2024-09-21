@@ -27,8 +27,8 @@ export const GET_STATUS_QUERY = graphql(`
 `);
 
 export const CREATE_STATUS_MUTATION = graphql(`
-  mutation createStatus($title: String!) {
-    createStatus(title: $title) {
+  mutation createStatus($dto: CreateStatusDto!) {
+    createStatus(dto: $dto) {
       ...Status
     }
   }

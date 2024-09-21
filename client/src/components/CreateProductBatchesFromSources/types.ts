@@ -6,13 +6,7 @@ import {
   SetStateAction,
   useCallback,
   useContext,
-  useEffect,
-  useState,
 } from 'react';
-import {
-  assembleProduct,
-  type ResultProductBatch,
-} from 'server/src/common/assembleProduct';
 import { array, number, object, ObjectSchema } from 'yup';
 
 import { Product } from '../../api/product/product.gql';

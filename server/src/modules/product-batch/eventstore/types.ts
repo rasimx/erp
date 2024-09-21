@@ -36,7 +36,7 @@ export interface ProductBatchCreatedFromSourceEventData {
   costPricePerUnit: number;
   operationsPricePerUnit: number | null;
   operationsPrice: number | null;
-  sourceIds: number[];
+  sourceId: number;
 }
 export type ProductBatchCreatedFromSourceEvent = JSONEventType<
   'ProductBatchCreatedFromSource',

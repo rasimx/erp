@@ -124,7 +124,7 @@ export class ProductBatchGroupEventStore {
   }) {
     const event = jsonEvent<OperationCreatedEvent>({
       id: eventId,
-      type: 'CreateOperation',
+      type: 'OperationCreated',
       data: dto,
     });
 

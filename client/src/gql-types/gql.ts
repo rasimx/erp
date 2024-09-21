@@ -40,7 +40,7 @@ const documents = {
     "\n  fragment Status on StatusDto {\n    id\n    title\n    type\n    order\n    storeId\n  }\n": types.StatusFragmentDoc,
     "\n  query statusList($ids: [Int!]) {\n    statusList(ids: $ids) {\n      ...Status\n    }\n  }\n": types.StatusListDocument,
     "\n  query status($id: Int!) {\n    status(id: $id) {\n      ...Status\n    }\n  }\n": types.StatusDocument,
-    "\n  mutation createStatus($title: String!) {\n    createStatus(title: $title) {\n      ...Status\n    }\n  }\n": types.CreateStatusDocument,
+    "\n  mutation createStatus($dto: CreateStatusDto!) {\n    createStatus(dto: $dto) {\n      ...Status\n    }\n  }\n": types.CreateStatusDocument,
     "\n  mutation moveStatus($dto: MoveStatusDto!) {\n    moveStatus(dto: $dto) {\n      ...Status\n    }\n  }\n": types.MoveStatusDocument,
 };
 
@@ -169,7 +169,7 @@ export function graphql(source: "\n  query status($id: Int!) {\n    status(id: $
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  mutation createStatus($title: String!) {\n    createStatus(title: $title) {\n      ...Status\n    }\n  }\n"): (typeof documents)["\n  mutation createStatus($title: String!) {\n    createStatus(title: $title) {\n      ...Status\n    }\n  }\n"];
+export function graphql(source: "\n  mutation createStatus($dto: CreateStatusDto!) {\n    createStatus(dto: $dto) {\n      ...Status\n    }\n  }\n"): (typeof documents)["\n  mutation createStatus($dto: CreateStatusDto!) {\n    createStatus(dto: $dto) {\n      ...Status\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

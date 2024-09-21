@@ -54,7 +54,7 @@ export const ProductBatchCard = React.memo<Props>(props => {
         <div style={{ padding: '0 10px', fontWeight: 600 }}>{card.count}</div>
       </div>
       <div className={classes.name} onClick={showProductBatchInfoDrawer}>
-        {card.product.name}
+        {card.id}: {card.product.name}
       </div>
       {isSelecting && (
         <div className={classes.selectingMode} onClick={selectHandle}>

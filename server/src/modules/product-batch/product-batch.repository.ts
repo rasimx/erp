@@ -188,7 +188,7 @@ export class ProductBatchRepository extends Repository<ProductBatchEntity> {
       }
     }
 
-    const sourceBatch = await this.findOneOrFail({
+    let sourceBatch = await this.findOneOrFail({
       where: { id: dto.sourceId },
     });
 
@@ -208,6 +208,7 @@ export class ProductBatchRepository extends Repository<ProductBatchEntity> {
     closureEntity.destination = newEntity;
     closureEntity.source = sourceBatch;
     closureEntity.count = dto.selectedCount;
+    closureEntity.qty = 1;
     await this.manager.save(ProductBatchClosureEntity, closureEntity);
 
     sourceBatch.count -= dto.selectedCount;
@@ -215,7 +216,7 @@ export class ProductBatchRepository extends Repository<ProductBatchEntity> {
       throw new Error(
         `количество в исходной партии меньше, чем требуется, либо равно 0`,
       );
-    await this.save(sourceBatch);
+    sourceBatch = await this.save(sourceBatch);
 
     return { newEntity, sourceBatch };
   }

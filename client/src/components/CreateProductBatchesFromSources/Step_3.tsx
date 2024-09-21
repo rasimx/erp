@@ -8,7 +8,9 @@ const Step_1: FC<Props> = props => {
   const {} = props;
   const { state } = useFormState();
 
-  return <div>AAAAA</div>;
+  return (
+    <div>{state.sources?.map(source => <div>{source.selectedCount}</div>)}</div>
+  );
 };
 
 export default Step_1;

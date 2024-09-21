@@ -59,10 +59,10 @@ export class ProductBatchEntity {
   @Column('integer', { nullable: true })
   parentId: number | null;
 
-  @OneToMany(() => ProductBatchClosureEntity, entity => entity.destination)
+  @OneToMany(() => ProductBatchClosureEntity, entity => entity.source)
   destinationsClosure: ProductBatchClosureEntity[];
 
-  @OneToMany(() => ProductBatchClosureEntity, entity => entity.source)
+  @OneToMany(() => ProductBatchClosureEntity, entity => entity.destination)
   sourcesClosure: ProductBatchClosureEntity[];
 
   @ManyToOne(() => ProductBatchGroupEntity, { cascade: ['insert'] })

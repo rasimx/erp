@@ -3,8 +3,8 @@ import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { Args, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
 
 import { UserInterceptor } from '@/auth/user.interceptor.js';
-import { CreateStatusCommand } from '@/status/commands/impl/create-status.command.js';
 import { MoveStatusCommand } from '@/status/commands/impl/move-status.command.js';
+import { CreateStatusDto } from '@/status/dtos/create-status.dto.js';
 import { MoveStatusDto } from '@/status/dtos/move-status.dto.js';
 import { StatusDto } from '@/status/dtos/status.dto.js';
 import { GetStatusListQuery } from '@/status/queries/impl/get-status-list.query.js';
@@ -39,10 +39,9 @@ export class StatusResolver {
 
   @Mutation(() => [StatusDto])
   async createStatus(
-    @Args('title', { type: () => String }) title: string,
+    @Args('dto', { type: () => CreateStatusDto }) dto: CreateStatusDto,
   ): Promise<StatusDto[]> {
-    await this.commandBus.execute(new CreateStatusCommand({ title }));
-    return this.queryBus.execute(new GetStatusListQuery([]));
+    return this.service.createStatus(dto);
   }
   // @Mutation('deleteStatus')
   // async deleteStatus(@Args('id') id: number): Promise<StatusDto[]> {

@@ -31,6 +31,6 @@ export class ProductBatchClosureEntity {
   @Column()
   count: number;
 
-  @Column()
+  @Column({ default: 1 })
   qty: number;
 }
