@@ -236,7 +236,7 @@ const Form: FC<Props & FormProps> = props => {
             inputId="currencyCostPricePerUnit"
             required
             mode="currency"
-            currency="RUB"
+            currency="CNY"
             locale="ru-RU"
             value={state.currencyCostPricePerUnit}
             minFractionDigits={2}
