@@ -10,6 +10,7 @@ import { CreateProductBatchHandler } from '@/product-batch/commands/handlers/cre
 import { CreateProductBatchesByAssemblingHandler } from '@/product-batch/commands/handlers/create-product-batches-by-assembling.handler.js';
 import { CreateProductBatchesFromSourcesHandler } from '@/product-batch/commands/handlers/create-product-batches-from-sources.handler.js';
 import { DeleteProductBatchHandler } from '@/product-batch/commands/handlers/delete-product-batch.handler.js';
+import { EditProductBatchHandler } from '@/product-batch/commands/handlers/edit-product-batch.handler.js';
 import { MoveProductBatchHandler } from '@/product-batch/commands/handlers/move-product-batch.handler.js';
 import { ProductBatchEventStore } from '@/product-batch/eventstore/product-batch.eventstore.js';
 import { ProductBatchController } from '@/product-batch/product-batch.controller.js';
@@ -43,6 +44,7 @@ import { ProductBatchService } from './product-batch.service.js';
     MoveProductBatchHandler,
     DeleteProductBatchHandler,
     CreateProductBatchHandler,
+    EditProductBatchHandler,
     CreateProductBatchesFromSourcesHandler,
     CreateProductBatchesByAssemblingHandler,
     ProductBatchRepositoryProvider,

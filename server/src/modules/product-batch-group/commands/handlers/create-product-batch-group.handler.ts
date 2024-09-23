@@ -37,6 +37,8 @@ export class CreateProductBatchGroupHandler
 
     await queryRunner.connect();
     await queryRunner.startTransaction();
+    const cancels: (() => Promise<void>)[] = [];
+
     try {
       const { dto } = command;
 
@@ -87,31 +89,42 @@ export class CreateProductBatchGroupHandler
       });
 
       // EventStore
-      await this.productBatchGroupEventStore.appendProductBatchGroupCreatedEvent(
-        {
-          eventId: requestId,
-          data: {
-            id: newEntity.id,
-            ...dto,
-          },
-        },
-      );
-      if (existProductBatches.length) {
-        for (const { id } of existProductBatches) {
-          await this.productBatchEventStore.appendProductBatchMovedEvent({
+      const { appendResult, cancel } =
+        await this.productBatchGroupEventStore.appendProductBatchGroupCreatedEvent(
+          {
             eventId: requestId,
             data: {
-              id,
-              groupId: newEntity.id,
-              statusId: null,
+              id: newEntity.id,
+              ...dto,
             },
-          });
+          },
+        );
+
+      if (!appendResult.success) throw new Error('????');
+      cancels.push(cancel);
+
+      if (existProductBatches.length) {
+        for (const { id } of existProductBatches) {
+          const { appendResult, cancel } =
+            await this.productBatchEventStore.appendProductBatchMovedEvent({
+              eventId: requestId,
+              data: {
+                id,
+                groupId: newEntity.id,
+                statusId: null,
+              },
+            });
+          if (!appendResult.success) throw new Error('????');
+          cancels.push(cancel);
         }
       }
 
       await queryRunner.commitTransaction();
     } catch (err) {
       await queryRunner.rollbackTransaction();
+      for (const cancel of cancels) {
+        await cancel();
+      }
       throw err;
     } finally {
       // you need to release a queryRunner which was manually instantiated

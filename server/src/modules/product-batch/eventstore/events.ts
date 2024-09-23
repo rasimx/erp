@@ -1,41 +1,33 @@
 import { type JSONEventType } from '@eventstore/db-client';
-import { Field, Int } from '@nestjs/graphql';
-import { IsNotEmpty, IsNumber } from 'class-validator';
 
 import type { JSONCompatible } from '@/common/helpers/utils.js';
 import type { CreateOperationDto } from '@/operation/dtos/create-operation.dto.js';
 import type { CreateProductBatchDto } from '@/product-batch/dtos/create-product-batch.dto.js';
+import type { EditProductBatchDto } from '@/product-batch/dtos/edit-product-batch.dto.js';
 import type { MoveProductBatchDto } from '@/product-batch/dtos/move-product-batch.dto.js';
-import type { MoveProductBatchItemsDto } from '@/product-batch/dtos/move-product-batch-items.dto.js';
-import type { ProductBatchOperationDto } from '@/product-batch-operation/dtos/product-batch-operation.dto.js';
 
 export const productBatchStreamName = (productBatchId: number) =>
   `ProductBatch-${productBatchId.toString()}`;
 
-export interface ProductBatchCreatedEventData {
+export interface ProductBatchCreatedEventData extends CreateProductBatchDto {
   id: number;
-  statusId: number | null;
-  groupId: number | null;
-  productId: number;
-  count: number;
-  costPricePerUnit: number;
-  operationsPricePerUnit: number | null;
-  operationsPrice: number | null;
+  userId: number;
 }
 export type ProductBatchCreatedEvent = JSONEventType<
   'ProductBatchCreated',
   JSONCompatible<ProductBatchCreatedEventData>
 >;
 
-export interface ProductBatchCreatedFromSourceEventData {
-  id: number;
-  statusId: number | null;
-  groupId: number | null;
-  productId: number;
-  count: number;
-  costPricePerUnit: number;
-  operationsPricePerUnit: number | null;
-  operationsPrice: number | null;
+export interface ProductBatchEditedEventData extends EditProductBatchDto {
+  userId: number;
+}
+export type ProductBatchEditedEvent = JSONEventType<
+  'ProductBatchEdited',
+  JSONCompatible<ProductBatchEditedEventData>
+>;
+
+export interface ProductBatchCreatedFromSourceEventData
+  extends ProductBatchCreatedEventData {
   sourceId: number;
 }
 export type ProductBatchCreatedFromSourceEvent = JSONEventType<
@@ -45,6 +37,7 @@ export type ProductBatchCreatedFromSourceEvent = JSONEventType<
 
 export interface MoveProductsToChildBatchEventData {
   id: number;
+  userId: number;
   count: number;
   destinationID: number;
 }
@@ -53,45 +46,47 @@ export type MoveProductsToChildBatchEvent = JSONEventType<
   JSONCompatible<MoveProductsToChildBatchEventData>
 >;
 
-export interface ProductBatchCreatedByAssemblingEventData {
-  id: number;
-  statusId: number | null;
-  groupId: number | null;
-  productId: number;
-  count: number;
-  costPricePerUnit: number;
-  operationsPricePerUnit: number | null;
-  operationsPrice: number | null;
+export interface ProductBatchCreatedByAssemblingEventData
+  extends ProductBatchCreatedEventData {
   sources: { id: number; count: number; qty: number }[];
 }
-
 export type ProductBatchCreatedByAssemblingEvent = JSONEventType<
   'ProductBatchCreatedByAssembling',
   JSONCompatible<ProductBatchCreatedByAssemblingEventData>
 >;
 
+export interface ProductBatchDeletedEventData {
+  id: number;
+  count: number;
+  userId: number;
+}
 export type ProductBatchDeletedEvent = JSONEventType<
   'ProductBatchDeleted',
-  JSONCompatible<{ id: number }>
+  JSONCompatible<ProductBatchDeletedEventData>
 >;
+
+export interface ProductBatchMovedEventData extends MoveProductBatchDto {
+  userId: number;
+}
 export type ProductBatchMovedEvent = JSONEventType<
   'ProductBatchMoved',
-  JSONCompatible<MoveProductBatchDto>
+  JSONCompatible<ProductBatchMovedEventData>
 >;
 
-export type ProductBatchItemsMovedEvent = JSONEventType<
-  'ProductBatchItemsMoved',
-  JSONCompatible<MoveProductBatchItemsDto>
->;
-
+export interface OperationCreatedEventData extends CreateOperationDto {
+  userId: number;
+}
 export type OperationCreatedEvent = JSONEventType<
   'OperationCreated',
-  JSONCompatible<CreateOperationDto>
+  JSONCompatible<OperationCreatedEventData>
 >;
 
+export interface GroupOperationCreatedEventData extends CreateOperationDto {
+  userId: number;
+}
 export type GroupOperationCreatedEvent = JSONEventType<
   'GroupOperationCreated',
-  JSONCompatible<CreateOperationDto>
+  JSONCompatible<GroupOperationCreatedEventData>
 >;
 
 /*

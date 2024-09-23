@@ -57,10 +57,15 @@ export class MoveProductBatchGroupHandler
       });
 
       // eventStore
-      await this.productBatchGroupEventStore.appendProductBatchGroupMovedEvent({
-        eventId: requestId,
-        dto,
-      });
+      const { appendResult, cancel } =
+        await this.productBatchGroupEventStore.appendProductBatchGroupMovedEvent(
+          {
+            eventId: requestId,
+            data: dto,
+          },
+        );
+
+      if (!appendResult.success) throw new Error('????');
 
       await queryRunner.commitTransaction();
     } catch (err) {

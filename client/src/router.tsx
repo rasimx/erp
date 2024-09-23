@@ -2,7 +2,6 @@ import React from 'react';
 import { RouteObject } from 'react-router-dom';
 
 import App from './components/App/App';
-import EditForm from './components/EditForm/EditForm';
 import { ProductBatchPage } from './components/ProductBatchPage/ProductBatchPage';
 import ProductList from './components/ProductList';
 import { StatusPage } from './components/StatusPage/StatusPage';
@@ -27,10 +26,6 @@ export const getRoutes = (basename?: string): RouteObject[] => [
       {
         path: 'status/:statusId',
         element: <StatusPage />,
-      },
-      {
-        path: 'edit',
-        element: <EditForm />,
       },
     ],
   },

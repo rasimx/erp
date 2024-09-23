@@ -1,21 +1,20 @@
 import { useQuery } from '@apollo/client';
 import NiceModal, { useModal } from '@ebay/nice-modal-react';
-import { faEllipsisV } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Button } from 'primereact/button';
+import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 import { Menu } from 'primereact/menu';
 import { MenuItem } from 'primereact/menuitem';
 import { ProgressSpinner } from 'primereact/progressspinner';
 import { Toast } from 'primereact/toast';
-import React, { useCallback, useMemo, useRef } from 'react';
+import React, { useMemo, useRef } from 'react';
 
-import { useOperation } from '../../../api/operation/operation.hooks';
 import { useProductBatchMutations } from '../../../api/product-batch/product-batch.hook';
 import {
   getProductBatchDetailFragment,
   PRODUCT_BATCH_DETAIL_QUERY,
 } from '../../../api/product-batch/product-batch-detail.gql';
 import { toRouble } from '../../../utils';
+import { EditProductBatchModal } from '../../EditProductBatch/EditProductBatchForm';
 import OperationForm from '../../OperationForm/OperationForm';
 import withDrawer from '../../withDrawer';
 import EventListItem from '../EventListItem';
@@ -23,10 +22,11 @@ import classes from './ProductBatchDetail.module.scss';
 
 export interface Props {
   productBatchId: number;
+  closeDrawer: () => void;
 }
 
 export const ProductBatchDetail = React.memo<Props>(props => {
-  const { productBatchId } = props;
+  const { productBatchId, closeDrawer } = props;
 
   const { data, refetch } = useQuery(PRODUCT_BATCH_DETAIL_QUERY, {
     variables: { id: productBatchId },
@@ -39,7 +39,7 @@ export const ProductBatchDetail = React.memo<Props>(props => {
   );
 
   const { deleteProductBatch } = useProductBatchMutations();
-  const { createOperation } = useOperation();
+  const editProductBatchModal = useModal(EditProductBatchModal);
 
   const operationFormModal = useModal(OperationForm);
 
@@ -57,15 +57,39 @@ export const ProductBatchDetail = React.memo<Props>(props => {
               groupId: null,
             },
             productBatches: productBatch ? [productBatch] : [],
-            onSubmit: async values => {},
+            onSubmit: async values => {
+              refetch();
+            },
+          }),
+      },
+      {
+        label: 'Изменить количество',
+        icon: 'pi pi-plus',
+        command: () =>
+          editProductBatchModal.show({
+            initialValues: {
+              id: productBatchId,
+            },
+            onSubmit: async values => {
+              refetch();
+            },
           }),
       },
       {
         label: 'Удалить',
         icon: 'pi pi-plus',
         command: () =>
-          deleteProductBatch(productBatchId).then(() => {
-            refetch();
+          confirmDialog({
+            message: 'Вы уверены?',
+            header: 'Delete Confirmation',
+            icon: 'pi pi-info-circle',
+            defaultFocus: 'reject',
+            acceptClassName: 'p-button-danger',
+            accept: () => {
+              deleteProductBatch(productBatchId).then(() => {
+                closeDrawer();
+              });
+            },
           }),
       },
     ],

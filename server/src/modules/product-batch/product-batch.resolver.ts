@@ -7,6 +7,7 @@ import { CreateProductBatchCommand } from '@/product-batch/commands/impl/create-
 import { CreateProductBatchesByAssemblingCommand } from '@/product-batch/commands/impl/create-product-batches-by-assembling.command.js';
 import { CreateProductBatchesFromSourcesCommand } from '@/product-batch/commands/impl/create-product-batches-from-sources.command.js';
 import { DeleteProductBatchCommand } from '@/product-batch/commands/impl/delete-product-batch.command.js';
+import { EditProductBatchCommand } from '@/product-batch/commands/impl/edit-product-batch.command.js';
 import { MoveProductBatchCommand } from '@/product-batch/commands/impl/move-product-batch.command.js';
 import { CreateProductBatchDto } from '@/product-batch/dtos/create-product-batch.dto.js';
 import { CreateProductBatchesByAssemblingDto } from '@/product-batch/dtos/create-product-batches-by-assembling.dto.js';
@@ -19,6 +20,8 @@ import { ProductBatchService } from '@/product-batch/product-batch.service.js';
 import { GetProductBatchQuery } from '@/product-batch/queries/impl/get-product-batch.query.js';
 import { GetProductBatchListQuery } from '@/product-batch/queries/impl/get-product-batch-list.query.js';
 import { CommandResponse } from '@/product-batch-group/dtos/product-batch-group.dto.js';
+
+import { EditProductBatchDto } from './dtos/edit-product-batch.dto.js';
 
 @Resolver()
 @UseInterceptors(UserInterceptor)
@@ -58,6 +61,14 @@ export class ProductBatchResolver {
     dto: CreateProductBatchDto,
   ): Promise<CommandResponse> {
     await this.commandBus.execute(new CreateProductBatchCommand(dto));
+    return { success: true };
+  }
+  @Mutation(() => CommandResponse)
+  async editProductBatch(
+    @Args('dto', { type: () => EditProductBatchDto })
+    dto: EditProductBatchDto,
+  ): Promise<CommandResponse> {
+    await this.commandBus.execute(new EditProductBatchCommand(dto));
     return { success: true };
   }
 

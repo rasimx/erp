@@ -3,6 +3,7 @@ import NiceModal, { useModal } from '@ebay/nice-modal-react';
 import { faEllipsisV } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Button } from 'primereact/button';
+import { confirmDialog } from 'primereact/confirmdialog';
 import { Menu } from 'primereact/menu';
 import { MenuItem } from 'primereact/menuitem';
 import { ProgressSpinner } from 'primereact/progressspinner';
@@ -23,10 +24,11 @@ import classes from './ProductBatchGroupDetail.module.scss';
 
 export interface Props {
   productBatchGroupId: number;
+  closeDrawer: () => void;
 }
 
 export const ProductBatchGroupDetail = React.memo<Props>(props => {
-  const { productBatchGroupId } = props;
+  const { productBatchGroupId, closeDrawer } = props;
 
   const { data, refetch } = useQuery(PRODUCT_BATCH_GROUP_DETAIL_QUERY, {
     variables: { id: productBatchGroupId },
@@ -66,11 +68,20 @@ export const ProductBatchGroupDetail = React.memo<Props>(props => {
       {
         label: 'Удалить',
         icon: 'pi pi-plus',
-        command: () =>
-          deleteProductBatchGroup(productBatchGroupId).then(() => {
-            // handleClose();
-            // // refetch();
-          }),
+        command: () => {
+          confirmDialog({
+            message: 'Вы уверены?',
+            header: 'Delete Confirmation',
+            icon: 'pi pi-info-circle',
+            defaultFocus: 'reject',
+            acceptClassName: 'p-button-danger',
+            accept: () => {
+              deleteProductBatchGroup(productBatchGroupId).then(() => {
+                closeDrawer();
+              });
+            },
+          });
+        },
       },
     ],
     [group, operationFormModal, deleteProductBatchGroup],

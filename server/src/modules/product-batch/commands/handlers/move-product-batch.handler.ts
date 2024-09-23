@@ -66,7 +66,7 @@ export class MoveProductBatchHandler
       });
 
       // eventStore
-      const { appendResult } =
+      const { appendResult, cancel } =
         await this.productBatchEventStore.appendProductBatchMovedEvent({
           eventId: requestId,
           data: dto,

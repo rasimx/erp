@@ -5,14 +5,14 @@ import pick from 'lodash/pick.js';
 import { ContextService } from '@/context/context.service.js';
 import type { CustomDataSource } from '@/database/custom.data-source.js';
 import { ProductEventStore } from '@/product/eventstore/product.eventstore.js';
-import { CreateProductBatchCommand } from '@/product-batch/commands/impl/create-product-batch.command.js';
+import { EditProductBatchCommand } from '@/product-batch/commands/impl/edit-product-batch.command.js';
 import { ProductBatchEventStore } from '@/product-batch/eventstore/product-batch.eventstore.js';
 import { ProductBatchRepository } from '@/product-batch/product-batch.repository.js';
 import { ProductBatchService } from '@/product-batch/product-batch.service.js';
 
-@CommandHandler(CreateProductBatchCommand)
-export class CreateProductBatchHandler
-  implements ICommandHandler<CreateProductBatchCommand>
+@CommandHandler(EditProductBatchCommand)
+export class EditProductBatchHandler
+  implements ICommandHandler<EditProductBatchCommand>
 {
   constructor(
     @InjectDataSource()
@@ -24,7 +24,7 @@ export class CreateProductBatchHandler
     private readonly productBatchService: ProductBatchService,
   ) {}
 
-  async execute(command: CreateProductBatchCommand) {
+  async execute(command: EditProductBatchCommand) {
     const requestId = this.contextService.requestId;
     if (!requestId) throw new Error('requestId was not defined');
 
@@ -41,40 +41,38 @@ export class CreateProductBatchHandler
       );
 
       const affectedIds: number[] = [];
-      const newEntity = await productBatchRepository.createNew(dto);
-      affectedIds.push(newEntity.id);
+      let entity = await productBatchRepository.findOneOrFail({
+        where: { id: dto.id },
+      });
+
+      // todo: обработать нуль
+      if (dto.count == 0) throw new Error('не может быть нулем');
+
+      entity.count = dto.count;
+
+      entity = await productBatchRepository.save(entity);
+
+      affectedIds.push(entity.id);
 
       await this.productBatchService.relinkPostings({
         queryRunner,
         affectedIds,
       });
 
-      const eventData = pick(newEntity, [
-        'id',
-        'count',
-        'productId',
-        'groupId',
-        'operationsPrice',
-        'operationsPricePerUnit',
-        'statusId',
-        'costPricePerUnit',
-        'currencyCostPricePerUnit',
-        'exchangeRate',
-      ]);
-
       const { appendResult, cancel } =
-        await this.productBatchEventStore.appendProductBatchCreatedEvent({
+        await this.productBatchEventStore.appendProductBatchEditedEvent({
           eventId: requestId,
-          data: eventData,
+          data: dto,
         });
       if (!appendResult.success) throw new Error('????');
       cancels.push(cancel);
 
+      // todo: если меняется количество - добавляем событие в product, иначе наверно не стоит
       const { appendResult: productAppendResult, cancel: productCancel } =
-        await this.productEventStore.appendProductBatchCreatedEvent({
+        await this.productEventStore.appendProductBatchEditedEvent({
           eventId: requestId,
-          productId: newEntity.productId,
-          data: eventData,
+          productId: entity.productId,
+          data: dto,
         });
 
       if (!productAppendResult.success) throw new Error('????');

@@ -4,13 +4,16 @@ import {
   jsonEvent,
   type JSONEventType,
 } from '@eventstore/db-client';
-import type { AppendResult } from '@eventstore/db-client/dist/types/index.js';
+import type {
+  AppendResult,
+  EventData,
+} from '@eventstore/db-client/dist/types/index.js';
 import { Injectable } from '@nestjs/common';
 
+import { ContextService } from '@/context/context.service.js';
 import { EventStoreService } from '@/event-store/event-store.service.js';
 import type { CreateOperationDto } from '@/operation/dtos/create-operation.dto.js';
 import type { MoveProductBatchDto } from '@/product-batch/dtos/move-product-batch.dto.js';
-import type { MoveProductBatchItemsDto } from '@/product-batch/dtos/move-product-batch-items.dto.js';
 import {
   type GroupOperationCreatedEvent,
   type MoveProductsToChildBatchEvent,
@@ -23,29 +26,22 @@ import {
   type ProductBatchCreatedFromSourceEvent,
   type ProductBatchCreatedFromSourceEventData,
   type ProductBatchDeletedEvent,
-  type ProductBatchItemsMovedEvent,
+  type ProductBatchDeletedEventData,
+  type ProductBatchEditedEvent,
+  type ProductBatchEditedEventData,
   type ProductBatchMovedEvent,
   productBatchStreamName,
-} from '@/product-batch/eventstore/types.js';
+} from '@/product-batch/eventstore/events.js';
 
 @Injectable()
 export class ProductBatchEventStore {
-  constructor(private readonly eventStoreService: EventStoreService) {}
+  constructor(
+    private readonly eventStoreService: EventStoreService,
+    private readonly contextService: ContextService,
+  ) {}
 
-  async appendProductBatchCreatedEvent({
-    eventId,
-    data,
-  }: {
-    eventId: string;
-    data: ProductBatchCreatedEventData;
-  }): Promise<{ appendResult: AppendResult; cancel: () => Promise<void> }> {
-    const event = jsonEvent<ProductBatchCreatedEvent>({
-      id: eventId,
-      type: 'ProductBatchCreated',
-      data: data,
-    });
-
-    const STREAM_NAME = productBatchStreamName(data.id);
+  async appendEvent(event: EventData<JSONEventType>, id: number) {
+    const STREAM_NAME = productBatchStreamName(id);
 
     const appendResult = await this.eventStoreService.appendToStream(
       STREAM_NAME,
@@ -60,6 +56,40 @@ export class ProductBatchEventStore {
           event,
         ),
     };
+  }
+
+  async appendProductBatchCreatedEvent({
+    eventId,
+    data,
+  }: {
+    eventId: string;
+    data: Omit<ProductBatchCreatedEventData, 'userId'>;
+  }): Promise<{ appendResult: AppendResult; cancel: () => Promise<void> }> {
+    const userId = this.contextService.userId;
+    const event = jsonEvent<ProductBatchCreatedEvent>({
+      id: eventId,
+      type: 'ProductBatchCreated',
+      data: { ...data, userId },
+    });
+
+    return this.appendEvent(event, data.id);
+  }
+
+  async appendProductBatchEditedEvent({
+    eventId,
+    data,
+  }: {
+    eventId: string;
+    data: Omit<ProductBatchEditedEventData, 'userId'>;
+  }): Promise<{ appendResult: AppendResult; cancel: () => Promise<void> }> {
+    const userId = this.contextService.userId;
+    const event = jsonEvent<ProductBatchEditedEvent>({
+      id: eventId,
+      type: 'ProductBatchEdited',
+      data: { ...data, userId },
+    });
+
+    return this.appendEvent(event, data.id);
   }
 
   async appendProductBatchCreatedFromSourceEvent({
@@ -67,29 +97,15 @@ export class ProductBatchEventStore {
     data,
   }: {
     eventId: string;
-    data: ProductBatchCreatedFromSourceEventData;
+    data: Omit<ProductBatchCreatedFromSourceEventData, 'userId'>;
   }): Promise<{ appendResult: AppendResult; cancel: () => Promise<void> }> {
+    const userId = this.contextService.userId;
     const event = jsonEvent<ProductBatchCreatedFromSourceEvent>({
       id: eventId,
       type: 'ProductBatchCreatedFromSource',
-      data: data,
+      data: { ...data, userId },
     });
-
-    const STREAM_NAME = productBatchStreamName(data.id);
-
-    const appendResult = await this.eventStoreService.appendToStream(
-      STREAM_NAME,
-      event,
-    );
-
-    return {
-      appendResult,
-      cancel: () =>
-        this.eventStoreService.appendTransactionCompensatingEvent(
-          STREAM_NAME,
-          event,
-        ),
-    };
+    return this.appendEvent(event, data.id);
   }
 
   async appendProductBatchCreatedByAssemblingEvent({
@@ -97,29 +113,16 @@ export class ProductBatchEventStore {
     data,
   }: {
     eventId: string;
-    data: ProductBatchCreatedByAssemblingEventData;
+    data: Omit<ProductBatchCreatedByAssemblingEventData, 'userId'>;
   }): Promise<{ appendResult: AppendResult; cancel: () => Promise<void> }> {
+    const userId = this.contextService.userId;
     const event = jsonEvent<ProductBatchCreatedByAssemblingEvent>({
       id: eventId,
       type: 'ProductBatchCreatedByAssembling',
-      data: data,
+      data: { ...data, userId },
     });
 
-    const STREAM_NAME = productBatchStreamName(data.id);
-
-    const appendResult = await this.eventStoreService.appendToStream(
-      STREAM_NAME,
-      event,
-    );
-
-    return {
-      appendResult,
-      cancel: () =>
-        this.eventStoreService.appendTransactionCompensatingEvent(
-          STREAM_NAME,
-          event,
-        ),
-    };
+    return this.appendEvent(event, data.id);
   }
 
   async appendMoveProductsToChildBatchEvent({
@@ -127,58 +130,33 @@ export class ProductBatchEventStore {
     data,
   }: {
     eventId: string;
-    data: MoveProductsToChildBatchEventData;
+    data: Omit<MoveProductsToChildBatchEventData, 'userId'>;
   }): Promise<{ appendResult: AppendResult; cancel: () => Promise<void> }> {
+    const userId = this.contextService.userId;
     const event = jsonEvent<MoveProductsToChildBatchEvent>({
       id: eventId,
       type: 'MoveProductsToChildBatch',
-      data: data,
+      data: { ...data, userId },
     });
 
-    const STREAM_NAME = productBatchStreamName(data.id);
-
-    const appendResult = await this.eventStoreService.appendToStream(
-      STREAM_NAME,
-      event,
-    );
-
-    return {
-      appendResult,
-      cancel: () =>
-        this.eventStoreService.appendTransactionCompensatingEvent(
-          STREAM_NAME,
-          event,
-        ),
-    };
+    return this.appendEvent(event, data.id);
   }
 
   async appendProductBatchDeletedEvent({
     eventId,
-    productBatchId,
+    data,
   }: {
     eventId: string;
-    productBatchId: number;
+    data: Omit<ProductBatchDeletedEventData, 'userId'>;
   }) {
+    const userId = this.contextService.userId;
     const event = jsonEvent<ProductBatchDeletedEvent>({
       id: eventId,
       type: 'ProductBatchDeleted',
-      data: { id: productBatchId },
+      data: { ...data, userId },
     });
 
-    const STREAM_NAME = productBatchStreamName(productBatchId);
-
-    const appendResult = await this.eventStoreService.appendToStream(
-      STREAM_NAME,
-      event,
-    );
-    return {
-      appendResult,
-      cancel: () =>
-        this.eventStoreService.appendTransactionCompensatingEvent(
-          STREAM_NAME,
-          event,
-        ),
-    };
+    return this.appendEvent(event, data.id);
   }
 
   async appendProductBatchMovedEvent({
@@ -188,27 +166,13 @@ export class ProductBatchEventStore {
     eventId: string;
     data: MoveProductBatchDto;
   }) {
+    const userId = this.contextService.userId;
     const event = jsonEvent<ProductBatchMovedEvent>({
       id: eventId,
       type: 'ProductBatchMoved',
-      data: data,
+      data: { ...data, userId },
     });
-
-    const STREAM_NAME = productBatchStreamName(data.id);
-
-    const appendResult = await this.eventStoreService.appendToStream(
-      STREAM_NAME,
-      event,
-    );
-
-    return {
-      appendResult,
-      cancel: () =>
-        this.eventStoreService.appendTransactionCompensatingEvent(
-          STREAM_NAME,
-          event,
-        ),
-    };
+    return this.appendEvent(event, data.id);
   }
 
   async appendOperationCreatedEvent({
@@ -220,26 +184,14 @@ export class ProductBatchEventStore {
     productBatchId: number;
     data: CreateOperationDto;
   }) {
+    const userId = this.contextService.userId;
     const event = jsonEvent<OperationCreatedEvent>({
       id: eventId,
       type: 'OperationCreated',
-      data: data,
+      data: { ...data, userId },
     });
 
-    const STREAM_NAME = productBatchStreamName(productBatchId);
-
-    const appendResult = await this.eventStoreService.appendToStream(
-      STREAM_NAME,
-      event,
-    );
-    return {
-      appendResult,
-      cancel: () =>
-        this.eventStoreService.appendTransactionCompensatingEvent(
-          STREAM_NAME,
-          event,
-        ),
-    };
+    return this.appendEvent(event, productBatchId);
   }
 
   async appendGroupOperationCreatedEvent({
@@ -251,30 +203,18 @@ export class ProductBatchEventStore {
     productBatchId: number;
     data: CreateOperationDto;
   }) {
+    const userId = this.contextService.userId;
     const event = jsonEvent<GroupOperationCreatedEvent>({
       id: eventId,
       type: 'GroupOperationCreated',
-      data: data,
+      data: { ...data, userId },
     });
 
-    const STREAM_NAME = productBatchStreamName(productBatchId);
-
-    const appendResult = await this.eventStoreService.appendToStream(
-      STREAM_NAME,
-      event,
-    );
-    return {
-      appendResult,
-      cancel: () =>
-        this.eventStoreService.appendTransactionCompensatingEvent(
-          STREAM_NAME,
-          event,
-        ),
-    };
+    return this.appendEvent(event, productBatchId);
   }
 
   async getEvents(productBatchId: number) {
-    const STREAM_NAME = `ProductBatch-${productBatchId.toString()}`;
+    const STREAM_NAME = productBatchStreamName(productBatchId);
 
     const events: JSONEventType[] = [];
     const result = this.eventStoreService.readStream(STREAM_NAME, {

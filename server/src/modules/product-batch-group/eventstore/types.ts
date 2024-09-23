@@ -10,17 +10,28 @@ export const productBatchGroupStreamName = (productBatchGroupId: number) =>
 export interface ProductBatchGroupCreatedEventData
   extends CreateProductBatchGroupDto {
   id: number;
+  userId: number;
 }
 
 export type ProductBatchGroupCreatedEvent = JSONEventType<
   'ProductBatchGroupCreated',
   JSONCompatible<ProductBatchGroupCreatedEventData>
 >;
+
+export interface ProductBatchGroupDeletedEventData {
+  id: number;
+  userId: number;
+}
 export type ProductBatchGroupDeletedEvent = JSONEventType<
   'ProductBatchGroupDeleted',
-  JSONCompatible<{ id: number }>
+  JSONCompatible<ProductBatchGroupDeletedEventData>
 >;
+
+export interface ProductBatchGroupMovedEventData
+  extends MoveProductBatchGroupDto {
+  userId: number;
+}
 export type ProductBatchGroupMovedEvent = JSONEventType<
   'ProductBatchGroupMoved',
-  JSONCompatible<MoveProductBatchGroupDto>
+  JSONCompatible<ProductBatchGroupMovedEventData>
 >;

@@ -1,14 +1,20 @@
 import { useModal } from '@ebay/nice-modal-react';
 import { Sidebar } from 'primereact/sidebar';
-import React, { ComponentType } from 'react';
+import React, { ComponentType, useCallback } from 'react';
 
 export default function withDrawer<P extends object>(
   WrappedComponent: ComponentType<P>,
   opts: { title?: string } = {},
 ) {
   const { title } = opts;
-  return (props: P) => {
+  return (props: P & { onClose?: () => void }) => {
     const modal = useModal();
+
+    const closeHandler = useCallback(() => {
+      if (typeof props.onClose === 'function') props.onClose();
+      modal.hide();
+    }, []);
+
     return (
       <Sidebar
         visible={modal.visible}
@@ -17,7 +23,7 @@ export default function withDrawer<P extends object>(
         style={{ width: '600px' }}
       >
         <h2>{title}</h2>
-        <WrappedComponent {...props} closeModal={() => modal.hide()} />
+        <WrappedComponent {...props} closeDrawer={closeHandler} />
       </Sidebar>
     );
   };

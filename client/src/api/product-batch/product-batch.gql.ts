@@ -85,6 +85,14 @@ export const CREATE_PRODUCT_BATCH_MUTATION = graphql(`
   }
 `);
 
+export const EDIT_PRODUCT_BATCH_MUTATION = graphql(`
+  mutation editProductBatch($dto: EditProductBatchDto!) {
+    editProductBatch(dto: $dto) {
+      success
+    }
+  }
+`);
+
 export const CREATE_PRODUCT_BATCHES_BY_ASSEMBLING_MUTATION = graphql(`
   mutation createProductBatchesByAssembling(
     $dto: CreateProductBatchesByAssemblingDto!

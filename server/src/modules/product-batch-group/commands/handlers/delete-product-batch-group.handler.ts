@@ -3,7 +3,6 @@ import { InjectDataSource } from '@nestjs/typeorm';
 
 import { ContextService } from '@/context/context.service.js';
 import type { CustomDataSource } from '@/database/custom.data-source.js';
-import { OzonPostingProductMicroservice } from '@/microservices/erp_ozon/ozon-posting-product-microservice.service.js';
 import { DeleteProductBatchCommand } from '@/product-batch/commands/impl/delete-product-batch.command.js';
 import { ProductBatchService } from '@/product-batch/product-batch.service.js';
 import { DeleteProductBatchGroupCommand } from '@/product-batch-group/commands/impl/delete-product-batch-group.command.js';
@@ -42,6 +41,10 @@ export class DeleteProductBatchGroupHandler
         relations: ['productBatchList'],
       });
       for (const productBatchEntity of entity.productBatchList) {
+        // todo: обработать удаление партий если нужно, пока удалять только пустые группы
+        throw new Error(
+          'НУЖНО ОБРАТОТАТЬ УДАЛЕНИЕ ГРУПП - УДАЛЕНИЕ ВЛОЖЕННЫХ ПАРТИЙ - РАЗНЫЕ ТРАНЗАКЦИИ',
+        );
         await this.commandBus.execute(
           new DeleteProductBatchCommand(productBatchEntity.id),
         );
@@ -58,7 +61,7 @@ export class DeleteProductBatchGroupHandler
       await this.productBatchGroupEventStore.appendProductBatchGroupDeletedEvent(
         {
           eventId: requestId,
-          productBatchGroupId: entity.id,
+          id: entity.id,
         },
       );
 

@@ -14,7 +14,7 @@ import {
   selectSelectedIds,
   toggleSelect,
 } from '../product-batch-page.slice';
-import ProductBatchInfo from '../ProductBatchDetail/ProductBatchDetail';
+import ProductBatchDetail from '../ProductBatchDetail/ProductBatchDetail';
 import classes from './ProductBatchCard.module.scss';
 
 export interface Props extends CardProps<ProductBatch> {
@@ -29,12 +29,13 @@ export const ProductBatchCard = React.memo<Props>(props => {
 
   const { card, loading, refetch, sortableData } = props;
 
-  const productBatchInfoDrawer = useModal(ProductBatchInfo);
+  const productBatchDetailDrawer = useModal(ProductBatchDetail);
   const showProductBatchInfoDrawer = useCallback(() => {
-    productBatchInfoDrawer.show({
+    productBatchDetailDrawer.show({
       productBatchId: card.id,
+      onClose: () => refetch(),
     });
-  }, [productBatchInfoDrawer, card]);
+  }, [productBatchDetailDrawer, card]);
 
   const isSelected = useMemo(
     () => selectedIds.includes(card.id),

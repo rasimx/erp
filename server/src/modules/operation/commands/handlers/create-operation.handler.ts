@@ -109,8 +109,7 @@ export class CreateOperationHandler
           const { appendResult, cancel } =
             await this.productBatchGroupEventStore.appendOperationCreatedEvent({
               eventId: requestId,
-              productBatchGroupId: dto.groupId,
-              dto,
+              data: dto,
             });
           if (!appendResult.success) throw new Error('????');
           cancels.push(cancel);

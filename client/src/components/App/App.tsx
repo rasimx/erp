@@ -6,6 +6,7 @@ import { ApolloProvider } from '@apollo/client';
 import NiceModal from '@ebay/nice-modal-react';
 import { SnackbarProvider } from 'notistack';
 import { PrimeReactProvider } from 'primereact/api';
+import { ConfirmDialog } from 'primereact/confirmdialog';
 import React, { FC } from 'react';
 import { CookiesProvider } from 'react-cookie';
 import { Provider as ReduxProvider } from 'react-redux';
@@ -36,6 +37,8 @@ const App: FC<Props> = props => {
                     <main className={classes.main}>
                       <Outlet />
                     </main>
+
+                    <ConfirmDialog />
                   </div>
                 </NiceModal.Provider>
               </PrimeReactProvider>
