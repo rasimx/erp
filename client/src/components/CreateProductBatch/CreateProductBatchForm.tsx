@@ -2,6 +2,7 @@ import NiceModal from '@ebay/nice-modal-react';
 import { FormikErrors, withFormik } from 'formik';
 import { FormikBag } from 'formik/dist/withFormik';
 import { Button } from 'primereact/button';
+import { confirmDialog } from 'primereact/confirmdialog';
 import { FloatLabel } from 'primereact/floatlabel';
 import {
   InputNumber,
@@ -87,7 +88,7 @@ const Form: FC<Props & FormProps> = props => {
   const changeNumberValue = useCallback(
     (fieldName: keyof FormState) => (event: InputNumberValueChangeEvent) => {
       if (event.value === state[fieldName]) return;
-      console.log('aaaa');
+      console.log('aaaa', fieldName, event.value, state[fieldName]);
       const value = event.value;
       switch (fieldName) {
         case 'exchangeRate':
@@ -96,7 +97,7 @@ const Form: FC<Props & FormProps> = props => {
             exchangeRate: value,
             costPricePerUnit:
               state.currencyCostPricePerUnit != null && value != null
-                ? state.currencyCostPricePerUnit * value
+                ? Number((state.currencyCostPricePerUnit * value).toFixed(2))
                 : null,
           }));
           updateLastChangedFields(fieldName);
@@ -107,7 +108,7 @@ const Form: FC<Props & FormProps> = props => {
             currencyCostPricePerUnit: value,
             costPricePerUnit:
               state.exchangeRate != null && value != null
-                ? state.exchangeRate * value
+                ? Number((state.exchangeRate * value).toFixed(2))
                 : null,
           }));
           updateLastChangedFields(fieldName);
@@ -343,36 +344,45 @@ export const CreateProductBatchForm = withFormik<Props, FormValues>({
   },
 
   handleSubmit: (values, formikBag) => {
-    const dto = {
-      ...values,
-      costPricePerUnit: fromRouble(values.costPricePerUnit!),
-      operationsPrice: values.operationsPrice
-        ? fromRouble(values.operationsPrice)
-        : 0,
-      operationsPricePerUnit: values.operationsPricePerUnit
-        ? fromRouble(values.operationsPricePerUnit)
-        : 0,
-    } as CreateProductBatchDto;
+    confirmDialog({
+      message: 'Вы уверены?',
+      header: 'Delete Confirmation',
+      icon: 'pi pi-info-circle',
+      defaultFocus: 'reject',
+      acceptClassName: 'p-button-danger',
+      accept: () => {
+        const dto = {
+          ...values,
+          costPricePerUnit: fromRouble(values.costPricePerUnit!),
+          operationsPrice: values.operationsPrice
+            ? fromRouble(values.operationsPrice)
+            : 0,
+          operationsPricePerUnit: values.operationsPricePerUnit
+            ? fromRouble(values.operationsPricePerUnit)
+            : 0,
+        } as CreateProductBatchDto;
 
-    apolloClient
-      .mutate({
-        mutation: CREATE_PRODUCT_BATCH_MUTATION,
-        variables: {
-          dto,
-        },
-      })
-      .then(result => {
-        console.log(result);
-        if (result.errors?.length) {
-          alert('ERROR');
-        } else {
-          formikBag.props.closeModal();
-          formikBag.props.onSubmit(dto, formikBag);
-        }
-      })
-      .catch(err => {
-        alert('ERROR');
-      });
+        apolloClient
+          .mutate({
+            mutation: CREATE_PRODUCT_BATCH_MUTATION,
+            variables: {
+              dto,
+            },
+          })
+          .then(result => {
+            console.log(result);
+            if (result.errors?.length) {
+              alert('ERROR');
+            } else {
+              formikBag.props.closeModal();
+              formikBag.props.onSubmit(dto, formikBag);
+            }
+          })
+          .catch(err => {
+            alert('ERROR');
+          });
+      },
+    });
   },
 })(Form);
 

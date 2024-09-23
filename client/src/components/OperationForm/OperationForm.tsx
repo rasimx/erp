@@ -5,6 +5,7 @@ import { FormikBag } from 'formik/dist/withFormik';
 import pick from 'lodash/pick';
 import { Button } from 'primereact/button';
 import { Calendar } from 'primereact/calendar';
+import { confirmDialog } from 'primereact/confirmdialog';
 import { FloatLabel } from 'primereact/floatlabel';
 import {
   InputNumber,
@@ -18,6 +19,7 @@ import { array, mixed, number, object, ObjectSchema, string } from 'yup';
 import { CREATE_OPERATION_MUTATION } from '../../api/operation/operation.gql';
 import {
   CREATE_PRODUCT_BATCH_MUTATION,
+  EDIT_PRODUCT_BATCH_MUTATION,
   ProductBatch,
 } from '../../api/product-batch/product-batch.gql';
 import { ProductBatchDetail } from '../../api/product-batch/product-batch-detail.gql';
@@ -65,7 +67,7 @@ const Form: FC<Props & FormikProps<CreateOperationDto>> = props => {
               // @ts-ignore
               cost:
                 values.currencyCost != null && value != null
-                  ? values.currencyCost * value
+                  ? Number((values.currencyCost * value).toFixed(2))
                   : null,
             });
             break;
@@ -76,7 +78,7 @@ const Form: FC<Props & FormikProps<CreateOperationDto>> = props => {
               // @ts-ignore
               cost:
                 values.exchangeRate != null && value != null
-                  ? values.exchangeRate * value
+                  ? Number((values.exchangeRate * value).toFixed(2))
                   : null,
             });
             break;
@@ -96,6 +98,8 @@ const Form: FC<Props & FormikProps<CreateOperationDto>> = props => {
       },
     [values, setValues],
   );
+
+  console.log(errors);
 
   return (
     <OperationFormContextProvider {...props}>
@@ -138,7 +142,7 @@ const Form: FC<Props & FormikProps<CreateOperationDto>> = props => {
               inputId="currencyCostPricePerUnit"
               required
               mode="currency"
-              currency="RUB"
+              currency="CNY"
               locale="ru-RU"
               value={values.currencyCost}
               minFractionDigits={2}
@@ -298,8 +302,8 @@ export const createOperationValidationSchema =
     return object().shape({
       name: string().required(),
       cost: number().required(),
-      currencyCost: number(),
-      exchangeRate: number(),
+      currencyCost: number().nullable(),
+      exchangeRate: number().nullable(),
       date: string().required(),
       proportionType: mixed<ProportionType>()
         .oneOf(Object.values(ProportionType))
@@ -340,39 +344,47 @@ const OperationForm = withFormik<Props, CreateOperationDto>({
   },
 
   handleSubmit: (values, formikBag) => {
-    const dto = {
-      ...values,
-      cost: fromRouble(values.cost),
-      exchangeRate: values.exchangeRate
-        ? fromRouble(values.exchangeRate)
-        : null,
-      currencyCost: values.currencyCost
-        ? fromRouble(values.currencyCost)
-        : null,
-      productBatchProportions: values.productBatchProportions.map(item => ({
-        ...item,
-        cost: fromRouble(item.cost),
-      })),
-    };
-    apolloClient
-      .mutate({
-        mutation: CREATE_OPERATION_MUTATION,
-        variables: {
-          dto,
-        },
-      })
-      .then(result => {
-        console.log(result);
-        if (result.errors?.length) {
-          alert('ERROR');
-        } else {
-          formikBag.props.closeModal();
-          formikBag.props.onSubmit(dto, formikBag);
-        }
-      })
-      .catch(err => {
-        alert('ERROR');
-      });
+    confirmDialog({
+      message: 'Вы уверены?',
+      header: 'Delete Confirmation',
+      icon: 'pi pi-info-circle',
+      defaultFocus: 'reject',
+      acceptClassName: 'p-button-danger',
+      accept: () => {
+        const dto = {
+          ...values,
+          cost: fromRouble(values.cost),
+          exchangeRate: values.exchangeRate
+            ? fromRouble(values.exchangeRate)
+            : null,
+          currencyCost: values.currencyCost
+            ? fromRouble(values.currencyCost)
+            : null,
+          productBatchProportions: values.productBatchProportions.map(item => ({
+            ...item,
+            cost: fromRouble(item.cost),
+          })),
+        };
+        apolloClient
+          .mutate({
+            mutation: CREATE_OPERATION_MUTATION,
+            variables: {
+              dto,
+            },
+          })
+          .then(result => {
+            if (result.errors?.length) {
+              alert('ERROR');
+            } else {
+              formikBag.props.closeModal();
+              formikBag.props.onSubmit(dto, formikBag);
+            }
+          })
+          .catch(err => {
+            alert('ERROR');
+          });
+      },
+    });
   },
 })(Form);
 

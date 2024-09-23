@@ -2,6 +2,7 @@ import NiceModal from '@ebay/nice-modal-react';
 import { FormikErrors, withFormik } from 'formik';
 import { FormikBag } from 'formik/dist/withFormik';
 import { Button } from 'primereact/button';
+import { confirmDialog } from 'primereact/confirmdialog';
 import { InputText } from 'primereact/inputtext';
 import React, { type FC, useCallback, useEffect, useMemo } from 'react';
 
@@ -19,7 +20,7 @@ import { useAppSelector } from '../../hooks';
 import { fromRouble } from '../../utils';
 import ProductSelect from '../Autocomplete/ProductSelect';
 import StatusSelect from '../Autocomplete/StatusSelect';
-import { selectSelectedIds } from '../ProductBatchPage/product-batch-page.slice';
+import { selectSelectedProductBatches } from '../ProductBatchPage/product-batch-page.slice';
 import withModal from '../withModal';
 import {
   createProductBatchGroupValidationSchema,
@@ -40,7 +41,7 @@ const Form: FC<Props & FormProps> = props => {
   const { handleSubmit, handleBlur, handleChange, setFieldValue, values } =
     props;
 
-  const selectedIds = useAppSelector(selectSelectedIds);
+  const selectedIds = useAppSelector(selectSelectedProductBatches);
 
   useEffect(() => {
     setFieldValue('existProductBatchIds', selectedIds);
@@ -103,17 +104,26 @@ export const CreateProductBatchGroupForm = withFormik<Props, FormValues>({
   },
 
   handleSubmit: (values, formikBag) => {
-    const dto = values as CreateProductBatchGroupDto;
-    apolloClient
-      .mutate({
-        mutation: CREATE_PRODUCT_BATCH_GROUP_MUTATION,
-        variables: {
-          dto,
-        },
-      })
-      .then(result => {
-        console.log(result);
-      });
+    confirmDialog({
+      message: 'Вы уверены?',
+      header: 'Delete Confirmation',
+      icon: 'pi pi-info-circle',
+      defaultFocus: 'reject',
+      acceptClassName: 'p-button-danger',
+      accept: () => {
+        const dto = values as CreateProductBatchGroupDto;
+        apolloClient
+          .mutate({
+            mutation: CREATE_PRODUCT_BATCH_GROUP_MUTATION,
+            variables: {
+              dto,
+            },
+          })
+          .then(result => {
+            console.log(result);
+          });
+      },
+    });
     // return formikBag.props
     //   .onSubmit(
     //     { ...values, costPricePerUnit: fromRouble(values.costPricePerUnit) },

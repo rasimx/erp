@@ -1,8 +1,6 @@
 import { useModal } from '@ebay/nice-modal-react';
 import { faSquare, faSquareCheck } from '@fortawesome/free-regular-svg-icons';
-import { faUpDownLeftRight } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { Button } from 'primereact/button';
 import React, { useCallback, useMemo } from 'react';
 
 import { ProductBatch } from '../../../api/product-batch/product-batch.gql';
@@ -11,7 +9,7 @@ import { CardProps } from '../../KanbanBoard/types';
 import { MoveBtn } from '../MoveBtn/MoveBtn';
 import {
   selectIsSelectingMode,
-  selectSelectedIds,
+  selectSelectedProductBatches,
   toggleSelect,
 } from '../product-batch-page.slice';
 import ProductBatchDetail from '../ProductBatchDetail/ProductBatchDetail';
@@ -25,7 +23,7 @@ export interface Props extends CardProps<ProductBatch> {
 export const ProductBatchCard = React.memo<Props>(props => {
   const dispatch = useAppDispatch();
   const isSelecting = useAppSelector(selectIsSelectingMode);
-  const selectedIds = useAppSelector(selectSelectedIds);
+  const selectedProductBatches = useAppSelector(selectSelectedProductBatches);
 
   const { card, loading, refetch, sortableData } = props;
 
@@ -38,11 +36,11 @@ export const ProductBatchCard = React.memo<Props>(props => {
   }, [productBatchDetailDrawer, card]);
 
   const isSelected = useMemo(
-    () => selectedIds.includes(card.id),
-    [card, selectedIds],
+    () => selectedProductBatches.map(item => item.id).includes(card.id),
+    [card, selectedProductBatches],
   );
 
-  const selectHandle = useCallback(() => dispatch(toggleSelect(card.id)), []);
+  const selectHandle = useCallback(() => dispatch(toggleSelect(card)), []);
 
   return (
     <div className={classes.card}>

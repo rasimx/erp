@@ -1,16 +1,13 @@
 import { useQuery } from '@apollo/client';
 import NiceModal, { useModal } from '@ebay/nice-modal-react';
-import { faEllipsisV } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Button } from 'primereact/button';
 import { confirmDialog } from 'primereact/confirmdialog';
 import { Menu } from 'primereact/menu';
 import { MenuItem } from 'primereact/menuitem';
 import { ProgressSpinner } from 'primereact/progressspinner';
 import { Toast } from 'primereact/toast';
-import React, { useCallback, useMemo, useRef } from 'react';
+import React, { useMemo, useRef } from 'react';
 
-import { useOperation } from '../../../api/operation/operation.hooks';
 import { useProductBatchGroupMutations } from '../../../api/product-batch-group/product-batch-group.hook';
 import {
   getProductBatchGroupDetailFragment,
@@ -42,14 +39,11 @@ export const ProductBatchGroupDetail = React.memo<Props>(props => {
   );
 
   const { deleteProductBatchGroup } = useProductBatchGroupMutations();
-  const { createOperation } = useOperation();
 
   const operationFormModal = useModal(OperationForm);
 
   const menu = useRef<Menu>(null);
   const toast = useRef(null);
-
-  console.log(group?.productBatchList);
 
   const menuItems: MenuItem[] = useMemo(
     () => [

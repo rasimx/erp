@@ -1,15 +1,16 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
+import { ProductBatch } from '../../api/product-batch/product-batch.gql';
 import { RootState } from '../../redux-store';
 
 export interface ProductBatchPageState {
   isSelecting: boolean;
-  selectedIds: number[];
+  selectedProductBatches: ProductBatch[];
 }
 
 const initialState: ProductBatchPageState = {
   isSelecting: false,
-  selectedIds: [],
+  selectedProductBatches: [],
 };
 
 // export const updateProductBatchAsync = createAsyncThunk(
@@ -27,12 +28,14 @@ export const productBatchSlice = createSlice({
     toggleSelecting: state => {
       state.isSelecting = !state.isSelecting;
     },
-    toggleSelect: (state, action: PayloadAction<number>) => {
-      const index = state.selectedIds.indexOf(action.payload);
+    toggleSelect: (state, action: PayloadAction<ProductBatch>) => {
+      const index = state.selectedProductBatches.findIndex(
+        item => item.id == action.payload.id,
+      );
       if (index > -1) {
-        state.selectedIds.splice(index, 1);
+        state.selectedProductBatches.splice(index, 1);
       } else {
-        state.selectedIds.push(action.payload);
+        state.selectedProductBatches.push(action.payload);
       }
     },
     // The `extraReducers` field lets the slice handle actions defined elsewhere,
@@ -58,8 +61,8 @@ export const { toggleSelecting, toggleSelect } = productBatchSlice.actions;
 export const selectIsSelectingMode = (state: RootState) =>
   state.productBatchPage.isSelecting;
 
-export const selectSelectedIds = (state: RootState) =>
-  state.productBatchPage.selectedIds;
+export const selectSelectedProductBatches = (state: RootState) =>
+  state.productBatchPage.selectedProductBatches;
 
 // // We can also write thunks by hand, which may contain both sync and async logic.
 // // Here's an example of conditionally dispatching actions based on current state.

@@ -30,10 +30,6 @@ export class CreateOperationHandler
 
     const { dto } = command;
 
-    if (!dto.groupId && dto.productBatchProportions.length > 1) {
-      throw new Error("maybe it's group");
-    }
-
     const queryRunner = this.dataSource.createQueryRunner();
 
     await queryRunner.connect();
@@ -113,15 +109,6 @@ export class CreateOperationHandler
             });
           if (!appendResult.success) throw new Error('????');
           cancels.push(cancel);
-        } else {
-          const { appendResult, cancel } =
-            await this.productBatchEventStore.appendOperationCreatedEvent({
-              eventId: requestId,
-              productBatchId: dto.productBatchProportions[0].productBatchId,
-              data: dto,
-            });
-          if (!appendResult.success) throw new Error('????');
-          cancels.push(cancel);
         }
 
         if (dto.productBatchProportions.length > 1) {
@@ -138,6 +125,15 @@ export class CreateOperationHandler
             if (!appendResult.success) throw new Error('????');
             cancels.push(cancel);
           }
+        } else {
+          const { appendResult, cancel } =
+            await this.productBatchEventStore.appendOperationCreatedEvent({
+              eventId: requestId,
+              productBatchId: dto.productBatchProportions[0].productBatchId,
+              data: dto,
+            });
+          if (!appendResult.success) throw new Error('????');
+          cancels.push(cancel);
         }
       } catch (e) {
         for (const cancel of cancels) {
