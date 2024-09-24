@@ -1,137 +1,267 @@
+import { useModal } from '@ebay/nice-modal-react';
+import cx from 'clsx';
+import {
+  Accordion,
+  AccordionTab,
+  AccordionTabChangeEvent,
+} from 'primereact/accordion';
 import { Button } from 'primereact/button';
-import { StepperRefAttributes } from 'primereact/stepper';
-import { Steps } from 'primereact/steps';
-import React, {
-  FC,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import { ButtonGroup } from 'primereact/buttongroup';
+import { Checkbox, CheckboxChangeEvent } from 'primereact/checkbox';
+import { FloatLabel } from 'primereact/floatlabel';
+import {
+  InputNumber,
+  InputNumberValueChangeEvent,
+} from 'primereact/inputnumber';
+import { InputText } from 'primereact/inputtext';
+import React, { FC, SyntheticEvent, useCallback, useState } from 'react';
 
+import { Product } from '../../api/product/product.gql';
+import { ProductBatch } from '../../api/product-batch/product-batch.gql';
+import ProductSelect from '../Autocomplete/ProductSelect';
+import { SelectProductBatchModal } from '../CreateProductBatch/SelectProductBatch';
 import classes from './form.module.scss';
-import Step_1 from './Step_1';
-import Step_2 from './Step_2';
-import Step_3 from './Step_3';
-import { FormContext, FormProps, FormState, Props } from './types';
+import { FormProps, Props } from './types';
 
 const CreateProductBatchesFromSourcesForm: FC<Props & FormProps> = props => {
-  const { handleSubmit, setValues, submitForm } = props;
+  const {
+    handleSubmit,
+    setValues,
+    submitForm,
+    values,
+    errors,
+    setFieldValue,
+    handleChange,
+    handleBlur,
+    touched,
+  } = props;
+  console.log('values', values);
+  console.log('errors', errors);
 
-  const [state, setState] = useState<FormState>({});
+  const [activeTab, setActiveTab] = useState<number | null>(null);
 
-  useEffect(() => {
-    setValues(values => ({
-      ...values,
-      fullCount: state.fullCount,
-      productId: state.productId,
-      sources: state.sources?.map(item => ({
-        selectedCount: item.selectedCount,
-        id: item.id,
-      })),
-    }));
-  }, [state]);
+  const [productMap, setProductMap] = useState<Map<number, Product>>(new Map());
 
-  const stepperRef = useRef<StepperRefAttributes>(null);
-  const [activeStep, setActiveStep] = useState(0);
-  const nextStep = useCallback(() => {
-    setActiveStep(current => (current < 2 ? current + 1 : current));
-    stepperRef.current?.nextCallback();
-  }, []);
-
-  const prevStep = useCallback(() => {
-    setActiveStep(current => (current > 0 ? current - 1 : current));
-    stepperRef.current?.prevCallback();
-  }, []);
-
-  const nextStepDisabled = useMemo(() => {
-    switch (activeStep) {
-      case 0:
-        return !state.product || !state.fullCount;
-      case 1:
-        return (
-          state.fullCount == null ||
-          state.fullCount == 0 ||
-          state.fullCount !=
-            state.sources?.reduce(
-              (prev, cur) => prev + (cur.selectedCount || 0),
-              0,
-            )
-        );
-      default:
-        return false;
-    }
-  }, [activeStep, state]);
-
-  const items = useMemo(
-    () => [
-      {
-        label: 'Выбор товара',
-      },
-      {
-        label: 'Выбор партий',
-        disabled: !state.product || !state.fullCount,
-      },
-      {
-        label: 'Предпросмотр',
-        disabled:
-          state.fullCount == null ||
-          state.fullCount == 0 ||
-          state.fullCount !=
-            state.sources?.reduce(
-              (prev, cur) => prev + (cur.selectedCount || 0),
-              0,
-            ),
-      },
-    ],
-    [state],
+  const addProduct = useCallback(
+    (product: Product | null) => {
+      if (product) {
+        setProductMap(map => {
+          map.set(product.id, product);
+          return new Map(map);
+        });
+      }
+    },
+    [setProductMap],
+  );
+  const removeProduct = useCallback(
+    (productId: number, index: number) => (e: SyntheticEvent) => {
+      e.stopPropagation();
+      if (activeTab == index) setActiveTab(null);
+      setProductMap(map => {
+        map.delete(productId);
+        return new Map(map);
+      });
+      void setValues({
+        ...values,
+        sources: [
+          ...(values.sources || []).filter(
+            item => item.productId !== productId,
+          ),
+        ],
+      });
+    },
+    [setProductMap, activeTab],
   );
 
-  return (
-    <FormContext.Provider value={{ state, setState }}>
-      <form
-        onSubmit={handleSubmit}
-        noValidate
-        autoComplete="off"
-        className={classes.form}
-      >
-        <Steps
-          model={items}
-          activeIndex={activeStep}
-          onSelect={e => setActiveStep(e.index)}
-          readOnly={false}
-        />
-        <div>
-          {activeStep == 0 && <Step_1 />}
-          {activeStep == 1 && <Step_2 />}
-          {activeStep == 2 && <Step_3 />}
-        </div>
+  const productBatchModal = useModal(SelectProductBatchModal);
 
-        <div className={classes.bottom}>
-          <Button onClick={prevStep} type="button">
-            Back
-          </Button>
-          {activeStep === 2 ? (
-            <Button
-              disabled={nextStepDisabled}
-              type="button"
-              onClick={submitForm}
+  const addProductBatchHandle = useCallback(
+    (productId: number, index: number) => (e: SyntheticEvent) => {
+      e.stopPropagation();
+      productBatchModal.show({
+        productId: productId,
+        excludedIds: values.sources?.map(({ id }) => id),
+        onSelect: (batch: ProductBatch) => {
+          if (!values.sources?.some(item => item.id === batch.id)) {
+            setActiveTab(index);
+            void setValues({
+              ...values,
+              sources: [
+                // @ts-expect-error .....
+                ...(values.sources || []),
+                // @ts-expect-error .....
+                { selectedCount: null, productId, id: batch.id },
+              ],
+            });
+          }
+        },
+      });
+    },
+    [setValues, values, productBatchModal],
+  );
+
+  const updateSelectedCount = useCallback(
+    (productBatchId: number) => (event: InputNumberValueChangeEvent) => {
+      if (event.value) {
+        void setValues({
+          ...values,
+          // @ts-expect-error .....
+          sources: values.sources.map(item => ({
+            ...item,
+            selectedCount:
+              item.id == productBatchId ? event.value : item.selectedCount,
+          })),
+        });
+      }
+    },
+    [setValues, values],
+  );
+  const removeProductBatch = useCallback(
+    (productBatchId: number) => (e: SyntheticEvent) => {
+      e.stopPropagation();
+      void setValues({
+        ...values,
+        sources: values.sources.filter(item => item.id != productBatchId),
+      });
+    },
+    [setValues, values],
+  );
+
+  const groupCheckboxHandler = useCallback(
+    (e: CheckboxChangeEvent) => {
+      void setFieldValue('grouped', !!e.checked);
+      if (!e.checked) setFieldValue('groupName', null);
+    },
+    [setFieldValue],
+  );
+
+  const onSubmitHandler = useCallback(() => {
+    const sourcesProductIds = [
+      ...new Set([...(values.sources || []).map(item => item.productId)]),
+    ];
+    if ([...productMap.keys()].every(id => sourcesProductIds.includes(id))) {
+      void submitForm();
+    }
+  }, [submitForm, values]);
+
+  return (
+    <form
+      onSubmit={handleSubmit}
+      noValidate
+      autoComplete="off"
+      className={classes.form}
+    >
+      <Accordion
+        activeIndex={activeTab}
+        onTabChange={(e: AccordionTabChangeEvent) => {
+          setActiveTab(e.index as number);
+        }}
+      >
+        {[...productMap.values()].map((product, index) => {
+          return (
+            <AccordionTab
+              key={product.id}
+              // headerClassName={cx(
+              //   !values.sources?.filter(item => item.productId == product.id)
+              //     .length && classes.error,
+              // )}
+              headerClassName={classes.accordionHeader}
+              disabled={
+                !values.sources?.filter(item => item.productId == product.id)
+                  .length
+              }
+              header={
+                <div className={classes.accordionHeaderInner}>
+                  <div>{product.sku}</div>
+                  <div>
+                    {values.sources?.reduce(
+                      (prev, cur) =>
+                        prev +
+                        (cur.productId == product.id
+                          ? cur.selectedCount ?? 0
+                          : 0),
+                      0,
+                    )}{' '}
+                    шт
+                  </div>
+                  <ButtonGroup>
+                    <Button
+                      label="Добавить партию"
+                      icon="pi pi-check"
+                      type="button"
+                      onClick={addProductBatchHandle(product.id, index)}
+                    />
+                    <Button
+                      icon="pi pi-trash"
+                      onClick={removeProduct(product.id, index)}
+                      type="button"
+                    />
+                  </ButtonGroup>
+                </div>
+              }
             >
-              Отправить
-            </Button>
-          ) : (
-            <Button
-              onClick={nextStep}
-              disabled={nextStepDisabled}
-              type="button"
-            >
-              Next step
-            </Button>
-          )}
+              {values.sources
+                ?.filter(item => item.productId == product.id)
+                .map(item => (
+                  <div>
+                    {item.id}:{' '}
+                    <InputNumber
+                      required
+                      placeholder=" шт"
+                      suffix=" шт"
+                      maxFractionDigits={0}
+                      value={item.selectedCount}
+                      onValueChange={updateSelectedCount(item.id)}
+                    />
+                    <Button
+                      icon="pi pi-trash"
+                      onClick={removeProductBatch(item.id)}
+                      type="button"
+                    />
+                  </div>
+                ))}
+            </AccordionTab>
+          );
+        })}
+      </Accordion>
+      <div className={classes.field}>
+        <FloatLabel>
+          <ProductSelect value={null} onChange={addProduct} />
+          <label>Продукт</label>
+        </FloatLabel>
+      </div>
+
+      <div className={classes.bottom}>
+        <div>
+          <Checkbox
+            inputId="group"
+            name="grouped"
+            onBlur={handleBlur}
+            onChange={groupCheckboxHandler}
+            checked={values.grouped}
+          />
+          <label htmlFor="group" className="ml-2">
+            Объединить в группу
+          </label>
         </div>
-      </form>
-    </FormContext.Provider>
+        {values.grouped && (
+          <div>
+            <InputText
+              value={values.groupName}
+              name="groupName"
+              onChange={handleChange}
+              onBlur={handleBlur}
+              className="p-inputtext-sm"
+              placeholder="Название группы"
+              invalid={touched.groupName && !!errors.groupName}
+            />
+          </div>
+        )}
+        <Button type="button" onClick={onSubmitHandler}>
+          Отправить
+        </Button>
+      </div>
+    </form>
   );
 };
 

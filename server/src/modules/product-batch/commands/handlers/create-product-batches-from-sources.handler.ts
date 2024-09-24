@@ -10,6 +10,9 @@ import { ProductBatchEventStore } from '@/product-batch/eventstore/product-batch
 import type { ProductBatchEntity } from '@/product-batch/product-batch.entity.js';
 import { ProductBatchRepository } from '@/product-batch/product-batch.repository.js';
 import { ProductBatchService } from '@/product-batch/product-batch.service.js';
+import { ProductBatchGroupEventStore } from '@/product-batch-group/eventstore/prodict-batch-group.eventstore.js';
+import type { ProductBatchGroupEntity } from '@/product-batch-group/product-batch-group.entity.js';
+import { ProductBatchGroupRepository } from '@/product-batch-group/product-batch-group.repository.js';
 
 @CommandHandler(CreateProductBatchesFromSourcesCommand)
 export class CreateProductBatchesFromSourcesHandler
@@ -22,6 +25,8 @@ export class CreateProductBatchesFromSourcesHandler
     private readonly productBatchEventStore: ProductBatchEventStore,
     private readonly contextService: ContextService,
     private readonly productBatchService: ProductBatchService,
+    private readonly productBatchGroupRepository: ProductBatchGroupRepository,
+    private readonly productBatchGroupEventStore: ProductBatchGroupEventStore,
   ) {}
 
   async execute(command: CreateProductBatchesFromSourcesCommand) {
@@ -34,12 +39,31 @@ export class CreateProductBatchesFromSourcesHandler
       this.productBatchRepository,
     );
 
+    const productBatchGroupRepository = queryRunner.manager.withRepository(
+      this.productBatchGroupRepository,
+    );
+
     await queryRunner.connect();
     await queryRunner.startTransaction();
     const cancels: (() => Promise<void>)[] = [];
 
     try {
       const { dto } = command;
+
+      let newGroup: ProductBatchGroupEntity | undefined;
+
+      if (dto.groupName) {
+        if (!dto.statusId) throw new Error('dto.statusId was not defined');
+
+        newGroup = await productBatchGroupRepository.createFromDto({
+          name: dto.groupName,
+          statusId: dto.statusId,
+          existProductBatchIds: [],
+        });
+
+        dto.statusId = null;
+        dto.groupId = newGroup.id;
+      }
 
       const affectedIds: number[] = [];
 
@@ -49,6 +73,7 @@ export class CreateProductBatchesFromSourcesHandler
         const { newEntity, sourceBatch } =
           await productBatchRepository.createFromSources({
             ...dto,
+            productId: sourceItem.productId,
             selectedCount: sourceItem.selectedCount,
             sourceId: sourceItem.id,
           });
@@ -66,6 +91,24 @@ export class CreateProductBatchesFromSourcesHandler
         queryRunner,
         affectedIds,
       });
+
+      if (newGroup) {
+        const { appendResult, cancel } =
+          await this.productBatchGroupEventStore.appendProductBatchGroupCreatedEvent(
+            {
+              eventId: requestId,
+              data: {
+                id: newGroup.id,
+                name: newGroup.name,
+                statusId: newGroup.statusId,
+                existProductBatchIds: newEntities.map(({ id }) => id),
+              },
+            },
+          );
+
+        if (!appendResult.success) throw new Error('????');
+        cancels.push(cancel);
+      }
 
       for (const entity of newEntities) {
         const { appendResult, cancel } =

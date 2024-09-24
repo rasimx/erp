@@ -67,47 +67,44 @@ export const SelectProductBatch: FC<Props> = ({
   );
 
   return (
-    <div>
-      <h3>Выбрать исходную партию</h3>
-      <div style={{ display: 'flex' }}>
-        {columns.map((column, index) => (
-          <div key={column.id}>
-            <h6>{column.title}</h6>
+    <div style={{ display: 'flex' }}>
+      {columns.map((column, index) => (
+        <div key={column.id}>
+          <h6>{column.title}</h6>
 
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
-              {cards
-                .filter(item => item.statusId == column.id)
-                .map(item =>
-                  item.__typename == 'ProductBatchGroupDto' ? (
-                    <div style={{ cursor: 'pointer' }} key={item.id}>
-                      <div>
-                        {item.productBatchList.map(item => {
-                          return (
-                            <div
-                              style={{ cursor: 'pointer' }}
-                              key={item.id}
-                              onClick={() => onSelectHandle(item)}
-                            >
-                              {item.id}: {item.order}
-                            </div>
-                          );
-                        })}
-                      </div>
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            {cards
+              .filter(item => item.statusId == column.id)
+              .map(item =>
+                item.__typename == 'ProductBatchGroupDto' ? (
+                  <div style={{ cursor: 'pointer' }} key={item.id}>
+                    <div>
+                      {item.productBatchList.map(item => {
+                        return (
+                          <div
+                            style={{ cursor: 'pointer' }}
+                            key={item.id}
+                            onClick={() => onSelectHandle(item)}
+                          >
+                            {item.id}: {item.order}
+                          </div>
+                        );
+                      })}
                     </div>
-                  ) : (
-                    <div
-                      style={{ cursor: 'pointer' }}
-                      key={item.id}
-                      onClick={() => onSelectHandle(item as ProductBatch)}
-                    >
-                      {item.id}: {item.order}
-                    </div>
-                  ),
-                )}
-            </div>
+                  </div>
+                ) : (
+                  <div
+                    style={{ cursor: 'pointer' }}
+                    key={item.id}
+                    onClick={() => onSelectHandle(item as ProductBatch)}
+                  >
+                    {item.id}: {item.order}
+                  </div>
+                ),
+              )}
           </div>
-        ))}
-      </div>
+        </div>
+      ))}
     </div>
   );
 };

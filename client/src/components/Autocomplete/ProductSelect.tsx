@@ -85,11 +85,17 @@ const ProductSelect: FC<Props> = props => {
     [items],
   );
 
+  const [inputValue, setInputValue] = useState<string | Product | null>('');
+
   const changeHandle = useCallback(
     (event: AutoCompleteChangeEvent) => {
-      onChange(event.value);
+      setInputValue(event.value);
+      if (event.value.id) {
+        onChange(event.value);
+        setInputValue(value);
+      }
     },
-    [onChange],
+    [onChange, value],
   );
   const selectedItemTemplate = useCallback((value: Product) => {
     return `${value.sku}: ${value.name}`;
@@ -110,7 +116,7 @@ const ProductSelect: FC<Props> = props => {
       field="name"
       selectedItemTemplate={selectedItemTemplate}
       itemTemplate={itemTemplate}
-      value={value}
+      value={inputValue}
       suggestions={filteredOptions}
       completeMethod={search}
       onChange={changeHandle}

@@ -66,9 +66,8 @@ export type CreateProductBatchesByAssemblingDto = {
 };
 
 export type CreateProductBatchesFromSourcesDto = {
-  fullCount: Scalars['Int']['input'];
   groupId?: InputMaybe<Scalars['Int']['input']>;
-  productId: Scalars['Int']['input'];
+  groupName?: InputMaybe<Scalars['String']['input']>;
   sources: Array<SourceProductBatchDto>;
   statusId?: InputMaybe<Scalars['Int']['input']>;
 };
@@ -364,6 +363,7 @@ export type SetItemDto = {
 
 export type SourceProductBatchDto = {
   id: Scalars['Int']['input'];
+  productId: Scalars['Int']['input'];
   selectedCount: Scalars['Int']['input'];
 };
 

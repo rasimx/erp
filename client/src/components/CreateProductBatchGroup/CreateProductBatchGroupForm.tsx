@@ -6,19 +6,14 @@ import { confirmDialog } from 'primereact/confirmdialog';
 import { InputText } from 'primereact/inputtext';
 import React, { type FC, useCallback, useEffect, useMemo } from 'react';
 
-import { CREATE_PRODUCT_BATCH_MUTATION } from '../../api/product-batch/product-batch.gql';
 import { CREATE_PRODUCT_BATCH_GROUP_MUTATION } from '../../api/product-batch-group/product-batch-group.gql';
 import { useStatusList } from '../../api/status/status.hooks';
 import apolloClient from '../../apollo-client';
 import {
-  CreateProductBatchDto,
   CreateProductBatchGroupDto,
   type StatusDto,
-  StatusFragment,
 } from '../../gql-types/graphql';
 import { useAppSelector } from '../../hooks';
-import { fromRouble } from '../../utils';
-import ProductSelect from '../Autocomplete/ProductSelect';
 import StatusSelect from '../Autocomplete/StatusSelect';
 import { selectSelectedProductBatches } from '../ProductBatchPage/product-batch-page.slice';
 import withModal from '../withModal';
@@ -38,21 +33,27 @@ export interface Props {
 }
 
 const Form: FC<Props & FormProps> = props => {
-  const { handleSubmit, handleBlur, handleChange, setFieldValue, values } =
-    props;
+  const {
+    handleSubmit,
+    handleBlur,
+    handleChange,
+    setFieldValue,
+    values,
+    errors,
+  } = props;
 
-  const selectedIds = useAppSelector(selectSelectedProductBatches);
+  const selectedProductBathes = useAppSelector(selectSelectedProductBatches);
+
+  console.log(errors);
 
   useEffect(() => {
-    setFieldValue('existProductBatchIds', selectedIds);
-  }, [selectedIds]);
+    setFieldValue(
+      'existProductBatchIds',
+      selectedProductBathes.map(({ id }) => id),
+    );
+  }, [selectedProductBathes]);
 
   const { statusList } = useStatusList();
-
-  const autocompleteValue = useCallback(
-    (item: StatusFragment) => item.title,
-    [],
-  );
 
   const changeStatus = useCallback(
     (status: StatusDto | null) => {
@@ -120,7 +121,16 @@ export const CreateProductBatchGroupForm = withFormik<Props, FormValues>({
             },
           })
           .then(result => {
-            console.log(result);
+            if (result.errors?.length) {
+              alert('ERROR');
+            } else {
+              formikBag.props.closeModal();
+              formikBag.props.onSubmit(dto, formikBag);
+            }
+          })
+          .catch(err => {
+            console.log(err);
+            alert('ERROR');
           });
       },
     });

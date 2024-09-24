@@ -15,3 +15,21 @@
   display: flex;
   justify-content: space-between;
 }
+
+.accordionHeader{
+  opacity: .8;
+  & * {
+    pointer-events: auto !important;
+    user-select: auto;
+  }
+}
+.accordionHeaderInner{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+}
+.error{
+  border: 1px solid red;
+  //opacity: .7;
+}

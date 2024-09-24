@@ -1,67 +1,15 @@
 import { FormikProps } from 'formik';
 import { FormikBag } from 'formik/dist/withFormik';
-import {
-  createContext,
-  Dispatch,
-  SetStateAction,
-  useCallback,
-  useContext,
-} from 'react';
-import { array, number, object, ObjectSchema } from 'yup';
+import { array, boolean, number, object, ObjectSchema, string } from 'yup';
 
-import { Product } from '../../api/product/product.gql';
-import { ProductBatch } from '../../api/product-batch/product-batch.gql';
 import {
   CreateProductBatchesFromSourcesDto,
   SourceProductBatchDto,
 } from '../../gql-types/graphql';
-import { RecursivePartial } from '../../utils';
 
-export interface FormState
-  extends RecursivePartial<CreateProductBatchesFromSourcesDto> {
-  product?: Product | null;
-  sources?: SelectedProductBatch[] | null;
-}
-export const FormContext = createContext<{
-  state: FormState;
-  setState: Dispatch<SetStateAction<FormState>>;
-}>({ state: {}, setState: () => {} });
-
-export const useFormState = () => {
-  const { state, setState } = useContext(FormContext);
-
-  const updateSelectedSetSource = useCallback(
-    (id: number, batch: SelectedProductBatch | null) => {
-      setState(state => {
-        const sources = state?.sources ? [...state.sources] : [];
-        const index = sources.findIndex(item => item.id === id);
-
-        if (batch) {
-          if (index > -1) {
-            sources[index] = batch;
-          } else {
-            sources.push(batch);
-          }
-        } else if (index > -1) {
-          sources.splice(index, 1);
-        }
-
-        return { ...state, sources };
-      });
-    },
-    [state, setState],
-  );
-
-  return { state, setState, updateSelectedSetSource };
+export type FormValues = CreateProductBatchesFromSourcesDto & {
+  grouped: boolean;
 };
-
-export interface SelectedProductBatch extends ProductBatch {
-  selectedCount: number | null;
-}
-
-export type FormValues = Partial<
-  RecursivePartial<CreateProductBatchesFromSourcesDto>
->;
 export type FormProps = FormikProps<FormValues>;
 
 export interface Props {
@@ -76,16 +24,19 @@ export interface Props {
 export const SourceProductBatchValidationSchema: ObjectSchema<SourceProductBatchDto> =
   object().shape({
     id: number().required(),
+    productId: number().required(),
     selectedCount: number().required(),
   });
 
-export const createProductBatchesByAssemblingValidationSchema =
+export const createProductBatchesFromSourcesValidationSchema =
   (): ObjectSchema<CreateProductBatchesFromSourcesDto> => {
     return object().shape({
       groupId: number().nullable(),
       statusId: number().nullable(),
-      productId: number().required(),
-      fullCount: number().required(),
+      grouped: boolean().nullable(),
+      groupName: string().when('grouped', ([grouped], schema) => {
+        return grouped ? schema.required() : schema.nullable();
+      }),
       sources: array(SourceProductBatchValidationSchema.required()).required(),
     });
   };

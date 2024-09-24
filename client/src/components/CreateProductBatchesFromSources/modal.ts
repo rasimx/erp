@@ -9,13 +9,13 @@ import { CreateProductBatchesFromSourcesDto } from '../../gql-types/graphql';
 import withModal from '../withModal';
 import Form from './form';
 import {
-  createProductBatchesByAssemblingValidationSchema,
+  createProductBatchesFromSourcesValidationSchema,
   FormValues,
   Props,
 } from './types';
 
 const CreateProductBatchesFromSourcesForm = withFormik<Props, FormValues>({
-  validationSchema: () => createProductBatchesByAssemblingValidationSchema(),
+  validationSchema: () => createProductBatchesFromSourcesValidationSchema(),
   mapPropsToValues: props => {
     return {
       ...props.initialValues,
