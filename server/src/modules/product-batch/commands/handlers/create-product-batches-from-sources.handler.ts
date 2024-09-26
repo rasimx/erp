@@ -52,8 +52,9 @@ export class CreateProductBatchesFromSourcesHandler
 
       let newGroup: ProductBatchGroupEntity | undefined;
 
-      if (dto.groupName) {
+      if (dto.grouped) {
         if (!dto.statusId) throw new Error('dto.statusId was not defined');
+        if (!dto.groupName) throw new Error('dto.groupName was not defined');
 
         newGroup = await productBatchGroupRepository.createFromDto({
           name: dto.groupName,

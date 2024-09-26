@@ -1,5 +1,6 @@
 import { FloatLabel } from 'primereact/floatlabel';
 import { InputNumber } from 'primereact/inputnumber';
+import { Nullable } from 'primereact/ts-helpers';
 import React, { FC, useCallback } from 'react';
 
 import { Product } from '../../api/product/product.gql';
@@ -13,7 +14,7 @@ const Step_1: FC<Props> = props => {
   const { state, setState } = useFormState();
 
   const changeProduct = useCallback(
-    (productSet: Product | null) => {
+    (productSet: Nullable<Product>) => {
       if (productSet) {
         setState(state => ({
           ...state,

@@ -2,13 +2,7 @@ import { Field, InputType, Int } from '@nestjs/graphql';
 import { IsNotEmpty, IsNumber } from 'class-validator';
 
 @InputType()
-export class CreateProductBatchDto {
-  @Field(() => Int, { nullable: true, defaultValue: null })
-  statusId: number | null;
-
-  @Field(() => Int, { nullable: true, defaultValue: null })
-  groupId: number | null;
-
+export class CreateProductBatchItemDto {
   @IsNumber()
   @IsNotEmpty()
   @Field(() => Int)
@@ -32,7 +26,25 @@ export class CreateProductBatchDto {
 
   @Field(() => Int, { nullable: true, defaultValue: null })
   currencyCostPricePerUnit: number | null;
+}
+
+@InputType()
+export class CreateProductBatchDto {
+  @Field(() => Int, { nullable: true, defaultValue: null })
+  statusId: number | null;
+
+  @Field(() => Int, { nullable: true, defaultValue: null })
+  groupId: number | null;
 
   @Field(() => Int, { nullable: true, defaultValue: null })
   exchangeRate: number | null;
+
+  @Field(() => Boolean, { nullable: true, defaultValue: false })
+  grouped: boolean;
+
+  @Field(() => String, { nullable: true, defaultValue: null })
+  groupName: string | null;
+
+  @Field(() => [CreateProductBatchItemDto])
+  items: CreateProductBatchItemDto[];
 }

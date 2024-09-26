@@ -4,6 +4,7 @@ import { objectToCamel } from 'ts-case-convert';
 import { type FindOptionsWhere, In, IsNull, Repository } from 'typeorm';
 
 import type { ResultProductBatch } from '@/common/assembleProduct.js';
+import type { CreateProductBatchItemDto } from '@/product-batch/dtos/create-product-batch.dto.js';
 import { type CreateProductBatchDto } from '@/product-batch/dtos/create-product-batch.dto.js';
 import type { GetProductBatchListDto } from '@/product-batch/dtos/get-product-batch-list.dto.js';
 import type { MoveProductBatchDto } from '@/product-batch/dtos/move-product-batch.dto.js';
@@ -49,7 +50,13 @@ export class ProductBatchRepository extends Repository<ProductBatchEntity> {
     }));
   }
 
-  async createNew(dto: CreateProductBatchDto) {
+  async createNew(
+    dto: CreateProductBatchItemDto & {
+      statusId: number | null;
+      groupId: number | null;
+      exchangeRate: number | null;
+    },
+  ) {
     const { statusId, groupId } = dto;
 
     let order = 1;

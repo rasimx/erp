@@ -21,14 +21,14 @@ import {
   AssemblingSourceDto,
   CreateProductBatchesByAssemblingDto,
 } from '../../gql-types/graphql';
-import { RecursivePartial } from '../../utils';
+import { DeepNullable } from '../../utils';
 
 export interface SelectedProductBatch extends ProductBatch {
   selectedCount?: number | null;
 }
 
 export interface FormState
-  extends RecursivePartial<CreateProductBatchesByAssemblingDto> {
+  extends DeepNullable<CreateProductBatchesByAssemblingDto> {
   productSet?: Product | undefined;
   sources?: SelectedProductBatch[] | undefined;
 }
@@ -83,7 +83,7 @@ export const useFormState = () => {
   return { state, setState, updateSelectedSetSource, newBathes };
 };
 
-export type FormValues = RecursivePartial<CreateProductBatchesByAssemblingDto>;
+export type FormValues = DeepNullable<CreateProductBatchesByAssemblingDto>;
 export type FormProps = FormikProps<FormValues>;
 
 export interface Props {

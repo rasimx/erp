@@ -1,6 +1,7 @@
 import NiceModal from '@ebay/nice-modal-react';
 import { FormikErrors, withFormik } from 'formik';
 import { FormikBag } from 'formik/dist/withFormik';
+import omit from 'lodash/omit';
 import { confirmDialog } from 'primereact/confirmdialog';
 
 import { CREATE_PRODUCT_BATCHES_FROM_SOURCES_MUTATION } from '../../api/product-batch/product-batch.gql';
@@ -19,7 +20,7 @@ const CreateProductBatchesFromSourcesForm = withFormik<Props, FormValues>({
   mapPropsToValues: props => {
     return {
       ...props.initialValues,
-    } as CreateProductBatchesFromSourcesDto;
+    } as FormValues;
   },
 
   // Add a custom validation function (this can be async too!)
@@ -44,7 +45,7 @@ const CreateProductBatchesFromSourcesForm = withFormik<Props, FormValues>({
         apolloClient
           .mutate({
             mutation: CREATE_PRODUCT_BATCHES_FROM_SOURCES_MUTATION,
-            variables: { dto: values as CreateProductBatchesFromSourcesDto },
+            variables: { dto: values },
           })
           .then(result => {
             console.log(result);

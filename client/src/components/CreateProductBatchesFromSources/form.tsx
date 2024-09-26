@@ -14,6 +14,7 @@ import {
   InputNumberValueChangeEvent,
 } from 'primereact/inputnumber';
 import { InputText } from 'primereact/inputtext';
+import { Nullable } from 'primereact/ts-helpers';
 import React, { FC, SyntheticEvent, useCallback, useState } from 'react';
 
 import { Product } from '../../api/product/product.gql';
@@ -43,7 +44,7 @@ const CreateProductBatchesFromSourcesForm: FC<Props & FormProps> = props => {
   const [productMap, setProductMap] = useState<Map<number, Product>>(new Map());
 
   const addProduct = useCallback(
-    (product: Product | null) => {
+    (product: Nullable<Product>) => {
       if (product) {
         setProductMap(map => {
           map.set(product.id, product);

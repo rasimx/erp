@@ -40,14 +40,11 @@ export type CreateOperationDto = {
 };
 
 export type CreateProductBatchDto = {
-  costPricePerUnit: Scalars['Int']['input'];
-  count: Scalars['Int']['input'];
-  currencyCostPricePerUnit?: InputMaybe<Scalars['Int']['input']>;
   exchangeRate?: InputMaybe<Scalars['Int']['input']>;
   groupId?: InputMaybe<Scalars['Int']['input']>;
-  operationsPrice?: InputMaybe<Scalars['Int']['input']>;
-  operationsPricePerUnit?: InputMaybe<Scalars['Int']['input']>;
-  productId: Scalars['Int']['input'];
+  groupName?: InputMaybe<Scalars['String']['input']>;
+  grouped?: InputMaybe<Scalars['Boolean']['input']>;
+  items: Array<CreateProductBatchItemDto>;
   statusId?: InputMaybe<Scalars['Int']['input']>;
 };
 
@@ -55,6 +52,15 @@ export type CreateProductBatchGroupDto = {
   existProductBatchIds: Array<Scalars['Int']['input']>;
   name: Scalars['String']['input'];
   statusId: Scalars['Int']['input'];
+};
+
+export type CreateProductBatchItemDto = {
+  costPricePerUnit: Scalars['Int']['input'];
+  count: Scalars['Int']['input'];
+  currencyCostPricePerUnit?: InputMaybe<Scalars['Int']['input']>;
+  operationsPrice?: InputMaybe<Scalars['Int']['input']>;
+  operationsPricePerUnit?: InputMaybe<Scalars['Int']['input']>;
+  productId: Scalars['Int']['input'];
 };
 
 export type CreateProductBatchesByAssemblingDto = {
@@ -68,6 +74,7 @@ export type CreateProductBatchesByAssemblingDto = {
 export type CreateProductBatchesFromSourcesDto = {
   groupId?: InputMaybe<Scalars['Int']['input']>;
   groupName?: InputMaybe<Scalars['String']['input']>;
+  grouped?: InputMaybe<Scalars['Boolean']['input']>;
   sources: Array<SourceProductBatchDto>;
   statusId?: InputMaybe<Scalars['Int']['input']>;
 };

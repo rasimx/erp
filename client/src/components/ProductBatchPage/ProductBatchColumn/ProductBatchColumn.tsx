@@ -52,8 +52,6 @@ export const ProductBatchColumn = React.memo<Props>(props => {
           createProductBatchModal.show({
             initialValues: {
               statusId: status.id,
-              operationsPricePerUnit: 0,
-              operationsPrice: 0,
             },
             onSubmit: async values => {
               refetch();

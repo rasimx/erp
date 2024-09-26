@@ -2,14 +2,18 @@ import { type JSONEventType } from '@eventstore/db-client';
 
 import type { JSONCompatible } from '@/common/helpers/utils.js';
 import type { CreateOperationDto } from '@/operation/dtos/create-operation.dto.js';
-import type { CreateProductBatchDto } from '@/product-batch/dtos/create-product-batch.dto.js';
+import type { CreateProductBatchItemDto } from '@/product-batch/dtos/create-product-batch.dto.js';
 import type { EditProductBatchDto } from '@/product-batch/dtos/edit-product-batch.dto.js';
 import type { MoveProductBatchDto } from '@/product-batch/dtos/move-product-batch.dto.js';
 
 export const productBatchStreamName = (productBatchId: number) =>
   `ProductBatch-${productBatchId.toString()}`;
 
-export interface ProductBatchCreatedEventData extends CreateProductBatchDto {
+export interface ProductBatchCreatedEventData
+  extends CreateProductBatchItemDto {
+  statusId: number | null;
+  groupId: number | null;
+  exchangeRate: number | null;
   id: number;
   userId: number;
 }

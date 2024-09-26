@@ -20,8 +20,11 @@ export class CreateProductBatchesFromSourcesDto {
   @Field(() => Int, { nullable: true, defaultValue: null })
   groupId: number | null;
 
+  @Field(() => Boolean, { nullable: true, defaultValue: false })
+  grouped: boolean;
+
   @Field(() => String, { nullable: true, defaultValue: null })
-  groupName: string;
+  groupName: string | null;
 
   @Field(() => [SourceProductBatchDto])
   sources: SourceProductBatchDto[];

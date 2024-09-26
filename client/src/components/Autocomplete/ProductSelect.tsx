@@ -4,6 +4,7 @@ import {
   AutoCompleteChangeEvent,
   AutoCompleteCompleteEvent,
 } from 'primereact/autocomplete';
+import { Nullable } from 'primereact/ts-helpers';
 import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
 
 import {
@@ -14,8 +15,8 @@ import {
 } from '../../api/product/product.gql';
 
 export interface Props {
-  value: Product | null;
-  onChange: (value: Product | null) => void;
+  value: Nullable<Product>;
+  onChange: (value: Nullable<Product>) => void;
   initialId?: number | null;
   onlySets?: boolean;
 }
@@ -85,7 +86,11 @@ const ProductSelect: FC<Props> = props => {
     [items],
   );
 
-  const [inputValue, setInputValue] = useState<string | Product | null>('');
+  const [inputValue, setInputValue] = useState<string | Nullable<Product>>('');
+
+  useEffect(() => {
+    setInputValue(value);
+  }, [value]);
 
   const changeHandle = useCallback(
     (event: AutoCompleteChangeEvent) => {

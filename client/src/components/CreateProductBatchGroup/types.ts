@@ -3,7 +3,7 @@ import { array, number, object, ObjectSchema, string } from 'yup';
 
 import { CreateProductBatchGroupDto } from '@/gql-types/graphql';
 
-import { RecursivePartial } from '../../utils';
+import { DeepNullable } from '../../utils';
 
 export const createProductBatchGroupValidationSchema =
   (): ObjectSchema<CreateProductBatchGroupDto> => {
@@ -15,5 +15,5 @@ export const createProductBatchGroupValidationSchema =
     });
   };
 
-export type FormValues = RecursivePartial<CreateProductBatchGroupDto>;
+export type FormValues = DeepNullable<CreateProductBatchGroupDto>;
 export type FormProps = FormikProps<FormValues>;
