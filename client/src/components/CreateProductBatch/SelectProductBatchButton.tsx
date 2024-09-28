@@ -5,7 +5,7 @@ import { Button } from 'primereact/button';
 import React, { type FC, useCallback, useEffect, useState } from 'react';
 
 import { ProductBatchFragment } from '../../gql-types/graphql';
-import { SelectProductBatchModal } from './SelectProductBatch';
+import { SelectProductBatchModal } from '../SelectProductBatch/SelectProductBatch';
 
 export interface Props {
   onChange: (data: ProductBatchFragment | undefined) => void;

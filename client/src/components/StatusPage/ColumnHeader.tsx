@@ -8,7 +8,7 @@ import { Product } from '../../api/product/product.gql';
 import { useProductBatchMutations } from '../../api/product-batch/product-batch.hook';
 import { ProductBatchFragment, StatusFragment } from '../../gql-types/graphql';
 // import CreateProductBatchGroupForm from '../CreateProductBatch/ProductBatchForm';
-import { SelectProductBatchModal } from '../CreateProductBatch/SelectProductBatch';
+import { SelectProductBatchModal } from '../SelectProductBatch/SelectProductBatch';
 
 export interface Props {
   status: StatusFragment;

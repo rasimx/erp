@@ -257,7 +257,9 @@ const Form: FC<Props & FormikProps<CreateOperationDto>> = props => {
                 <tbody>
                   {productBatches.map(row => (
                     <tr key={row.id}>
-                      <td>{row.id}</td>
+                      <td>
+                        {row.id}: {row.product.sku}
+                      </td>
                       <DataCell
                         type={ProportionType.weight}
                         row={row}

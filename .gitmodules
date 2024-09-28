@@ -1,3 +1,6 @@
 [submodule "metricsplace_common"]
 	path = metricsplace_common
 	url = git@github.com:rasimx/metricsplace_common.git
+[submodule "microservice_contracts"]
+	path = microservice_contracts
+	url = git@github.com:rasimx/microservice_contracts.git

@@ -4,6 +4,7 @@ import React, { type FC, useCallback, useEffect, useMemo } from 'react';
 import { useKanban } from '../../api/kanban/kanban.hook';
 import { ProductBatch } from '../../api/product-batch/product-batch.gql';
 import withModal from '../withModal';
+import classes from './SelectProductBatch.module.scss';
 
 export interface Props {
   onSelect: (data: ProductBatch) => void;
@@ -67,26 +68,30 @@ export const SelectProductBatch: FC<Props> = ({
   );
 
   return (
-    <div style={{ display: 'flex' }}>
-      {columns.map((column, index) => (
-        <div key={column.id}>
-          <h6>{column.title}</h6>
+    <div className={classes.container}>
+      {columns.map(column => (
+        <div key={column.id} className={classes.column}>
+          <div className={classes.header}>{column.title}</div>
 
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
+          <div className={classes.inner}>
             {cards
               .filter(item => item.statusId == column.id)
               .map(item =>
                 item.__typename == 'ProductBatchGroupDto' ? (
-                  <div style={{ cursor: 'pointer' }} key={item.id}>
-                    <div>
+                  <div className={classes.group} key={item.id}>
+                    <div className={classes.groupName}>{item.name}</div>
+                    <div className={classes.groupInner}>
                       {item.productBatchList.map(item => {
                         return (
                           <div
-                            style={{ cursor: 'pointer' }}
+                            className={classes.card}
                             key={item.id}
                             onClick={() => onSelectHandle(item)}
                           >
-                            {item.id}: {item.order}
+                            <span>
+                              #{item.order}: {item.id}
+                            </span>
+                            <span>{item.count} шт</span>
                           </div>
                         );
                       })}
@@ -94,11 +99,14 @@ export const SelectProductBatch: FC<Props> = ({
                   </div>
                 ) : (
                   <div
-                    style={{ cursor: 'pointer' }}
+                    className={classes.card}
                     key={item.id}
                     onClick={() => onSelectHandle(item as ProductBatch)}
                   >
-                    {item.id}: {item.order}
+                    <span>
+                      #{item.order}: {item.id}
+                    </span>
+                    <span>{(item as ProductBatch).count} шт</span>
                   </div>
                 ),
               )}

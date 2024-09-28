@@ -18,7 +18,7 @@ npm-debug.log
 .gitignore
 *.md
 dist
-k3s
+k8s
 docker-bake.hcl
 graphql.config.yml
 config.json

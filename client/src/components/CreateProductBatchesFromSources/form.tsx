@@ -20,7 +20,7 @@ import React, { FC, SyntheticEvent, useCallback, useState } from 'react';
 import { Product } from '../../api/product/product.gql';
 import { ProductBatch } from '../../api/product-batch/product-batch.gql';
 import ProductSelect from '../Autocomplete/ProductSelect';
-import { SelectProductBatchModal } from '../CreateProductBatch/SelectProductBatch';
+import { SelectProductBatchModal } from '../SelectProductBatch/SelectProductBatch';
 import classes from './form.module.scss';
 import { FormProps, Props } from './types';
 

@@ -5,7 +5,7 @@ import React, { FC, useCallback, useMemo } from 'react';
 
 import { ProductBatch } from '../../api/product-batch/product-batch.gql';
 import { SetItemFragment } from '../../gql-types/graphql';
-import { SelectProductBatchModal } from '../CreateProductBatch/SelectProductBatch';
+import { SelectProductBatchModal } from '../SelectProductBatch/SelectProductBatch';
 import styles from './ProductSetItem.module.scss';
 import { useFormState } from './types';
 

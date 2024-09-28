@@ -1,0 +1,57 @@
+.container{
+  display: flex;
+}
+
+.column {
+  border: 1px solid lightgray;
+  border-radius: 4px;
+  margin: 0 5px;
+  width: 200px;
+}
+
+.header {
+  background: rgba(0,0,0,0.1);
+  padding: 5px;
+  font-weight: 600;
+}
+
+.inner {
+  display: flex;
+  flex-direction: column;
+  padding: 5px;
+  overflow: auto;
+  height: 300px;
+  border-radius: 4px;
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  border-radius: 4px;
+  border: 1px solid lightgray;
+  background: rgba(0,0,0,0.1);
+}
+
+.groupName {
+  font-weight: 600;
+  padding: 5px;
+}
+
+.groupInner {
+  padding: 2px;
+}
+
+.card {
+  border: 1px solid lightgray;
+  padding: 4px;
+  display: flex;
+  justify-content: space-between;
+  border-radius: 4px;
+  background: #fff;
+  cursor: pointer;
+  span:last-child {
+    font-weight: 600;
+  }
+
+  margin-top: 6px;
+}
