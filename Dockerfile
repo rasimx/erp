@@ -19,7 +19,7 @@ RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm deploy --filter=server --
 
 FROM base AS app
 COPY --from=build /app/client/dist             /app/client/dist
-COPY --from=build /app/metricsplace_common     /app/metricsplace_common
+COPY --from=build /app/microservice_contracts     /app/microservice_contracts
 COPY --from=build /prod/node_modules           /app/server/node_modules
 COPY --from=build /prod/package.json           /app/server/package.json
 COPY --from=build /app/server/dist             /app/server/dist

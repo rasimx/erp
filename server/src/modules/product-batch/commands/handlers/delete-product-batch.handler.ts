@@ -35,6 +35,8 @@ export class DeleteProductBatchHandler
     await queryRunner.startTransaction();
     const cancels: (() => Promise<void>)[] = [];
 
+    throw new Error('как удалять если есть source');
+
     try {
       const { id } = command;
       const transactionalProductBatchRepository =

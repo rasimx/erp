@@ -33,7 +33,7 @@ export const createProductBatchValidationSchema =
     return object().shape({
       groupId: number().nullable(),
       statusId: number().nullable(),
-      exchangeRate: number(),
+      exchangeRate: number().nullable(),
       grouped: boolean().nullable(),
       groupName: string().when('grouped', ([grouped], schema) => {
         return grouped ? schema.required() : schema.nullable();

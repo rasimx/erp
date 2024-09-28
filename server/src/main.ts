@@ -48,7 +48,9 @@ async function bootstrap() {
     options: {
       url: '0.0.0.0:3001',
       package: 'erp',
-      protoPath: getPathRelativeToRoot('metricsplace_common/proto/erp.proto'),
+      protoPath: getPathRelativeToRoot(
+        'microservice_contracts/proto/erp.proto',
+      ),
       channelOptions: {},
     },
   });

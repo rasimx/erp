@@ -66,6 +66,7 @@ const CreateProductBatchesByAssemblingForm: FC<Props & FormProps> = props => {
       },
       {
         label: 'Предпросмотр',
+        // todo: fix
         disabled:
           state.fullCount == null ||
           state.fullCount == 0 ||

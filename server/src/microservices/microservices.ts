@@ -41,7 +41,7 @@ const MICROSERVICES = [
               url: configService.get(item.env),
               package: item.packageName,
               protoPath: getPathRelativeToRoot(
-                `metricsplace_common/proto/${item.proto}`,
+                `microservice_contracts/proto/${item.proto}`,
               ),
               channelOptions: {
                 interceptors: [getContextInterceptor(contextService)],
