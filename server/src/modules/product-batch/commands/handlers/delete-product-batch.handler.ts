@@ -5,8 +5,8 @@ import pick from 'lodash/pick.js';
 import { ContextService } from '@/context/context.service.js';
 import type { CustomDataSource } from '@/database/custom.data-source.js';
 import { ProductEventStore } from '@/product/eventstore/product.eventstore.js';
+import { ProductBatchRepository } from '@/product-batch/domain/product-batch.repository.js';
 import { ProductBatchEventStore } from '@/product-batch/eventstore/product-batch.eventstore.js';
-import { ProductBatchRepository } from '@/product-batch/product-batch.repository.js';
 import { ProductBatchService } from '@/product-batch/product-batch.service.js';
 
 import { DeleteProductBatchCommand } from '../impl/delete-product-batch.command.js';

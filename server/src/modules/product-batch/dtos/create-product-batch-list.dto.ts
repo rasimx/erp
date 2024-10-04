@@ -18,18 +18,18 @@ export class CreateProductBatchItemDto {
 
   @IsNumber()
   @Field(() => Int, { nullable: true, defaultValue: 0 })
-  operationsPricePerUnit: number | null;
+  operationsPricePerUnit: number;
 
   @IsNumber()
   @Field(() => Int, { nullable: true, defaultValue: 0 })
-  operationsPrice: number | null;
+  operationsPrice: number;
 
   @Field(() => Int, { nullable: true, defaultValue: null })
   currencyCostPricePerUnit: number | null;
 }
 
 @InputType()
-export class CreateProductBatchDto {
+export class CreateProductBatchListDto {
   @Field(() => Int, { nullable: true, defaultValue: null })
   statusId: number | null;
 

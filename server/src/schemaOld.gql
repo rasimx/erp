@@ -133,7 +133,7 @@ type CreateOperationResponse {
 #  targetProductBatchId: Int!
 #}
 #type MergeProductBatchResponse {
-#  productBatch: ProductBatch!
+#  productBatch: ProductBatchAggregate!
 #}
 
 type Mutation {

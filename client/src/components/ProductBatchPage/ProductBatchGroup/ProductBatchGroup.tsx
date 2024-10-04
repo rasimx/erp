@@ -38,7 +38,7 @@ export const ProductBatchGroupComponent = React.memo<Props>(props => {
           onClick={showProductBatchGroupInfoDrawer}
           className={classes.headerInner}
         >
-          {group.name} #{group.productBatchList.length}
+          {group.name} #{group.order}
         </div>
 
         <Button

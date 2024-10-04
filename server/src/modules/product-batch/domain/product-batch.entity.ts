@@ -4,18 +4,15 @@ import {
   DeleteDateColumn,
   Entity,
   JoinColumn,
-  JoinTable,
-  ManyToMany,
   ManyToOne,
   OneToMany,
-  PrimaryGeneratedColumn,
+  PrimaryColumn,
   type Relation,
   RelationId,
   UpdateDateColumn,
 } from 'typeorm';
 
 import { ProductEntity } from '@/product/product.entity.js';
-import { ProductSetClosureEntity } from '@/product/product-set-closure.entity.js';
 import { ProductBatchClosureEntity } from '@/product-batch/product-batch-closure.entity.js';
 import { ProductBatchGroupEntity } from '@/product-batch-group/product-batch-group.entity.js';
 import { ProductBatchOperationEntity } from '@/product-batch-operation/product-batch-operation.entity.js';
@@ -23,7 +20,7 @@ import { StatusEntity } from '@/status/status.entity.js';
 
 @Entity({ name: 'product_batch' })
 export class ProductBatchEntity {
-  @PrimaryGeneratedColumn()
+  @PrimaryColumn()
   id: number;
 
   @Column({
@@ -51,14 +48,6 @@ export class ProductBatchEntity {
   @Column()
   order: number;
 
-  @ManyToOne(() => ProductBatchEntity, { cascade: ['insert'] })
-  @JoinColumn()
-  parent: Relation<ProductBatchEntity>;
-
-  @RelationId((entity: ProductBatchEntity) => entity.parent)
-  @Column('integer', { nullable: true })
-  parentId: number | null;
-
   @OneToMany(() => ProductBatchClosureEntity, entity => entity.source)
   destinationsClosure: ProductBatchClosureEntity[];
 
@@ -83,7 +72,7 @@ export class ProductBatchEntity {
   costPricePerUnit: number;
 
   @Column('integer', { nullable: true })
-  currencyCostPricePerUnit: number;
+  currencyCostPricePerUnit: number | null;
 
   @Column('integer', { nullable: true })
   exchangeRate: number | null;

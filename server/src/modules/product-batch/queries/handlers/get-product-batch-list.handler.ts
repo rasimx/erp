@@ -1,6 +1,6 @@
 import { type IQueryHandler, QueryHandler } from '@nestjs/cqrs';
 
-import { ProductBatchRepository } from '@/product-batch/product-batch.repository.js';
+import { ProductBatchRepository } from '@/product-batch/domain/product-batch.repository.js';
 import { GetProductBatchListQuery } from '@/product-batch/queries/impl/get-product-batch-list.query.js';
 
 @QueryHandler(GetProductBatchListQuery)

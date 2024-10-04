@@ -6,8 +6,8 @@ import { ContextService } from '@/context/context.service.js';
 import type { CustomDataSource } from '@/database/custom.data-source.js';
 import { ProductEventStore } from '@/product/eventstore/product.eventstore.js';
 import { EditProductBatchCommand } from '@/product-batch/commands/impl/edit-product-batch.command.js';
+import { ProductBatchRepository } from '@/product-batch/domain/product-batch.repository.js';
 import { ProductBatchEventStore } from '@/product-batch/eventstore/product-batch.eventstore.js';
-import { ProductBatchRepository } from '@/product-batch/product-batch.repository.js';
 import { ProductBatchService } from '@/product-batch/product-batch.service.js';
 
 @CommandHandler(EditProductBatchCommand)

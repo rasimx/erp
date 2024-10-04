@@ -78,7 +78,7 @@ export const MOVE_PRODUCT_BATCH_MUTATION = graphql(`
 `);
 
 export const CREATE_PRODUCT_BATCH_MUTATION = graphql(`
-  mutation createProductBatch($dto: CreateProductBatchDto!) {
+  mutation createProductBatch($dto: CreateProductBatchListDto!) {
     createProductBatch(dto: $dto) {
       success
     }

@@ -48,7 +48,7 @@ export const ProductBatchCard = React.memo<Props>(props => {
         <MoveBtn sortableData={sortableData} />
 
         <div className={classes.sku} onClick={showProductBatchInfoDrawer}>
-          {card.product.sku}
+          {card.product.sku} #{card.order}
         </div>
         <div style={{ padding: '0 10px', fontWeight: 600 }}>{card.count}</div>
       </div>

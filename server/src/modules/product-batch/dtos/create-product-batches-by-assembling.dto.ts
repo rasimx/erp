@@ -3,13 +3,11 @@ import { IsNotEmpty, IsNumber } from 'class-validator';
 
 @InputType()
 export class AssemblingSourceDto {
-  @IsNumber()
-  @IsNotEmpty()
-  @Field(() => Int)
-  selectedCount: number;
-
   @Field(() => Int)
   id: number;
+
+  @Field(() => Int)
+  selectedCount: number;
 }
 
 @InputType()

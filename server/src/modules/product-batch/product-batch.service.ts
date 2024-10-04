@@ -9,8 +9,8 @@ import type { CustomPostgresQueryRunner } from '@/database/custom.query-runner.j
 import { OzonPostingProductMicroservice } from '@/microservices/erp_ozon/ozon-posting-product-microservice.service.js';
 import { ProductRepository } from '@/product/product.repository.js';
 import { ProductService } from '@/product/product.service.js';
-import { ProductBatchEntity } from '@/product-batch/product-batch.entity.js';
-import { ProductBatchRepository } from '@/product-batch/product-batch.repository.js';
+import { ProductBatchEntity } from '@/product-batch/domain/product-batch.entity.js';
+import { ProductBatchRepository } from '@/product-batch/domain/product-batch.repository.js';
 import { StatusService } from '@/status/status.service.js';
 
 @Injectable()
@@ -115,7 +115,10 @@ export class ProductBatchService {
           storeMap.get(oldVersionStoreId) ??
           new Map<number, ProductBatchEntity[]>();
         const productMapItem = storeMapItem.get(oldVersion.productId) ?? [];
-        productMapItem.push({ ...oldVersion, count: 0 } as ProductBatchEntity);
+        productMapItem.push({
+          ...oldVersion,
+          count: 0,
+        } as ProductBatchEntity);
         storeMapItem.set(oldVersion.productId, productMapItem);
         storeMap.set(oldVersionStoreId, storeMapItem);
       }

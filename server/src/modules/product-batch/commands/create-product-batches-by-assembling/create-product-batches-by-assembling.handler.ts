@@ -8,10 +8,10 @@ import { ContextService } from '@/context/context.service.js';
 import type { CustomDataSource } from '@/database/custom.data-source.js';
 import { ProductEventStore } from '@/product/eventstore/product.eventstore.js';
 import { ProductRepository } from '@/product/product.repository.js';
-import { CreateProductBatchesByAssemblingCommand } from '@/product-batch/commands/impl/create-product-batches-by-assembling.command.js';
+import { CreateProductBatchesByAssemblingCommand } from '@/product-batch/commands/create-product-batches-by-assembling/create-product-batches-by-assembling.command.js';
+import type { ProductBatchEntity } from '@/product-batch/domain/product-batch.entity.js';
+import { ProductBatchRepository } from '@/product-batch/domain/product-batch.repository.js';
 import { ProductBatchEventStore } from '@/product-batch/eventstore/product-batch.eventstore.js';
-import type { ProductBatchEntity } from '@/product-batch/product-batch.entity.js';
-import { ProductBatchRepository } from '@/product-batch/product-batch.repository.js';
 import { ProductBatchService } from '@/product-batch/product-batch.service.js';
 
 @CommandHandler(CreateProductBatchesByAssemblingCommand)

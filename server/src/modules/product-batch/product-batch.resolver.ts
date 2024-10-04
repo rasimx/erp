@@ -3,13 +3,13 @@ import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { Args, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
 
 import { UserInterceptor } from '@/auth/user.interceptor.js';
-import { CreateProductBatchCommand } from '@/product-batch/commands/impl/create-product-batch.command.js';
-import { CreateProductBatchesByAssemblingCommand } from '@/product-batch/commands/impl/create-product-batches-by-assembling.command.js';
-import { CreateProductBatchesFromSourcesCommand } from '@/product-batch/commands/impl/create-product-batches-from-sources.command.js';
+import { CreateProductBatchCommand } from '@/product-batch/commands/create-product-batch/create-product-batch.command.js';
+import { CreateProductBatchesByAssemblingCommand } from '@/product-batch/commands/create-product-batches-by-assembling/create-product-batches-by-assembling.command.js';
+import { CreateProductBatchesFromSourcesCommand } from '@/product-batch/commands/create-product-batches-from-sources/create-product-batches-from-sources.command.js';
 import { DeleteProductBatchCommand } from '@/product-batch/commands/impl/delete-product-batch.command.js';
 import { EditProductBatchCommand } from '@/product-batch/commands/impl/edit-product-batch.command.js';
 import { MoveProductBatchCommand } from '@/product-batch/commands/impl/move-product-batch.command.js';
-import { CreateProductBatchDto } from '@/product-batch/dtos/create-product-batch.dto.js';
+import { CreateProductBatchListDto } from '@/product-batch/dtos/create-product-batch-list.dto.js';
 import { CreateProductBatchesByAssemblingDto } from '@/product-batch/dtos/create-product-batches-by-assembling.dto.js';
 import { CreateProductBatchesFromSourcesDto } from '@/product-batch/dtos/create-product-batches-from-sources.dto.js';
 import { GetProductBatchListDto } from '@/product-batch/dtos/get-product-batch-list.dto.js';
@@ -51,14 +51,14 @@ export class ProductBatchResolver {
   // @Mutation('updateProductBatch')
   // async updateProductBatch(
   //   @Args('input') input: UpdateProductBatchInput,
-  // ): Promise<ProductBatch[]> {
+  // ): Promise<ProductBatchAggregate[]> {
   //   return this.service.updateProductBatch(input);
   // }
 
   @Mutation(() => CommandResponse)
   async createProductBatch(
-    @Args('dto', { type: () => CreateProductBatchDto })
-    dto: CreateProductBatchDto,
+    @Args('dto', { type: () => CreateProductBatchListDto })
+    dto: CreateProductBatchListDto,
   ): Promise<CommandResponse> {
     await this.commandBus.execute(new CreateProductBatchCommand(dto));
     return { success: true };

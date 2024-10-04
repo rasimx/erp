@@ -8,7 +8,7 @@ import {
   type ProductBatchListResponse,
   ProductBatchServiceControllerMethods,
 } from '@/microservices/proto/erp.pb.js';
-import { ProductBatchRepository } from '@/product-batch/product-batch.repository.js';
+import { ProductBatchRepository } from '@/product-batch/domain/product-batch.repository.js';
 import { StatusService } from '@/status/status.service.js';
 
 @Controller()

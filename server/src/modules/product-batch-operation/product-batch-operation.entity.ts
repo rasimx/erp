@@ -8,7 +8,7 @@ import {
 } from 'typeorm';
 
 import { OperationEntity } from '@/operation/operation.entity.js';
-import { ProductBatchEntity } from '@/product-batch/product-batch.entity.js';
+import { ProductBatchEntity } from '@/product-batch/domain/product-batch.entity.js';
 
 @Entity({ name: 'product_batch_operation' })
 export class ProductBatchOperationEntity {

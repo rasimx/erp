@@ -329,6 +329,9 @@ importers:
       '@nestjs/typeorm':
         specifier: ^10.0.0
         version: 10.0.2(@nestjs/common@10.3.8(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.1))(@nestjs/core@10.3.8(@nestjs/common@10.3.8(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.1))(@nestjs/microservices@10.3.8)(@nestjs/platform-express@10.3.8)(encoding@0.1.13)(reflect-metadata@0.1.14)(rxjs@7.8.1))(reflect-metadata@0.1.14)(rxjs@7.8.1)(typeorm@0.3.20(ioredis@5.4.1)(pg@8.11.5)(ts-node@10.9.2(@swc/core@1.5.24)(@types/node@20.12.13)(typescript@5.4.5)))
+      '@type-ddd/core':
+        specifier: ^0.0.5
+        version: 0.0.5(bcrypt@5.1.1(encoding@0.1.13))
       '@types/ms':
         specifier: ^0.7.34
         version: 0.7.34
@@ -3442,6 +3445,60 @@ packages:
 
   '@tsconfig/node16@1.0.4':
     resolution: {integrity: sha512-vxhUy4J8lyeyinH7Azl1pdd43GJhZH/tP2weN8TntQblOY+A0XbT8DJk1/oCPuOOyg/Ja757rG0CgHcWC8OfMA==}
+
+  '@type-ddd/cnpj@0.0.2':
+    resolution: {integrity: sha512-+EFwUWpzmWlsyMebfFRiXpand9n1Ub0HI2kmdIwl7vCUI1Wb/148+a9WXH7ZhLA74+9smL3kY1Q1+83A9OMwBg==}
+    peerDependencies:
+      rich-domain: ^1.23.1
+
+  '@type-ddd/core@0.0.5':
+    resolution: {integrity: sha512-mQ/PAMC1E/cOpnrBnlz+BAZpHqQFn2MBGAWyTsnfKEqu+cO1RyyShLyiJZ/pYpiNTrLquCMF9jQtv8lQTARoIg==}
+
+  '@type-ddd/cpf@0.0.2':
+    resolution: {integrity: sha512-9Ob5ELadgf/pQXBer65FNR1GQyewpslBxKcraAKzsWaFYVgmZW0CClm5x4JSVK6IVRELdzHgEPJomfUccVSENQ==}
+    peerDependencies:
+      rich-domain: ^1.23.1
+
+  '@type-ddd/date@0.0.2':
+    resolution: {integrity: sha512-fPSBQ8XuAoOcJ91+ZOlSUAR/PxrmC0RpvN5NzpbBOYhR/XYP/0pUJoU7QoJ5KRN31rHdU5iAZt3ELiKQsI/A1w==}
+    peerDependencies:
+      rich-domain: ^1.23.1
+
+  '@type-ddd/email@0.0.3':
+    resolution: {integrity: sha512-PoFhGvMBh2nQxqGyNlIe9LhYjO/ke8uTQhzI9fCBoOq/lhZZxgjgtFOWPWWKpFJQxhu9WU2/R6iVMe+7GrH0zA==}
+    peerDependencies:
+      rich-domain: ^1.23.4
+
+  '@type-ddd/money@0.0.2':
+    resolution: {integrity: sha512-nYp3w2g81XHqNy/uWiwJ/v+S6vEK8uWt2+r6eyc+/Cw2coRxrXGEQ/d5SY63MrytiLe6KhSg0UH3IMAzifZfMw==}
+    peerDependencies:
+      rich-domain: ^1.23.1
+
+  '@type-ddd/password@0.0.3':
+    resolution: {integrity: sha512-tn+iQ/W6JbtC0UogpWXn54jJQ4OJfzn/ce58pTDpMXUjzS6UqzHyh9lhSdMlrNFoVfSP0CbDkcxqEuSTRX/3KQ==}
+    peerDependencies:
+      bcrypt: ^5.0.1
+      rich-domain: ^1.23.4
+
+  '@type-ddd/patterns@0.0.2':
+    resolution: {integrity: sha512-5USVVMpgKqKB3SPDgMZJdzDcoMp55fka3RPV2suvXvz16t4e4+Nsh37xFkO6mHuzz9HQ2ARQFmGUZN/WY2rYyA==}
+    peerDependencies:
+      rich-domain: ^1.23.1
+
+  '@type-ddd/phone@0.0.2':
+    resolution: {integrity: sha512-soZ/H6mutImUK/pQWx41vpYLQlp+WvHUXc5jXQoK8nvPYbruD8mFISa5lFWqfcm1877MoUvIAjfr3ArDTVFZQg==}
+    peerDependencies:
+      rich-domain: ^1.23.1
+
+  '@type-ddd/username@0.0.2':
+    resolution: {integrity: sha512-VqzeQrEFdQ77Ce376tIYc8XGfZYdEiyTrftXVhSThQATalBJsiTNbQ0QXkRqa+Ay0ndnSm9Od5oDti+90uJEbQ==}
+    peerDependencies:
+      rich-domain: ^1.23.1
+
+  '@type-ddd/zip-code@0.0.2':
+    resolution: {integrity: sha512-SBoF9qHa4TKFDh2vPnvVhG6fT6u+fU4++BUyR3YuiCypxeJEfldzFrEvIieK+v1Jd46M6TX3/y8cYc76Mv/tBA==}
+    peerDependencies:
+      rich-domain: ^1.23.1
 
   '@types/babel__core@7.20.5':
     resolution: {integrity: sha512-qoQprZvz5wQFJwMDqeseRXWv3rqMvhgpbXFfVyWhbx9X47POIA6i/+dXefEmZKoAgOaTdaIgNSMqMIU61yRyzA==}
@@ -9236,6 +9293,10 @@ packages:
   rfdc@1.4.1:
     resolution: {integrity: sha512-q1b3N5QkRUWUl7iyylaaj3kOpIT0N2i9MqIEQXP73GVsN9cw3fdx8X63cEmWhJGi2PPCF23Ijp7ktmd39rawIA==}
 
+  rich-domain@1.23.4:
+    resolution: {integrity: sha512-k0KdYb84a+r7wwJz0a4QGIRDYu2LrA2bPEhXq2d4wqEIsRmTK/KCm/0hq3QYCZxqxh9Z9C/A/3N/X/TToL9EBA==}
+    engines: {node: '>=16.x <=22'}
+
   rimraf@3.0.2:
     resolution: {integrity: sha512-JZkJMZkAGFFPP2YqXZXPbMlMBgsxzE8ILs4lMIX/2o0L9UBw9O/Y3o6wFw/i9YLapcUJWwqbi3kdxIPdC62TIA==}
     deprecated: Rimraf versions prior to v4 are no longer supported
@@ -14525,6 +14586,63 @@ snapshots:
   '@tsconfig/node14@1.0.3': {}
 
   '@tsconfig/node16@1.0.4': {}
+
+  '@type-ddd/cnpj@0.0.2(rich-domain@1.23.4)':
+    dependencies:
+      rich-domain: 1.23.4
+
+  '@type-ddd/core@0.0.5(bcrypt@5.1.1(encoding@0.1.13))':
+    dependencies:
+      '@type-ddd/cnpj': 0.0.2(rich-domain@1.23.4)
+      '@type-ddd/cpf': 0.0.2(rich-domain@1.23.4)
+      '@type-ddd/date': 0.0.2(rich-domain@1.23.4)
+      '@type-ddd/email': 0.0.3(rich-domain@1.23.4)
+      '@type-ddd/money': 0.0.2(rich-domain@1.23.4)
+      '@type-ddd/password': 0.0.3(bcrypt@5.1.1(encoding@0.1.13))(rich-domain@1.23.4)
+      '@type-ddd/patterns': 0.0.2(rich-domain@1.23.4)
+      '@type-ddd/phone': 0.0.2(rich-domain@1.23.4)
+      '@type-ddd/username': 0.0.2(rich-domain@1.23.4)
+      '@type-ddd/zip-code': 0.0.2(rich-domain@1.23.4)
+      rich-domain: 1.23.4
+    transitivePeerDependencies:
+      - bcrypt
+
+  '@type-ddd/cpf@0.0.2(rich-domain@1.23.4)':
+    dependencies:
+      rich-domain: 1.23.4
+
+  '@type-ddd/date@0.0.2(rich-domain@1.23.4)':
+    dependencies:
+      rich-domain: 1.23.4
+
+  '@type-ddd/email@0.0.3(rich-domain@1.23.4)':
+    dependencies:
+      rich-domain: 1.23.4
+
+  '@type-ddd/money@0.0.2(rich-domain@1.23.4)':
+    dependencies:
+      rich-domain: 1.23.4
+
+  '@type-ddd/password@0.0.3(bcrypt@5.1.1(encoding@0.1.13))(rich-domain@1.23.4)':
+    dependencies:
+      bcrypt: 5.1.1(encoding@0.1.13)
+      rich-domain: 1.23.4
+
+  '@type-ddd/patterns@0.0.2(rich-domain@1.23.4)':
+    dependencies:
+      rich-domain: 1.23.4
+
+  '@type-ddd/phone@0.0.2(rich-domain@1.23.4)':
+    dependencies:
+      rich-domain: 1.23.4
+
+  '@type-ddd/username@0.0.2(rich-domain@1.23.4)':
+    dependencies:
+      rich-domain: 1.23.4
+
+  '@type-ddd/zip-code@0.0.2(rich-domain@1.23.4)':
+    dependencies:
+      rich-domain: 1.23.4
 
   '@types/babel__core@7.20.5':
     dependencies:
@@ -21551,6 +21669,8 @@ snapshots:
   reusify@1.0.4: {}
 
   rfdc@1.4.1: {}
+
+  rich-domain@1.23.4: {}
 
   rimraf@3.0.2:
     dependencies:

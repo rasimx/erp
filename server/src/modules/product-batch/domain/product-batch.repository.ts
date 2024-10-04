@@ -4,16 +4,22 @@ import { objectToCamel } from 'ts-case-convert';
 import { type FindOptionsWhere, In, IsNull, Repository } from 'typeorm';
 
 import type { ResultProductBatch } from '@/common/assembleProduct.js';
-import type { CreateProductBatchItemDto } from '@/product-batch/dtos/create-product-batch.dto.js';
-import { type CreateProductBatchDto } from '@/product-batch/dtos/create-product-batch.dto.js';
+import { ProductBatchEntity } from '@/product-batch/domain/product-batch.entity.js';
+import type { CreateProductBatchItemDto } from '@/product-batch/dtos/create-product-batch-list.dto.js';
 import type { GetProductBatchListDto } from '@/product-batch/dtos/get-product-batch-list.dto.js';
 import type { MoveProductBatchDto } from '@/product-batch/dtos/move-product-batch.dto.js';
-import { ProductBatchEntity } from '@/product-batch/product-batch.entity.js';
 import { ProductBatchClosureEntity } from '@/product-batch/product-batch-closure.entity.js';
 import { ProductBatchGroupEntity } from '@/product-batch-group/product-batch-group.entity.js';
 import { StatusEntity } from '@/status/status.entity.js';
 
 export class ProductBatchRepository extends Repository<ProductBatchEntity> {
+  async nextIds(count = 1): Promise<number[]> {
+    const rows: { nextval: number }[] = await this.query(
+      `SELECT nextval('product_batch_id_seq')::int FROM generate_series(1, ${count.toString()});`,
+    );
+    return rows.map(item => item.nextval);
+  }
+
   async productBatchList({
     productIds,
     statusIds,
@@ -52,6 +58,7 @@ export class ProductBatchRepository extends Repository<ProductBatchEntity> {
 
   async createNew(
     dto: CreateProductBatchItemDto & {
+      id: number;
       statusId: number | null;
       groupId: number | null;
       exchangeRate: number | null;
@@ -59,25 +66,8 @@ export class ProductBatchRepository extends Repository<ProductBatchEntity> {
   ) {
     const { statusId, groupId } = dto;
 
-    let order = 1;
-    if (groupId) {
-      const lastBatch = await this.findOne({
-        where: { groupId },
-        order: { order: 'DESC' },
-      });
-      if (lastBatch) {
-        order = lastBatch.order + 1;
-      }
-    } else if (statusId) {
-      const lastOrderInStatus = await this.getLastOrderInStatus(statusId);
-      if (lastOrderInStatus) {
-        order = lastOrderInStatus + 1;
-      }
-    }
-
     let newEntity = new ProductBatchEntity();
     Object.assign(newEntity, dto, {
-      order,
       costPricePerUnit: dto.costPricePerUnit,
       operationsPricePerUnit: dto.operationsPricePerUnit ?? 0,
       operationsPrice: dto.operationsPrice ?? 0,
@@ -97,22 +87,6 @@ export class ProductBatchRepository extends Repository<ProductBatchEntity> {
     },
   ) {
     const { statusId, groupId } = dto;
-
-    let order = 1;
-    if (groupId) {
-      const lastBatch = await this.findOne({
-        where: { groupId },
-        order: { order: 'DESC' },
-      });
-      if (lastBatch) {
-        order = lastBatch.order + 1;
-      }
-    } else if (statusId) {
-      const lastOrderInStatus = await this.getLastOrderInStatus(statusId);
-      if (lastOrderInStatus) {
-        order = lastOrderInStatus + 1;
-      }
-    }
 
     let sourceProductBatches = await this.find({
       where: { id: In(dto.sources.map(item => item.productBatch.id)) },
@@ -136,7 +110,6 @@ export class ProductBatchRepository extends Repository<ProductBatchEntity> {
       newEntity.count * newEntity.operationsPricePerUnit;
     newEntity.statusId = statusId;
     newEntity.groupId = groupId;
-    newEntity.order = order;
 
     newEntity = await this.save(newEntity);
 
@@ -171,6 +144,7 @@ export class ProductBatchRepository extends Repository<ProductBatchEntity> {
   }
 
   async createFromSources(dto: {
+    id: number;
     statusId: number | null;
     groupId: number | null;
     productId: number;
@@ -178,22 +152,6 @@ export class ProductBatchRepository extends Repository<ProductBatchEntity> {
     selectedCount: number;
   }) {
     const { statusId, groupId } = dto;
-
-    let order = 1;
-    if (groupId) {
-      const lastBatch = await this.findOne({
-        where: { groupId },
-        order: { order: 'DESC' },
-      });
-      if (lastBatch) {
-        order = lastBatch.order + 1;
-      }
-    } else if (statusId) {
-      const lastOrderInStatus = await this.getLastOrderInStatus(statusId);
-      if (lastOrderInStatus) {
-        order = lastOrderInStatus + 1;
-      }
-    }
 
     let sourceBatch = await this.findOneOrFail({
       where: { id: dto.sourceId },
@@ -206,7 +164,6 @@ export class ProductBatchRepository extends Repository<ProductBatchEntity> {
     newEntity.operationsPrice = sourceBatch.operationsPrice;
     newEntity.statusId = statusId;
     newEntity.groupId = groupId;
-    newEntity.order = order;
     newEntity.count = dto.selectedCount;
 
     newEntity = await this.save(newEntity);
@@ -921,13 +878,13 @@ from result;
   //
   //   const rows: { id: number }[] = await entityManager.query(query);
   //
-  //   const pbMapByProductId = new Map<number, Map<number, ProductBatch[]>>();
+  //   const pbMapByProductId = new Map<number, Map<number, ProductBatchAggregate[]>>();
   //
   //   const items = await this.findProductBatchByIds(rows.map(row => row.id));
   //
   //   items.forEach(row => {
   //     let mapItem = pbMapByProductId.get(row.statusId);
-  //     if (!mapItem) mapItem = new Map<number, ProductBatch[]>();
+  //     if (!mapItem) mapItem = new Map<number, ProductBatchAggregate[]>();
   //     let subMapItem = mapItem.get(row.productId);
   //     if (!subMapItem) subMapItem = [];
   //     subMapItem.push(row);

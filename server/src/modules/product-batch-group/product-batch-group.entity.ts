@@ -5,18 +5,17 @@ import {
   JoinColumn,
   ManyToOne,
   OneToMany,
-  PrimaryGeneratedColumn,
+  PrimaryColumn,
   type Relation,
   RelationId,
 } from 'typeorm';
 
-import { ProductBatchEntity } from '@/product-batch/product-batch.entity.js';
-import { ProductBatchOperationEntity } from '@/product-batch-operation/product-batch-operation.entity.js';
+import { ProductBatchEntity } from '@/product-batch/domain/product-batch.entity.js';
 import { StatusEntity } from '@/status/status.entity.js';
 
 @Entity({ name: 'product_batch_group' })
 export class ProductBatchGroupEntity {
-  @PrimaryGeneratedColumn()
+  @PrimaryColumn()
   id: number;
 
   @Column({

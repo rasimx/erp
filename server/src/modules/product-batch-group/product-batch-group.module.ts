@@ -8,6 +8,8 @@ import { EventStoreModule } from '@/event-store/event-store.module.js';
 import { Microservices } from '@/microservices/microservices.js';
 import { ProductModule } from '@/product/product.module.js';
 import { ProductBatchModule } from '@/product-batch/product-batch.module.js';
+import { ProductBatchGroupEventEntity } from '@/product-batch-group/events/product-batch-group-event.entity.js';
+import { ProductBatchGroupEventRepositoryProvider } from '@/product-batch-group/events/product-batch-group-event.repository.js';
 import { GetProductBatchGroupHandler } from '@/product-batch-group/queries/handlers/get-product-batch-group.handler.js';
 import { StatusModule } from '@/status/status.module.js';
 
@@ -24,7 +26,10 @@ import { GetProductBatchGroupListHandler } from './queries/handlers/get-product-
 @Module({
   imports: [
     AppConfigModule,
-    TypeOrmModule.forFeature([ProductBatchGroupEntity]),
+    TypeOrmModule.forFeature([
+      ProductBatchGroupEntity,
+      ProductBatchGroupEventEntity,
+    ]),
     Microservices,
     ProductModule,
     forwardRef(() => ProductBatchModule),
@@ -43,11 +48,13 @@ import { GetProductBatchGroupListHandler } from './queries/handlers/get-product-
     MoveProductBatchGroupHandler,
     DeleteProductBatchGroupHandler,
     ProductBatchGroupRepositoryProvider,
+    ProductBatchGroupEventRepositoryProvider,
   ],
   exports: [
     ProductBatchGroupService,
     ProductBatchGroupEventStore,
     ProductBatchGroupRepositoryProvider,
+    ProductBatchGroupEventRepositoryProvider,
   ],
 })
 export class ProductBatchGroupModule {}

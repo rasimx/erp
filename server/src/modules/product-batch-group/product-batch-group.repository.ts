@@ -1,16 +1,20 @@
-import { BadRequestException } from '@nestjs/common';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { In, IsNull, Repository } from 'typeorm';
+import { IsNull, Repository } from 'typeorm';
 
+import { ProductBatchEntity } from '@/product-batch/domain/product-batch.entity.js';
 import type { GetProductBatchListDto } from '@/product-batch/dtos/get-product-batch-list.dto.js';
-import { ProductBatchEntity } from '@/product-batch/product-batch.entity.js';
-import { ProductBatchRepository } from '@/product-batch/product-batch.repository.js';
 import type { CreateProductBatchGroupDto } from '@/product-batch-group/dtos/create-product-batch-group.dto.js';
 import type { MoveProductBatchGroupDto } from '@/product-batch-group/dtos/move-product-batch-group.dto.js';
 import { ProductBatchGroupEntity } from '@/product-batch-group/product-batch-group.entity.js';
 import { StatusEntity } from '@/status/status.entity.js';
 
 export class ProductBatchGroupRepository extends Repository<ProductBatchGroupEntity> {
+  async nextId(): Promise<number> {
+    const a: { nextval: number }[] = await this.query(
+      "SELECT nextval('product_batch_group_id_seq')",
+    );
+    return Number(a[0].nextval);
+  }
   async getLastOrder(statusId: number): Promise<number | null> {
     const lastItems: (ProductBatchEntity | ProductBatchGroupEntity)[] = [];
     const lastUngroupedBatch = await this.manager.findOne(ProductBatchEntity, {
@@ -30,12 +34,9 @@ export class ProductBatchGroupRepository extends Repository<ProductBatchGroupEnt
       : null;
   }
 
-  async createFromDto(dto: CreateProductBatchGroupDto) {
-    const lastOrder = await this.getLastOrder(dto.statusId);
-    const order = lastOrder ? lastOrder + 1 : 1;
-
+  async createFromDto(dto: CreateProductBatchGroupDto & { id: number }) {
     const newEntity = new ProductBatchGroupEntity();
-    Object.assign(newEntity, dto, { order });
+    Object.assign(newEntity, dto);
     return this.save(newEntity);
   }
 
@@ -230,15 +231,16 @@ export class ProductBatchGroupRepository extends Repository<ProductBatchGroupEnt
 
     order = order ? Math.min(order, lastOrder) : lastOrder;
 
-    if (!order) {
-      const lastOrder = await this.getLastOrder(dto.statusId);
+    // if (!order) {
+    //   const lastOrder = await this.getLastOrder(dto.statusId);
+    //
+    //   order = !lastOrder
+    //     ? 1
+    //     : statusId == group.statusId
+    //       ? lastOrder
+    //       : lastOrder + 1;
+    // }
 
-      order = !lastOrder
-        ? 1
-        : statusId == group.statusId
-          ? lastOrder
-          : lastOrder + 1;
-    }
     const status = await this.manager.findOneOrFail(StatusEntity, {
       where: { id: statusId },
     });

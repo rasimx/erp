@@ -7,8 +7,8 @@ import { ContextService } from '@/context/context.service.js';
 import type { CustomDataSource } from '@/database/custom.data-source.js';
 import { CreateOperationCommand } from '@/operation/commands/impl/create-operation.command.js';
 import { OperationEntity } from '@/operation/operation.entity.js';
+import { ProductBatchEntity } from '@/product-batch/domain/product-batch.entity.js';
 import { ProductBatchEventStore } from '@/product-batch/eventstore/product-batch.eventstore.js';
-import { ProductBatchEntity } from '@/product-batch/product-batch.entity.js';
 import { ProductBatchGroupEventStore } from '@/product-batch-group/eventstore/prodict-batch-group.eventstore.js';
 import { ProductBatchOperationEntity } from '@/product-batch-operation/product-batch-operation.entity.js';
 

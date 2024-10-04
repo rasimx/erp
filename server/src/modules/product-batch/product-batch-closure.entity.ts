@@ -7,7 +7,7 @@ import {
   RelationId,
 } from 'typeorm';
 
-import { ProductBatchEntity } from '@/product-batch/product-batch.entity.js';
+import { ProductBatchEntity } from '@/product-batch/domain/product-batch.entity.js';
 
 @Entity({ name: 'product_batch_closure' })
 export class ProductBatchClosureEntity {
@@ -19,14 +19,14 @@ export class ProductBatchClosureEntity {
 
   @Column()
   @RelationId((entity: ProductBatchClosureEntity) => entity.source)
-  public sourceId: number;
+  public sourceId: string;
 
   @ManyToOne(() => ProductBatchEntity)
   public destination: Relation<ProductBatchEntity>;
 
   @Column()
   @RelationId((entity: ProductBatchClosureEntity) => entity.destination)
-  public destinationId: number;
+  public destinationId: string;
 
   @Column()
   count: number;
