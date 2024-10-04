@@ -73,7 +73,7 @@ export class CreateProductBatchesFromSourcesHandler
         const aggregateId = aggregatedIds.shift();
         if (!aggregateId) throw new Error('aggregateId was not defined');
 
-        const events = await productBatchEventRepository.getAllEvents(
+        const events = await productBatchEventRepository.findManyByAggregateId(
           sourceItem.id,
         );
         const sourceProductBatch = ProductBatch.buildFromEvents(

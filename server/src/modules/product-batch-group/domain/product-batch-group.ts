@@ -1,5 +1,8 @@
-import { Aggregate, Ok, type Result } from '@type-ddd/core';
-
+import {
+  ProductBatchEventType,
+  type ProductBatchMovedEvent,
+  type ProductBatchMovedEventData,
+} from '@/product-batch/domain/product-batch.events.js';
 import type { ProductBatchGroupProps } from '@/product-batch-group/domain/product-batch-group.interfaces.js';
 
 import {
@@ -7,13 +10,18 @@ import {
   type ProductBatchGroupCreatedEventData,
   type ProductBatchGroupEvent,
   ProductBatchGroupEventType,
+  type ProductBatchGroupMovedEvent,
+  type ProductBatchGroupMovedEventData,
+  type RevisionProductBatchGroupEvent,
 } from './product-batch-group.events.js';
 
 export class ProductBatchGroup {
   readonly id: number;
-  private events: ProductBatchGroupEvent[] = [];
+  private revision: number;
+  private events: RevisionProductBatchGroupEvent[] = [];
   private constructor(private props: ProductBatchGroupProps) {
-    // super(props);
+    if (!props.id) throw new Error('id must be defined');
+    this.id = props.id;
   }
 
   getId(): number {
@@ -31,24 +39,40 @@ export class ProductBatchGroup {
       data: productBatchGroup.toObject(),
     };
 
-    // productBatch.applyEvent(event);
-    productBatchGroup.events.push(event);
+    productBatchGroup.revision = 0;
+    productBatchGroup.events.push({
+      ...event,
+      revision: productBatchGroup.revision,
+    });
 
     return productBatchGroup;
   }
 
-  public static buildFromEvents(events: ProductBatchGroupEvent[]) {
-    if (events.length === 0) throw new Error('not found');
+  public static buildFromEvents(events: RevisionProductBatchGroupEvent[]) {
+    const zeroEvent = events.shift();
 
-    const productBatch = new ProductBatchGroup(
-      events[0].data as ProductBatchGroupCreatedEventData,
+    if (!zeroEvent) throw new Error('not found');
+
+    const group = new ProductBatchGroup(
+      zeroEvent.data as ProductBatchGroupCreatedEventData,
     );
 
+    group.revision = zeroEvent.revision;
+
     events.forEach(event => {
-      productBatch.applyEvent(event);
+      group.applyEvent(event);
+      group.revision = event.revision;
     });
 
-    return productBatch;
+    return group;
+  }
+
+  private appendEvent(event: ProductBatchGroupEvent): void {
+    ++this.revision;
+    this.events.push({ ...event, revision: this.revision });
+    if (event.type !== ProductBatchGroupEventType.ProductBatchGroupCreated) {
+      this.applyEvent(event);
+    }
   }
 
   private applyEvent(event: ProductBatchGroupEvent) {
@@ -57,7 +81,12 @@ export class ProductBatchGroup {
         this.props = event.data;
         break;
       case ProductBatchGroupEventType.ProductBatchGroupMoved:
-        this.props.statusId = event.data.statusId;
+        if (event.data.statusId) {
+          this.props.statusId = event.data.statusId;
+        }
+        if (event.data.order) {
+          this.props.order = event.data.order;
+        }
 
         // if (event.data.name) {
         //   this.name = event.data.name;
@@ -80,12 +109,32 @@ export class ProductBatchGroup {
     }
   }
 
-  getUncommittedEvents(): ProductBatchGroupEvent[] {
+  getUncommittedEvents(): RevisionProductBatchGroupEvent[] {
     return this.events;
   }
 
   clearEvents() {
     this.events = [];
+  }
+
+  public move(eventData: ProductBatchGroupMovedEventData): void {
+    let valid = false;
+    const data: ProductBatchGroupMovedEventData = { order: eventData.order };
+    if (this.props.order !== eventData.order) {
+      valid = true;
+    }
+    if (this.props.statusId !== eventData.statusId) {
+      valid = true;
+      data.statusId = eventData.statusId;
+    }
+
+    if (valid) {
+      const event: ProductBatchGroupMovedEvent = {
+        type: ProductBatchGroupEventType.ProductBatchGroupMoved,
+        data,
+      };
+      this.appendEvent(event);
+    }
   }
 
   // changeStatus(statusId: number) {

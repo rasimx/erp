@@ -45,7 +45,9 @@ export default [
       '@typescript-eslint/no-extraneous-class': 'off',
       '@typescript-eslint/non-nullable-type-assertion-style': 'off',
       '@typescript-eslint/no-unsafe-call': 'off',
-      '@typescript-eslint/no-unsafe-return': 'off'
+      '@typescript-eslint/no-unsafe-return': 'off',
+      '@typescript-eslint/prefer-nullish-coalescing': 'off',
+      '@typescript-eslint/restrict-template-expressions': 'off'
     },
   }
 ];

@@ -8,30 +8,18 @@ import {
   type ProductBatchEditedEvent,
   type ProductBatchEvent,
   ProductBatchEventType,
+  type ProductBatchMovedEvent,
+  type ProductBatchMovedEventData,
+  type RevisionProductBatchEvent,
 } from './product-batch.events.js';
 
 export class ProductBatch {
   readonly id: number;
-  private events: ProductBatchEvent[] = [];
+  private revision: number;
+  private events: RevisionProductBatchEvent[] = [];
   private constructor(private props: ProductBatchProps) {
     if (!props.id) throw new Error('id must be defined');
     this.id = props.id;
-  }
-
-  getId(): number {
-    return this.id;
-  }
-
-  getCount(): number {
-    return this.props.count;
-  }
-
-  getCostPricePerUnit(): number {
-    return this.props.costPricePerUnit;
-  }
-
-  toObject() {
-    return { id: this.id, ...this.props };
   }
 
   public static create(props: ProductBatchProps): ProductBatch {
@@ -42,8 +30,8 @@ export class ProductBatch {
       data: productBatch.toObject(),
     };
 
-    // productBatch.applyEvent(event);
-    productBatch.events.push(event);
+    productBatch.revision = 0;
+    productBatch.events.push({ ...event, revision: productBatch.revision });
 
     return productBatch;
   }
@@ -56,22 +44,23 @@ export class ProductBatch {
     groupId: number | null;
     sources: { qty: number; productBatch: ProductBatch }[];
   }) {
-    const productBatch = ProductBatch.create({
-      id: data.id,
-      count: data.count,
-      productId: data.id,
-      costPricePerUnit: data.sources.reduce(
-        (prev, cur) => prev + cur.productBatch.getCostPricePerUnit() * cur.qty,
-        0,
-      ),
-      exchangeRate: null,
-      operationsPrice: 0,
-      operationsPricePerUnit: 0,
-      currencyCostPricePerUnit: 0,
-      statusId: data.statusId,
-      groupId: data.groupId,
-      sourceIds: data.sources.map(item => item.productBatch.id),
-    });
+    // const productBatch = ProductBatch.create({
+    //   id: data.id,
+    //   count: data.count,
+    //   productId: data.id,
+    //   costPricePerUnit: data.sources.reduce(
+    //     (prev, cur) => prev + cur.productBatch.getCostPricePerUnit() * cur.qty,
+    //     0,
+    //   ),
+    //   exchangeRate: null,
+    //   operationsPrice: 0,
+    //   operationsPricePerUnit: 0,
+    //   currencyCostPricePerUnit: 0,
+    //   statusId: data.statusId,
+    //   groupId: data.groupId,
+    //   sourceIds: data.sources.map(item => item.productBatch.id),
+    // });
+    // productBatch.revision = 0;
   }
 
   public createChild(data: ProductBatchChildCreatedEventData): ProductBatch {
@@ -86,31 +75,43 @@ export class ProductBatch {
       type: ProductBatchEventType.ProductBatchChildCreated,
       data,
     };
-    this.events.push(event);
-    this.applyEvent(event);
+    this.appendEvent(event);
+    // this.applyEvent(event);
 
     return child;
   }
 
-  public static buildFromEvents(events: ProductBatchEvent[]) {
-    if (events.length === 0) throw new Error('not found');
+  public static buildFromEvents(events: RevisionProductBatchEvent[]) {
+    const zeroEvent = events.shift();
+
+    if (!zeroEvent) throw new Error('not found');
 
     const productBatch = new ProductBatch(
-      events[0].data as ProductBatchCreatedEventData,
+      zeroEvent.data as ProductBatchCreatedEventData,
     );
+    productBatch.revision = zeroEvent.revision;
 
     events.forEach(event => {
       productBatch.applyEvent(event);
+      productBatch.revision = event.revision;
     });
 
     return productBatch;
   }
 
+  private appendEvent(event: ProductBatchEvent): void {
+    this.revision++;
+    this.events.push({ ...event, revision: this.revision });
+    if (event.type !== ProductBatchEventType.ProductBatchCreated) {
+      this.applyEvent(event);
+    }
+  }
+
   private applyEvent(event: ProductBatchEvent) {
     switch (event.type) {
-      case ProductBatchEventType.ProductBatchCreated:
-        this.props = event.data;
-        break;
+      // case ProductBatchEventType.ProductBatchCreated:
+      //   this.props = event.data;
+      //   break;
       case ProductBatchEventType.ProductBatchChildCreated:
         this.props.count -= event.data.count;
         if (this.props.count < 0)
@@ -135,17 +136,73 @@ export class ProductBatch {
         //   this.quantity = event.data.quantity;
         // }
         break;
+      case ProductBatchEventType.ProductBatchMoved:
+        this.props = { ...this.props, ...event.data };
+
+        // if (event.data.name) {
+        //   this.name = event.data.name;
+        // }
+        // if (event.data.quantity) {
+        //   this.quantity = event.data.quantity;
+        // }
+        break;
       default:
         throw new Error('unknown eventType');
     }
   }
 
-  getUncommittedEvents(): ProductBatchEvent[] {
+  getUncommittedEvents(): RevisionProductBatchEvent[] {
     return this.events;
   }
 
   clearEvents() {
     this.events = [];
+  }
+
+  getId(): number {
+    return this.id;
+  }
+
+  getOrder(): number {
+    return this.props.order;
+  }
+  getStatusId(): number | null {
+    return this.props.statusId;
+  }
+  getGroupId(): number | null {
+    return this.props.groupId;
+  }
+
+  getCostPricePerUnit(): number {
+    return this.props.costPricePerUnit;
+  }
+
+  toObject() {
+    return { id: this.id, ...this.props };
+  }
+
+  public move(eventData: ProductBatchMovedEventData): void {
+    let valid = false;
+    const data: ProductBatchMovedEventData = { order: eventData.order };
+    if (this.props.order !== eventData.order) {
+      valid = true;
+    }
+    if (this.props.statusId !== eventData.statusId) {
+      valid = true;
+      data.statusId = eventData.statusId;
+    }
+    if (this.props.groupId !== eventData.groupId) {
+      valid = true;
+      data.groupId = eventData.groupId;
+    }
+
+    if (valid) {
+      const event: ProductBatchMovedEvent = {
+        type: ProductBatchEventType.ProductBatchMoved,
+        data,
+      };
+      this.appendEvent(event);
+    }
   }
 
   changeStatus(statusId: number) {
@@ -154,8 +211,7 @@ export class ProductBatch {
       data: { statusId },
     };
 
-    this.applyEvent(event);
-    this.events.push(event);
+    this.appendEvent(event);
 
     return this;
   }

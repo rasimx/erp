@@ -52,3 +52,7 @@ export type JSONCompatible<T> = T extends string | number | boolean | null
     : T extends object
       ? { [K in keyof T]: JSONCompatible<T[K]> }
       : never;
+
+export const isNil = <T>(value: T): value is Extract<T, null | undefined> => {
+  return value === null || value === undefined;
+};

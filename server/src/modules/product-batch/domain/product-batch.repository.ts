@@ -1,9 +1,18 @@
 import { BadRequestException } from '@nestjs/common';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { objectToCamel } from 'ts-case-convert';
-import { type FindOptionsWhere, In, IsNull, Repository } from 'typeorm';
+import {
+  Between,
+  type FindOptionsWhere,
+  In,
+  type InsertEvent,
+  IsNull,
+  MoreThanOrEqual,
+  Repository,
+} from 'typeorm';
 
 import type { ResultProductBatch } from '@/common/assembleProduct.js';
+import { isNil } from '@/common/helpers/utils.js';
 import { ProductBatchEntity } from '@/product-batch/domain/product-batch.entity.js';
 import type { CreateProductBatchItemDto } from '@/product-batch/dtos/create-product-batch-list.dto.js';
 import type { GetProductBatchListDto } from '@/product-batch/dtos/get-product-batch-list.dto.js';
@@ -18,6 +27,31 @@ export class ProductBatchRepository extends Repository<ProductBatchEntity> {
       `SELECT nextval('product_batch_id_seq')::int FROM generate_series(1, ${count.toString()});`,
     );
     return rows.map(item => item.nextval);
+  }
+
+  async getLastOrderInGroup(groupId: number): Promise<number | null> {
+    return this.findOne({
+      select: ['order'],
+      where: { groupId },
+      order: { order: 'desc' },
+    }).then(row => row?.order ?? null);
+  }
+
+  async getLastOrderInStatus(statusId: number): Promise<number | null> {
+    const rows: { order: number }[] = await this.manager.query(`
+          select "order"
+          from (select id, "order"
+                from product_batch
+                where status_id = ${statusId}
+                  and group_id is null and deleted_date is null
+                union
+                select id, "order"
+                from product_batch_group
+                where status_id = ${statusId.toString()} and deleted_date is null)
+          order by "order" DESC limit 1
+      `);
+
+    return rows.length ? rows[0].order : null;
   }
 
   async productBatchList({
@@ -238,25 +272,6 @@ export class ProductBatchRepository extends Repository<ProductBatchEntity> {
   //   return newEntity;
   // }
 
-  async getLastOrderInStatus(statusId: number): Promise<number | null> {
-    const lastItems: (ProductBatchEntity | ProductBatchGroupEntity)[] = [];
-    const lastUngroupedBatch = await this.findOne({
-      where: { statusId: statusId, groupId: IsNull() },
-      order: { order: 'DESC' },
-    });
-    if (lastUngroupedBatch) lastItems.push(lastUngroupedBatch);
-
-    const lastGroup = await this.manager.findOne(ProductBatchGroupEntity, {
-      where: { statusId: statusId },
-      order: { order: 'DESC' },
-    });
-    if (lastGroup) lastItems.push(lastGroup);
-
-    return lastItems.length
-      ? Math.max(...lastItems.map(({ order }) => order))
-      : null;
-  }
-
   async moveOthersInOldGroup({
     id,
     oldOrder,
@@ -391,6 +406,80 @@ export class ProductBatchRepository extends Repository<ProductBatchEntity> {
       .execute();
 
     return affectedIds;
+  }
+
+  async getIdsInGroupBetweenOrders({
+    groupId,
+    startOrder,
+    endOrder,
+  }: {
+    groupId: number;
+    startOrder: number;
+    endOrder: number;
+  }) {
+    const rows = await this.find({
+      select: ['id'],
+      where: {
+        order: Between(startOrder, endOrder),
+        groupId,
+      },
+    });
+    return rows.map(({ id }) => id);
+  }
+
+  async getIdsInGroupMoreThanOrEqualOrder({
+    groupId,
+    order,
+  }: {
+    groupId: number;
+    order: number;
+  }) {
+    const rows = await this.find({
+      select: ['id'],
+      where: {
+        order: MoreThanOrEqual(order),
+        groupId,
+      },
+      order: { order: 'ASC' },
+    });
+    return rows.map(({ id }) => id);
+  }
+
+  async getEntitiesInStatusMoreThanOrEqualOrder({
+    statusId,
+    order,
+  }: {
+    statusId: number;
+    order: number;
+  }): Promise<
+    {
+      id: number;
+      order: number;
+      statusId: number;
+      entity: 'product_batch' | 'product_batch_group';
+    }[]
+  > {
+    const rows: {
+      id: number;
+      order: number;
+      status_id: number;
+      entity: 'product_batch' | 'product_batch_group';
+    }[] = await this.manager.query(`
+        select *
+        from (select id, "order", status_id, 'product_batch' as entity
+              from product_batch
+              where status_id = ${statusId}
+                and deleted_date is null
+              union
+              select id, "order", status_id, 'product_batch_group' as entity
+              from product_batch_group
+              where status_id = ${statusId}
+                and deleted_date is null)
+        where "order" >= ${order}
+        order by "order"
+    `);
+
+    return rows.map(row => ({ ...row, statusId: row.status_id }));
   }
 
   async moveOthersInsideGroup({

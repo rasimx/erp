@@ -30,8 +30,8 @@ export class CreateProductBatchItemDto {
 
 @InputType()
 export class CreateProductBatchListDto {
-  @Field(() => Int, { nullable: true, defaultValue: null })
-  statusId: number | null;
+  @Field(() => Int)
+  statusId: number;
 
   @Field(() => Int, { nullable: true, defaultValue: null })
   groupId: number | null;

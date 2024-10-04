@@ -59,7 +59,7 @@ export type CreateProductBatchListDto = {
   groupName?: InputMaybe<Scalars['String']['input']>;
   grouped?: InputMaybe<Scalars['Boolean']['input']>;
   items: Array<CreateProductBatchItemDto>;
-  statusId?: InputMaybe<Scalars['Int']['input']>;
+  statusId: Scalars['Int']['input'];
 };
 
 export type CreateProductBatchesByAssemblingDto = {

@@ -9,11 +9,14 @@ export interface ProductBatchProps {
   costPricePerUnit: number;
   operationsPricePerUnit: number;
   operationsPrice: number;
+  order: number;
 
   currencyCostPricePerUnit: number | null;
   exchangeRate: number | null;
 
   sourceIds?: number[] | null;
+
+  revision?: number;
 }
 
 export interface EventRepository {

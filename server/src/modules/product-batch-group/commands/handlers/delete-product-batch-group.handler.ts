@@ -3,7 +3,7 @@ import { InjectDataSource } from '@nestjs/typeorm';
 
 import { ContextService } from '@/context/context.service.js';
 import type { CustomDataSource } from '@/database/custom.data-source.js';
-import { DeleteProductBatchCommand } from '@/product-batch/commands/impl/delete-product-batch.command.js';
+import { DeleteProductBatchCommand } from '@/product-batch/commands/delete-product-batch/delete-product-batch.command.js';
 import { ProductBatchService } from '@/product-batch/product-batch.service.js';
 import { DeleteProductBatchGroupCommand } from '@/product-batch-group/commands/impl/delete-product-batch-group.command.js';
 import { ProductBatchGroupEventStore } from '@/product-batch-group/eventstore/prodict-batch-group.eventstore.js';

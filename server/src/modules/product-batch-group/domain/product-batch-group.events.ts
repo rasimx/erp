@@ -1,5 +1,4 @@
 import type { CreateProductBatchGroupDto } from '@/product-batch-group/dtos/create-product-batch-group.dto.js';
-import type { MoveProductBatchGroupDto } from '@/product-batch-group/dtos/move-product-batch-group.dto.js';
 
 export enum ProductBatchGroupEventType {
   ProductBatchGroupCreated = 'ProductBatchGroupCreated',
@@ -7,14 +6,21 @@ export enum ProductBatchGroupEventType {
   ProductBatchGroupMoved = 'ProductBatchGroupMoved',
 }
 
-export type ProductBatchGroupCreatedEventData = CreateProductBatchGroupDto;
+export interface ProductBatchGroupCreatedEventData
+  extends CreateProductBatchGroupDto {
+  order: number;
+}
 
 export interface ProductBatchGroupCreatedEvent {
   type: ProductBatchGroupEventType.ProductBatchGroupCreated;
   data: ProductBatchGroupCreatedEventData;
 }
 
-export type ProductBatchGroupMovedEventData = MoveProductBatchGroupDto;
+export interface ProductBatchGroupMovedEventData {
+  order: number;
+  statusId?: number | null;
+}
+
 export interface ProductBatchGroupMovedEvent {
   type: ProductBatchGroupEventType.ProductBatchGroupMoved;
   data: ProductBatchGroupMovedEventData;
@@ -29,3 +35,7 @@ export type ProductBatchGroupEvent =
   | ProductBatchGroupCreatedEvent
   | ProductBatchGroupMovedEvent
   | ProductBatchGroupDeletedEvent;
+
+export type RevisionProductBatchGroupEvent = ProductBatchGroupEvent & {
+  revision: number;
+};

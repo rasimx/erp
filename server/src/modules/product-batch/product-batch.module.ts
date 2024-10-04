@@ -9,9 +9,9 @@ import { ProductModule } from '@/product/product.module.js';
 import { CreateProductBatchHandler } from '@/product-batch/commands/create-product-batch/create-product-batch.handler.js';
 import { CreateProductBatchesByAssemblingHandler } from '@/product-batch/commands/create-product-batches-by-assembling/create-product-batches-by-assembling.handler.js';
 import { CreateProductBatchesFromSourcesHandler } from '@/product-batch/commands/create-product-batches-from-sources/create-product-batches-from-sources.handler.js';
-import { DeleteProductBatchHandler } from '@/product-batch/commands/handlers/delete-product-batch.handler.js';
-import { EditProductBatchHandler } from '@/product-batch/commands/handlers/edit-product-batch.handler.js';
-import { MoveProductBatchHandler } from '@/product-batch/commands/handlers/move-product-batch.handler.js';
+import { DeleteProductBatchHandler } from '@/product-batch/commands/delete-product-batch/delete-product-batch.handler.js';
+import { EditProductBatchHandler } from '@/product-batch/commands/edit-product-batch/edit-product-batch.handler.js';
+import { MoveProductBatchHandler } from '@/product-batch/commands/move-product-batch/move-product-batch.handler.js';
 import { ProductBatchEntity } from '@/product-batch/domain/product-batch.entity.js';
 import { ProductBatchRepositoryProvider } from '@/product-batch/domain/product-batch.repository.js';
 import { ProductBatchEventEntity } from '@/product-batch/domain/product-batch-event.entity.js';
@@ -57,6 +57,7 @@ import { ProductBatchService } from './product-batch.service.js';
     ProductBatchService,
     ProductBatchEventStore,
     ProductBatchRepositoryProvider,
+    ProductBatchEventRepositoryProvider,
   ],
 })
 export class ProductBatchModule {}

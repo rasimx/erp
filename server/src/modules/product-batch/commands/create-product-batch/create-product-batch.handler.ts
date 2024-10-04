@@ -18,11 +18,10 @@ export class CreateProductBatchHandler
   constructor(
     @InjectDataSource()
     private dataSource: CustomDataSource,
-    private readonly productBatchRepository: ProductBatchRepository,
-    private readonly productBatchEventRepository: ProductBatchEventRepository,
+    private readonly productBatchRepo: ProductBatchRepository,
+    private readonly productBatchEventRepo: ProductBatchEventRepository,
     private readonly productBatchGroupService: ProductBatchGroupService,
     private readonly contextService: ContextService,
-    private readonly productBatchService: ProductBatchService,
   ) {}
 
   async execute(command: CreateProductBatchCommand) {
@@ -34,18 +33,17 @@ export class CreateProductBatchHandler
     await queryRunner.connect();
     await queryRunner.startTransaction();
 
-    const productBatchRepository = queryRunner.manager.withRepository(
-      this.productBatchRepository,
+    const productBatchRepo = queryRunner.manager.withRepository(
+      this.productBatchRepo,
     );
-    const productBatchEventRepository = queryRunner.manager.withRepository(
-      this.productBatchEventRepository,
+    const productBatchEventRepo = queryRunner.manager.withRepository(
+      this.productBatchEventRepo,
     );
 
     try {
       const { dto } = command;
 
       if (dto.grouped) {
-        if (!dto.statusId) throw new Error('dto.statusId was not defined');
         if (!dto.groupName) throw new Error('dto.groupName was not defined');
 
         const group = await this.productBatchGroupService.create({
@@ -57,32 +55,38 @@ export class CreateProductBatchHandler
           },
         });
 
-        dto.statusId = null;
         dto.groupId = group.id;
       }
 
       const affectedIds: number[] = [];
 
-      const aggregatedIds = await productBatchRepository.nextIds(
-        dto.items.length,
-      );
+      const aggregatedIds = await productBatchRepo.nextIds(dto.items.length);
 
-      for (const item of dto.items) {
+      const lastOrder = dto.groupId
+        ? await productBatchRepo.getLastOrderInGroup(dto.groupId)
+        : await productBatchRepo.getLastOrderInStatus(dto.statusId);
+
+      for (let index = 0; index < dto.items.length; ++index) {
         const aggregateId = aggregatedIds.shift();
+        const item = dto.items[index];
+
+        const order = lastOrder ? lastOrder + index + 1 : index + 1;
+
         const productBatch = ProductBatch.create({
           ...item,
           id: aggregateId,
           exchangeRate: dto.exchangeRate,
-          statusId: dto.statusId,
+          statusId: dto.groupId ? null : dto.statusId,
           groupId: dto.groupId,
+          order,
         });
 
-        await productBatchEventRepository.saveAggregateEvents({
-          aggregate: productBatch,
+        await productBatchEventRepo.saveAggregateEvents({
+          aggregates: [productBatch],
           eventId: requestId,
         });
 
-        await productBatchRepository.save(productBatch.toObject());
+        await productBatchRepo.save(productBatch.toObject());
       }
 
       // await this.productBatchService.relinkPostings({

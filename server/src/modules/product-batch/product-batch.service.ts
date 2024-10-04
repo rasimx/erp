@@ -10,7 +10,9 @@ import { OzonPostingProductMicroservice } from '@/microservices/erp_ozon/ozon-po
 import { ProductRepository } from '@/product/product.repository.js';
 import { ProductService } from '@/product/product.service.js';
 import { ProductBatchEntity } from '@/product-batch/domain/product-batch.entity.js';
+import { ProductBatch } from '@/product-batch/domain/product-batch.js';
 import { ProductBatchRepository } from '@/product-batch/domain/product-batch.repository.js';
+import { ProductBatchEventRepository } from '@/product-batch/domain/product-batch-event.repository.js';
 import { StatusService } from '@/status/status.service.js';
 
 @Injectable()
@@ -24,9 +26,28 @@ export class ProductBatchService {
     private commandBus: CommandBus,
     private queryBus: QueryBus,
     private readonly productRepository: ProductRepository,
-    private readonly productBatchRepository: ProductBatchRepository,
+    private readonly productBatchRepo: ProductBatchRepository,
+    private readonly productBatchEventRepo: ProductBatchEventRepository,
     private readonly ozonPostingProductMicroservice: OzonPostingProductMicroservice,
-  ) {}
+  ) {
+    // this.a();
+  }
+
+  async a() {
+    await this.contextService.run(async () => {
+      this.contextService.userId = 1;
+
+      return this.recover();
+    });
+  }
+
+  async recover() {
+    // const events = await this.productBatchEventRepo.findByAggregateId(451);
+    // const productBatch = ProductBatch.buildFromEvents(events);
+    //
+    // await this.productBatchRepo.save(productBatch.toObject());
+    // console.log('AAAAAAAA');
+  }
 
   async relinkPostings({
     queryRunner,
@@ -52,14 +73,14 @@ export class ProductBatchService {
       where.push({ groupId: In(groupIds) });
     }
     // здесь запрос идет не в транзакции
-    const oldVersions = await this.productBatchRepository.find({
+    const oldVersions = await this.productBatchRepo.find({
       where,
       relations: ['status', 'group', 'group.status'],
     });
 
     // здесь в транзакции
     const transactionalProductBatchRepository =
-      queryRunner.manager.withRepository(this.productBatchRepository);
+      queryRunner.manager.withRepository(this.productBatchRepo);
     const affectedProductBatches =
       await transactionalProductBatchRepository.find({
         where,

@@ -9,7 +9,7 @@ import { ProductBatchRepository } from '@/product-batch/domain/product-batch.rep
 import { ProductBatchEventStore } from '@/product-batch/eventstore/product-batch.eventstore.js';
 import { ProductBatchService } from '@/product-batch/product-batch.service.js';
 
-import { DeleteProductBatchCommand } from '../impl/delete-product-batch.command.js';
+import { DeleteProductBatchCommand } from './delete-product-batch.command.js';
 
 @CommandHandler(DeleteProductBatchCommand)
 export class DeleteProductBatchHandler
