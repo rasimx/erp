@@ -5,8 +5,10 @@ import { ProductBatchEntity } from '@/product-batch/domain/product-batch.entity.
 import type { GetProductBatchListDto } from '@/product-batch/dtos/get-product-batch-list.dto.js';
 import type { CreateProductBatchGroupDto } from '@/product-batch-group/dtos/create-product-batch-group.dto.js';
 import type { MoveProductBatchGroupDto } from '@/product-batch-group/dtos/move-product-batch-group.dto.js';
-import { ProductBatchGroupEntity } from '@/product-batch-group/product-batch-group.entity.js';
 import { StatusEntity } from '@/status/status.entity.js';
+
+import { ProductBatchGroupEntity } from './product-batch-group.entity.js';
+import type { ProductBatchGroup } from './product-batch-group.js';
 
 export class ProductBatchGroupRepository extends Repository<ProductBatchGroupEntity> {
   async nextId(): Promise<number> {
@@ -15,6 +17,27 @@ export class ProductBatchGroupRepository extends Repository<ProductBatchGroupEnt
     );
     return Number(a[0].nextval);
   }
+
+  async move(items: ProductBatchGroup[]) {
+    if (items.length === 0) return;
+    const values = items
+      .map(item => {
+        const obj = item.toObject();
+        return `(${obj.id}, ${obj.order},${obj.statusId})`;
+      })
+      .join(',');
+
+    const query = `
+        update product_batch_group as pbg
+        set "order" = updates."order",
+            status_id = updates.status_id
+        from (values ${values}) as updates(id, "order", status_id)
+        where updates.id = pbg.id
+    `;
+
+    return this.manager.query(query);
+  }
+
   async getLastOrder(statusId: number): Promise<number | null> {
     const lastItems: (ProductBatchEntity | ProductBatchGroupEntity)[] = [];
     const lastUngroupedBatch = await this.manager.findOne(ProductBatchEntity, {

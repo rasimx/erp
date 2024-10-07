@@ -13,8 +13,9 @@ import { ProductBatchEventStore } from '@/product-batch/eventstore/product-batch
 import { ProductBatchService } from '@/product-batch/product-batch.service.js';
 import type { RevisionProductBatchGroupEvent } from '@/product-batch-group/domain/product-batch-group.events.js';
 import { ProductBatchGroup } from '@/product-batch-group/domain/product-batch-group.js';
+import { ProductBatchGroupRepository } from '@/product-batch-group/domain/product-batch-group.repository.js';
 import { ProductBatchGroupEventRepository } from '@/product-batch-group/domain/product-batch-group-event.repository.js';
-import { ProductBatchGroupRepository } from '@/product-batch-group/product-batch-group.repository.js';
+import { RequestRepository } from '@/request/request.repository.js';
 
 @CommandHandler(MoveProductBatchCommand)
 export class MoveProductBatchHandler
@@ -23,6 +24,7 @@ export class MoveProductBatchHandler
   constructor(
     @InjectDataSource()
     private dataSource: CustomDataSource,
+    private readonly requestRepo: RequestRepository,
     private readonly productBatchRepo: ProductBatchRepository,
     private readonly productBatchEventRepo: ProductBatchEventRepository,
     private readonly productBatchGroupRepo: ProductBatchGroupRepository,
@@ -63,6 +65,9 @@ export class MoveProductBatchHandler
       const productBatch = ProductBatch.buildFromEvents(
         targetEvents as RevisionProductBatchEvent[],
       );
+
+      const requestRepo = queryRunner.manager.withRepository(this.requestRepo);
+      const request = await requestRepo.insert({ id: requestId });
 
       const otherItems: { id: number; order: number }[] = [];
       const otherGroups: { id: number; order: number }[] = [];
@@ -288,12 +293,12 @@ export class MoveProductBatchHandler
 
       await productBatchEventRepo.saveAggregateEvents({
         aggregates: [...productBatchMap.values(), productBatch],
-        eventId: requestId,
+        requestId,
       });
 
-      await productBatchRepo.save([
-        ...[...productBatchMap.values()].map(item => item.toObject()),
-        productBatch.toObject(),
+      await productBatchRepo.move([
+        ...[...productBatchMap.values()],
+        productBatch,
       ]);
 
       // save groups
@@ -317,13 +322,10 @@ export class MoveProductBatchHandler
 
       await productBatchGroupEventRepo.saveAggregateEvents({
         aggregates: [...groupMap.values()],
-        eventId: requestId,
+        requestId,
       });
 
-      await productBatchGroupRepo.save(
-        [...groupMap.values()].map(item => item.toObject()),
-      );
-
+      await productBatchGroupRepo.move([...groupMap.values()]);
       // await this.productBatchService.relinkPostings({
       //   queryRunner,
       //   affectedIds: [id, ...affectedIds],

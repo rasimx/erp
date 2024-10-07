@@ -5,9 +5,9 @@ import type { QueryRunner } from 'typeorm';
 import { ContextService } from '@/context/context.service.js';
 import { ProductBatchRepository } from '@/product-batch/domain/product-batch.repository.js';
 import { ProductBatchGroup } from '@/product-batch-group/domain/product-batch-group.js';
+import { ProductBatchGroupRepository } from '@/product-batch-group/domain/product-batch-group.repository.js';
 import { ProductBatchGroupEventRepository } from '@/product-batch-group/domain/product-batch-group-event.repository.js';
 import type { CreateProductBatchGroupDto } from '@/product-batch-group/dtos/create-product-batch-group.dto.js';
-import { ProductBatchGroupRepository } from '@/product-batch-group/product-batch-group.repository.js';
 
 @Injectable()
 export class ProductBatchGroupService {
@@ -51,7 +51,7 @@ export class ProductBatchGroupService {
 
     await productBatchGroupEventRepository.saveAggregateEvents({
       aggregates: [group],
-      eventId: requestId,
+      requestId: requestId,
     });
 
     await productBatchGroupRepository.save(group.toObject());

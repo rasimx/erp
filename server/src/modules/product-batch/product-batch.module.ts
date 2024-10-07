@@ -22,6 +22,7 @@ import { ProductBatchResolver } from '@/product-batch/product-batch.resolver.js'
 import { GetProductBatchHandler } from '@/product-batch/queries/handlers/get-product-batch.handler.js';
 import { GetProductBatchListHandler } from '@/product-batch/queries/handlers/get-product-batch-list.handler.js';
 import { ProductBatchGroupModule } from '@/product-batch-group/product-batch-group.module.js';
+import { RequestModule } from '@/request/request.module.js';
 import { StatusModule } from '@/status/status.module.js';
 
 import { ProductBatchService } from './product-batch.service.js';
@@ -51,6 +52,7 @@ import { ProductBatchService } from './product-batch.service.js';
     CreateProductBatchesByAssemblingHandler,
     ProductBatchRepositoryProvider,
     ProductBatchEventRepositoryProvider,
+    RequestModule,
   ],
   controllers: [ProductBatchController],
   exports: [

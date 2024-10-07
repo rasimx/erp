@@ -1,3 +1,5 @@
+import { v7 as uuidV7 } from 'uuid';
+
 import type { ProductBatchProps } from '@/product-batch/domain/product-batch.interfaces.js';
 
 import {
@@ -26,6 +28,7 @@ export class ProductBatch {
     const productBatch = new ProductBatch(props);
 
     const event: ProductBatchCreatedEvent = {
+      id: uuidV7(),
       type: ProductBatchEventType.ProductBatchCreated,
       data: productBatch.toObject(),
     };
@@ -72,6 +75,7 @@ export class ProductBatch {
     });
 
     const event: ProductBatchChildCreatedEvent = {
+      id: uuidV7(),
       type: ProductBatchEventType.ProductBatchChildCreated,
       data,
     };
@@ -178,26 +182,27 @@ export class ProductBatch {
   }
 
   toObject() {
-    return { id: this.id, ...this.props };
+    return { ...this.props, id: this.id, revision: this.revision, userId: 1 };
   }
 
-  public move(eventData: ProductBatchMovedEventData): void {
+  public move({ order, groupId, statusId }: ProductBatchMovedEventData): void {
     let valid = false;
-    const data: ProductBatchMovedEventData = { order: eventData.order };
-    if (this.props.order !== eventData.order) {
+    const data: ProductBatchMovedEventData = { order };
+    if (this.props.order !== order) {
       valid = true;
     }
-    if (this.props.statusId !== eventData.statusId) {
+    if (statusId !== undefined && this.props.statusId !== statusId) {
       valid = true;
-      data.statusId = eventData.statusId;
+      data.statusId = statusId;
     }
-    if (this.props.groupId !== eventData.groupId) {
+    if (groupId !== undefined && this.props.groupId !== groupId) {
       valid = true;
-      data.groupId = eventData.groupId;
+      data.groupId = groupId;
     }
 
     if (valid) {
       const event: ProductBatchMovedEvent = {
+        id: uuidV7(),
         type: ProductBatchEventType.ProductBatchMoved,
         data,
       };
@@ -207,6 +212,7 @@ export class ProductBatch {
 
   changeStatus(statusId: number) {
     const event: ProductBatchEditedEvent = {
+      id: uuidV7(),
       type: ProductBatchEventType.ProductBatchEdited,
       data: { statusId },
     };

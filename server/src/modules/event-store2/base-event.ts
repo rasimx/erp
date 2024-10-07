@@ -1,4 +1,15 @@
-import { Column, CreateDateColumn, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+  type Relation,
+  RelationId,
+} from 'typeorm';
+
+import { RequestEntity } from '@/request/request.entity.js';
+import { StatusEntity } from '@/status/status.entity.js';
 
 // @Entity({ name: 'event' })
 export class BaseEvent {

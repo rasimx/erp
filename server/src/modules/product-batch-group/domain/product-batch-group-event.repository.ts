@@ -7,20 +7,22 @@ import { ProductBatchGroupEventEntity } from '@/product-batch-group/domain/produ
 export class ProductBatchGroupEventRepository extends Repository<ProductBatchGroupEventEntity> {
   async saveAggregateEvents({
     aggregates,
-    eventId,
+    requestId,
   }: {
     aggregates: ProductBatchGroup[];
-    eventId: string;
+    requestId: string;
   }) {
     await this.save(
       aggregates.flatMap(aggregate =>
         aggregate.getUncommittedEvents().map(item => {
           const event = new ProductBatchGroupEventEntity();
-          event.eventId = eventId;
+          event.id = item.id;
+          event.requestId = requestId;
           event.aggregateId = aggregate.getId();
           event.type = item.type;
           event.revision = item.revision;
           event.data = item.data;
+          event.metadata = item.metadata ?? null;
 
           return event;
         }),

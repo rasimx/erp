@@ -1,8 +1,5 @@
-import {
-  ProductBatchEventType,
-  type ProductBatchMovedEvent,
-  type ProductBatchMovedEventData,
-} from '@/product-batch/domain/product-batch.events.js';
+import { v7 as uuidV7 } from 'uuid';
+
 import type { ProductBatchGroupProps } from '@/product-batch-group/domain/product-batch-group.interfaces.js';
 
 import {
@@ -28,13 +25,14 @@ export class ProductBatchGroup {
     return this.id;
   }
   toObject() {
-    return { id: this.id, ...this.props };
+    return { ...this.props, revision: this.revision, id: this.id };
   }
 
   public static create(props: ProductBatchGroupProps): ProductBatchGroup {
     const productBatchGroup = new ProductBatchGroup(props);
 
     const event: ProductBatchGroupCreatedEvent = {
+      id: uuidV7(),
       type: ProductBatchGroupEventType.ProductBatchGroupCreated,
       data: productBatchGroup.toObject(),
     };
@@ -130,6 +128,7 @@ export class ProductBatchGroup {
 
     if (valid) {
       const event: ProductBatchGroupMovedEvent = {
+        id: uuidV7(),
         type: ProductBatchGroupEventType.ProductBatchGroupMoved,
         data,
       };

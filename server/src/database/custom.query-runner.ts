@@ -3,7 +3,7 @@ import { ClsServiceManager } from 'nestjs-cls';
 import { TransactionNotStartedError } from 'typeorm';
 import { PostgresQueryRunner } from 'typeorm/driver/postgres/PostgresQueryRunner.js';
 import type { IsolationLevel } from 'typeorm/driver/types/IsolationLevel.js';
-import { v4 as uuidv4 } from 'uuid';
+import { v7 as uuidV7 } from 'uuid';
 
 import { USER_ID } from '@/context/context.constants.js';
 
@@ -47,7 +47,7 @@ export class CustomPostgresQueryRunner extends PostgresQueryRunner {
 
     await this.broadcaster.broadcast('BeforeTransactionCommit');
 
-    transactionId = transactionId ?? uuidv4();
+    transactionId = transactionId ?? uuidV7();
     if (!transactionId) throw new Error('transactionId was not specified');
     if (this.transactionDepth > 1) {
       this.transactionDepth -= 1;

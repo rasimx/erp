@@ -3,7 +3,7 @@ import { type IQueryHandler, QueryHandler } from '@nestjs/cqrs';
 import { ProductBatchGroupEventStore } from '@/product-batch-group/eventstore/prodict-batch-group.eventstore.js';
 import { GetProductBatchGroupQuery } from '@/product-batch-group/queries/impl/get-product-batch-group.query.js';
 
-import { ProductBatchGroupRepository } from '../../product-batch-group.repository.js';
+import { ProductBatchGroupRepository } from '../../domain/product-batch-group.repository.js';
 
 @QueryHandler(GetProductBatchGroupQuery)
 export class GetProductBatchGroupHandler

@@ -6,7 +6,7 @@ import {
 } from 'typeorm';
 
 import { ProductBatchEntity } from '@/product-batch/domain/product-batch.entity.js';
-import { ProductBatchGroupEntity } from '@/product-batch-group/product-batch-group.entity.js';
+import { ProductBatchGroupEntity } from '@/product-batch-group/domain/product-batch-group.entity.js';
 
 @EventSubscriber()
 export class ProductBatchGroupEntitySubscriber

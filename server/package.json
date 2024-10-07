@@ -94,7 +94,7 @@
     "ts-morph": "^21.0.0",
     "typeorm": "0.3.20",
     "typeorm-naming-strategies": "^4.1.0",
-    "uuid": "^9.0.1"
+    "uuid": "^10.0.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.1.1",
@@ -113,7 +113,7 @@
     "@types/passport-jwt": "^3.0.10",
     "@types/passport-local": "^1.0.36",
     "@types/supertest": "^2.0.14",
-    "@types/uuid": "^9.0.8",
+    "@types/uuid": "^10.0.0",
     "eslint": "8.57.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-prettier": "^5.1.3",

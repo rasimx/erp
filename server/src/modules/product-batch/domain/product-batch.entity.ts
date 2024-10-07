@@ -14,13 +14,13 @@ import {
 
 import { ProductEntity } from '@/product/product.entity.js';
 import { ProductBatchClosureEntity } from '@/product-batch/product-batch-closure.entity.js';
-import { ProductBatchGroupEntity } from '@/product-batch-group/product-batch-group.entity.js';
+import { ProductBatchGroupEntity } from '@/product-batch-group/domain/product-batch-group.entity.js';
 import { ProductBatchOperationEntity } from '@/product-batch-operation/product-batch-operation.entity.js';
 import { StatusEntity } from '@/status/status.entity.js';
 
 @Entity({ name: 'product_batch' })
 export class ProductBatchEntity {
-  @PrimaryColumn()
+  @PrimaryColumn({ type: 'bigint' })
   id: number;
 
   @Column({
@@ -91,6 +91,9 @@ export class ProductBatchEntity {
 
   @DeleteDateColumn({ nullable: true })
   deletedDate: Date | null;
+
+  @Column()
+  revision: number;
 
   @OneToMany(() => ProductBatchOperationEntity, entity => entity.productBatch)
   productBatchOperations: ProductBatchOperationEntity[];

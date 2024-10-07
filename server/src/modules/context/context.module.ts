@@ -1,6 +1,6 @@
 import { Global, Module } from '@nestjs/common';
 import { ClsModule } from 'nestjs-cls';
-import { v4 as uuidv4 } from 'uuid';
+import { v7 as uuidV7 } from 'uuid';
 
 import { ContextService } from '@/context/context.service.js';
 
@@ -12,7 +12,7 @@ import { ContextService } from '@/context/context.service.js';
       middleware: {
         mount: true,
         generateId: true,
-        idGenerator: (req: Request) => req.headers['X-Request-Id'] ?? uuidv4(),
+        idGenerator: (req: Request) => req.headers['X-Request-Id'] ?? uuidV7(),
       },
     }),
   ],

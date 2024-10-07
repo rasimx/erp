@@ -6,8 +6,8 @@ import type { CustomDataSource } from '@/database/custom.data-source.js';
 import { ProductBatch } from '@/product-batch/domain/product-batch.js';
 import { ProductBatchRepository } from '@/product-batch/domain/product-batch.repository.js';
 import { ProductBatchEventRepository } from '@/product-batch/domain/product-batch-event.repository.js';
-import { ProductBatchService } from '@/product-batch/product-batch.service.js';
 import { ProductBatchGroupService } from '@/product-batch-group/product-batch-group.service.js';
+import { RequestRepository } from '@/request/request.repository.js';
 
 import { CreateProductBatchCommand } from './create-product-batch.command.js';
 
@@ -18,6 +18,7 @@ export class CreateProductBatchHandler
   constructor(
     @InjectDataSource()
     private dataSource: CustomDataSource,
+    private readonly requestRepo: RequestRepository,
     private readonly productBatchRepo: ProductBatchRepository,
     private readonly productBatchEventRepo: ProductBatchEventRepository,
     private readonly productBatchGroupService: ProductBatchGroupService,
@@ -39,6 +40,9 @@ export class CreateProductBatchHandler
     const productBatchEventRepo = queryRunner.manager.withRepository(
       this.productBatchEventRepo,
     );
+
+    const requestRepo = queryRunner.manager.withRepository(this.requestRepo);
+    const request = await requestRepo.insert({ id: requestId });
 
     try {
       const { dto } = command;
@@ -83,7 +87,7 @@ export class CreateProductBatchHandler
 
         await productBatchEventRepo.saveAggregateEvents({
           aggregates: [productBatch],
-          eventId: requestId,
+          requestId,
         });
 
         await productBatchRepo.save(productBatch.toObject());

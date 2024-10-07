@@ -15,7 +15,7 @@ import { StatusEntity } from '@/status/status.entity.js';
 
 @Entity({ name: 'product_batch_group' })
 export class ProductBatchGroupEntity {
-  @PrimaryColumn()
+  @PrimaryColumn({ type: 'bigint' })
   id: number;
 
   @Column({
@@ -43,4 +43,7 @@ export class ProductBatchGroupEntity {
 
   @DeleteDateColumn({ nullable: true })
   deletedDate: Date | null;
+
+  @Column()
+  revision: number;
 }

@@ -10,8 +10,8 @@ import { ProductBatchRepository } from '@/product-batch/domain/product-batch.rep
 import { ProductBatchEventStore } from '@/product-batch/eventstore/product-batch.eventstore.js';
 import { ProductBatchService } from '@/product-batch/product-batch.service.js';
 import { CreateProductBatchGroupCommand } from '@/product-batch-group/commands/impl/create-product-batch-group.command.js';
+import { ProductBatchGroupRepository } from '@/product-batch-group/domain/product-batch-group.repository.js';
 import { ProductBatchGroupEventStore } from '@/product-batch-group/eventstore/prodict-batch-group.eventstore.js';
-import { ProductBatchGroupRepository } from '@/product-batch-group/product-batch-group.repository.js';
 import { StatusRepository } from '@/status/status.repository.js';
 
 @CommandHandler(CreateProductBatchGroupCommand)

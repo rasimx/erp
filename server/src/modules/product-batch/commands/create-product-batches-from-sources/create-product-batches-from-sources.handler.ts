@@ -87,7 +87,7 @@ export class CreateProductBatchesFromSourcesHandler
 
         await productBatchEventRepository.saveAggregateEvents({
           aggregates: [sourceProductBatch, newProductBatch],
-          eventId: requestId,
+          requestId: requestId,
         });
 
         // await productBatchRepository.save(productBatch.toObject());

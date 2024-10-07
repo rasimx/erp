@@ -14,14 +14,42 @@ import {
 import type { ResultProductBatch } from '@/common/assembleProduct.js';
 import { isNil } from '@/common/helpers/utils.js';
 import { ProductBatchEntity } from '@/product-batch/domain/product-batch.entity.js';
+import type { ProductBatch } from '@/product-batch/domain/product-batch.js';
 import type { CreateProductBatchItemDto } from '@/product-batch/dtos/create-product-batch-list.dto.js';
 import type { GetProductBatchListDto } from '@/product-batch/dtos/get-product-batch-list.dto.js';
 import type { MoveProductBatchDto } from '@/product-batch/dtos/move-product-batch.dto.js';
 import { ProductBatchClosureEntity } from '@/product-batch/product-batch-closure.entity.js';
-import { ProductBatchGroupEntity } from '@/product-batch-group/product-batch-group.entity.js';
+import { ProductBatchGroupEntity } from '@/product-batch-group/domain/product-batch-group.entity.js';
 import { StatusEntity } from '@/status/status.entity.js';
 
 export class ProductBatchRepository extends Repository<ProductBatchEntity> {
+  async move(items: ProductBatch[]) {
+    if (items.length === 0) return;
+    const values = items
+      .map(item => {
+        const obj = item.toObject();
+        return `(${obj.id}, ${obj.order},${obj.statusId},${obj.groupId})`;
+      })
+      .join(',');
+
+    const query = `
+        update product_batch as pb
+        set "order" = updates."order"::integer,
+            status_id = CASE
+                            WHEN updates.status_id = null THEN NULL
+                            ELSE updates.status_id::integer
+        END,
+            group_id = CASE
+                    WHEN updates.group_id = null THEN NULL
+                    ELSE updates.group_id::integer
+        END
+        from (values ${values}) as updates(id, "order", status_id, group_id)
+        where updates.id = pb.id
+    `;
+
+    return this.manager.query(query);
+  }
+
   async nextIds(count = 1): Promise<number[]> {
     const rows: { nextval: number }[] = await this.query(
       `SELECT nextval('product_batch_id_seq')::int FROM generate_series(1, ${count.toString()});`,

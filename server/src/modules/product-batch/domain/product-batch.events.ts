@@ -17,8 +17,10 @@ export interface ProductBatchCreatedEventData
   exchangeRate: number | null;
 }
 export interface ProductBatchCreatedEvent {
+  id: string;
   type: ProductBatchEventType.ProductBatchCreated;
   data: ProductBatchCreatedEventData;
+  metadata?: Record<string, unknown>;
 }
 
 export interface ProductBatchChildCreatedEventData {
@@ -27,28 +29,33 @@ export interface ProductBatchChildCreatedEventData {
   qty: number;
   count: number; // childCount = count * qty
 }
+export interface ProductBatchChildCreatedEvent {
+  id: string;
+  type: ProductBatchEventType.ProductBatchChildCreated;
+  data: ProductBatchChildCreatedEventData;
+  metadata?: Record<string, unknown>;
+}
+
 export interface ProductBatchMovedEventData {
   order: number;
   groupId?: number | null;
   statusId?: number | null;
 }
-
 export interface ProductBatchMovedEvent {
+  id: string;
   type: ProductBatchEventType.ProductBatchMoved;
   data: ProductBatchMovedEventData;
-}
-
-export interface ProductBatchChildCreatedEvent {
-  type: ProductBatchEventType.ProductBatchChildCreated;
-  data: ProductBatchChildCreatedEventData;
+  metadata?: Record<string, unknown>;
 }
 
 export interface ProductBatchEditedEventData {
   statusId: number;
 }
 export interface ProductBatchEditedEvent {
+  id: string;
   type: ProductBatchEventType.ProductBatchEdited;
   data: ProductBatchEditedEventData;
+  metadata?: Record<string, unknown>;
 }
 
 export interface ProductBatchDeletedEventData {
@@ -57,8 +64,10 @@ export interface ProductBatchDeletedEventData {
   userId: number;
 }
 export interface ProductBatchDeletedEvent {
+  id: string;
   type: ProductBatchEventType.ProductBatchDeleted;
   data: ProductBatchDeletedEventData;
+  metadata?: Record<string, unknown>;
 }
 
 export type ProductBatchEvent =
