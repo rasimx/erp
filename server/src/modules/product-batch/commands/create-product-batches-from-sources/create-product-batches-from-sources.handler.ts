@@ -1,15 +1,22 @@
 import { CommandHandler, type ICommandHandler } from '@nestjs/cqrs';
 import { InjectDataSource } from '@nestjs/typeorm';
+import { In } from 'typeorm';
 
 import { ContextService } from '@/context/context.service.js';
 import type { CustomDataSource } from '@/database/custom.data-source.js';
-import type { ProductBatchEntity } from '@/product-batch/domain/product-batch.entity.js';
-import type { ProductBatchEvent } from '@/product-batch/domain/product-batch.events.js';
+import type { ProductEntity } from '@/product/product.entity.js';
+import { ProductRepository } from '@/product/product.repository.js';
+import { ProductBatchEntity } from '@/product-batch/domain/product-batch.entity.js';
+import type {
+  ProductBatchEvent,
+  RevisionProductBatchEvent,
+} from '@/product-batch/domain/product-batch.events.js';
 import { ProductBatch } from '@/product-batch/domain/product-batch.js';
 import { ProductBatchRepository } from '@/product-batch/domain/product-batch.repository.js';
 import { ProductBatchEventRepository } from '@/product-batch/domain/product-batch-event.repository.js';
 import { ProductBatchService } from '@/product-batch/product-batch.service.js';
 import { ProductBatchGroupService } from '@/product-batch-group/product-batch-group.service.js';
+import { RequestRepository } from '@/request/request.repository.js';
 
 import { CreateProductBatchesFromSourcesCommand } from './create-product-batches-from-sources.command.js';
 
@@ -20,8 +27,10 @@ export class CreateProductBatchesFromSourcesHandler
   constructor(
     @InjectDataSource()
     private dataSource: CustomDataSource,
-    private readonly productBatchRepository: ProductBatchRepository,
-    private readonly productBatchEventRepository: ProductBatchEventRepository,
+    private readonly requestRepo: RequestRepository,
+    private readonly productRepo: ProductRepository,
+    private readonly productBatchRepo: ProductBatchRepository,
+    private readonly productBatchEventRepo: ProductBatchEventRepository,
     private readonly productBatchGroupService: ProductBatchGroupService,
     private readonly contextService: ContextService,
     private readonly productBatchService: ProductBatchService,
@@ -33,11 +42,15 @@ export class CreateProductBatchesFromSourcesHandler
 
     const queryRunner = this.dataSource.createQueryRunner();
 
-    const productBatchRepository = queryRunner.manager.withRepository(
-      this.productBatchRepository,
+    const requestRepo = queryRunner.manager.withRepository(this.requestRepo);
+    const request = await requestRepo.insert({ id: requestId });
+
+    const productRepo = queryRunner.manager.withRepository(this.productRepo);
+    const productBatchRepo = queryRunner.manager.withRepository(
+      this.productBatchRepo,
     );
-    const productBatchEventRepository = queryRunner.manager.withRepository(
-      this.productBatchEventRepository,
+    const productBatchEventRepo = queryRunner.manager.withRepository(
+      this.productBatchEventRepo,
     );
 
     await queryRunner.connect();
@@ -59,47 +72,92 @@ export class CreateProductBatchesFromSourcesHandler
           },
         });
 
-        dto.statusId = null;
         dto.groupId = group.id;
       }
 
       const affectedIds: number[] = [];
 
-      const aggregatedIds = await productBatchRepository.nextIds(
-        dto.sources.length,
+      const aggregatedIds = await productBatchRepo.nextIds(dto.items.length);
+
+      const lastOrder = dto.groupId
+        ? null
+        : await productBatchRepo.getLastOrderInStatus(dto.statusId);
+
+      const sourcesEvents = await productBatchEventRepo.findManyByAggregateId(
+        dto.items.flatMap(item => item.sourceIds),
       );
 
-      for (const sourceItem of dto.sources) {
+      const sourceBathesMap = new Map(
+        [...sourcesEvents.entries()].map(([aggregateId, events]) => [
+          aggregateId,
+          ProductBatch.buildFromEvents(events as RevisionProductBatchEvent[]),
+        ]),
+      );
+
+      const products = await productRepo.find({
+        where: { id: In(dto.items.map(({ productId }) => productId)) },
+        relations: ['setItems'],
+      });
+      const productsMap = new Map<number, ProductEntity>(
+        products.map(product => [product.id, product]),
+      );
+
+      const aggregates: ProductBatch[] = [];
+
+      for (let index = 0; index < dto.items.length; ++index) {
         const aggregateId = aggregatedIds.shift();
         if (!aggregateId) throw new Error('aggregateId was not defined');
 
-        const events = await productBatchEventRepository.findManyByAggregateId(
-          sourceItem.id,
-        );
-        const sourceProductBatch = ProductBatch.buildFromEvents(
-          events as ProductBatchEvent[],
-        );
+        const item = dto.items[index];
 
-        const newProductBatch = sourceProductBatch.createChild({
+        const order = lastOrder ? lastOrder + index + 1 : index + 1;
+
+        const product = productsMap.get(item.productId);
+        if (!product) throw new Error('productId was not found');
+
+        const newProductBatch = ProductBatch.createFromSources({
           id: aggregateId,
-          count: sourceItem.selectedCount,
+          count: item.count,
+          productId: item.productId,
+          statusId: dto.groupId ? null : dto.statusId,
+          groupId: dto.groupId,
+          order,
+          sources: item.sourceIds.map(sourceId => {
+            const sourceAggregate = sourceBathesMap.get(sourceId);
+            if (!sourceAggregate)
+              throw new Error('sourceAggregate was not found');
+            // todo: проверить productId через productSet
+            const qty = product.setItems.length
+              ? product.setItems.find(
+                  item => item.productId === sourceAggregate.getProductId(),
+                )?.qty || 1
+              : 1;
+
+            return {
+              qty,
+              productBatch: sourceAggregate,
+            };
+          }),
         });
-
-        await productBatchEventRepository.saveAggregateEvents({
-          aggregates: [sourceProductBatch, newProductBatch],
-          requestId: requestId,
-        });
-
-        // await productBatchRepository.save(productBatch.toObject());
-
-        // newEntities.push(newEntity);
-        // affectedIds.push(newEntity.id, sourceBatch.id);
+        aggregates.push(newProductBatch);
       }
 
-      await this.productBatchService.relinkPostings({
-        queryRunner,
-        affectedIds,
+      await productBatchEventRepo.saveAggregateEvents({
+        aggregates: [...aggregates, ...sourceBathesMap.values()],
+        requestId,
       });
+
+      await productBatchRepo.upsert(
+        [...sourceBathesMap.values(), ...aggregates].map(item =>
+          item.toObject(),
+        ),
+        ['id'],
+      );
+
+      // await this.productBatchService.relinkPostings({
+      //   queryRunner,
+      //   affectedIds,
+      // });
 
       await queryRunner.commitTransaction();
     } catch (err) {

@@ -14,18 +14,16 @@ const Step_1: FC<Props> = props => {
   const { state, setState } = useFormState();
 
   const changeProduct = useCallback(
-    (productSet: Nullable<Product>) => {
-      if (productSet) {
+    (product: Nullable<Product>) => {
+      if (product) {
         setState(state => ({
           ...state,
-          productSetId: productSet.id,
-          productSet,
+          product,
         }));
       } else
         setState(state => ({
           ...state,
-          productSetId: undefined,
-          productSet: undefined,
+          product: undefined,
         }));
     },
     [setState],
@@ -36,9 +34,9 @@ const Step_1: FC<Props> = props => {
       <div className={classes.field}>
         <FloatLabel>
           <ProductSelect
-            value={state.productSet ?? null}
+            value={state.product ?? null}
             onChange={changeProduct}
-            initialId={state.productSetId}
+            initialId={state.product?.id}
             onlySets
           />
           <label>Продукт</label>
@@ -52,10 +50,10 @@ const Step_1: FC<Props> = props => {
             placeholder=" шт"
             suffix=" шт"
             maxFractionDigits={0}
-            value={state.fullCount}
+            value={state.count}
             name="count"
             onValueChange={e =>
-              setState(state => ({ ...state, fullCount: e.value }))
+              setState(state => ({ ...state, count: e.value }))
             }
             className={classes.input}
           />

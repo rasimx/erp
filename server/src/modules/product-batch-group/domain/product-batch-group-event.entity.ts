@@ -36,7 +36,7 @@ export class ProductBatchGroupEventEntity {
   @Column()
   revision: number;
 
-  @Column({ type: 'bigint' })
+  @Column()
   aggregateId: number;
 
   @CreateDateColumn()

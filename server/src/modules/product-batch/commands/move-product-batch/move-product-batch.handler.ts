@@ -9,7 +9,7 @@ import type { RevisionProductBatchEvent } from '@/product-batch/domain/product-b
 import { ProductBatch } from '@/product-batch/domain/product-batch.js';
 import { ProductBatchRepository } from '@/product-batch/domain/product-batch.repository.js';
 import { ProductBatchEventRepository } from '@/product-batch/domain/product-batch-event.repository.js';
-import { ProductBatchEventStore } from '@/product-batch/eventstore/product-batch.eventstore.js';
+// import { ProductBatchEventStore } from '@/product-batch/eventstore/product-batch.eventstore.js';
 import { ProductBatchService } from '@/product-batch/product-batch.service.js';
 import type { RevisionProductBatchGroupEvent } from '@/product-batch-group/domain/product-batch-group.events.js';
 import { ProductBatchGroup } from '@/product-batch-group/domain/product-batch-group.js';
@@ -29,7 +29,6 @@ export class MoveProductBatchHandler
     private readonly productBatchEventRepo: ProductBatchEventRepository,
     private readonly productBatchGroupRepo: ProductBatchGroupRepository,
     private readonly productBatchGroupEventRepo: ProductBatchGroupEventRepository,
-    private readonly productBatchEventStore: ProductBatchEventStore,
     private readonly contextService: ContextService,
     private readonly productBatchService: ProductBatchService,
   ) {}
@@ -296,10 +295,13 @@ export class MoveProductBatchHandler
         requestId,
       });
 
-      await productBatchRepo.move([
-        ...[...productBatchMap.values()],
-        productBatch,
-      ]);
+      await productBatchRepo.upsert(
+        [
+          ...[...productBatchMap.values()].map(item => item.toObject()),
+          productBatch.toObject(),
+        ],
+        ['id'],
+      );
 
       // save groups
       const groupEvents =
@@ -325,7 +327,10 @@ export class MoveProductBatchHandler
         requestId,
       });
 
-      await productBatchGroupRepo.move([...groupMap.values()]);
+      await productBatchGroupRepo.upsert(
+        [...groupMap.values()].map(item => item.toObject()),
+        ['id'],
+      );
       // await this.productBatchService.relinkPostings({
       //   queryRunner,
       //   affectedIds: [id, ...affectedIds],

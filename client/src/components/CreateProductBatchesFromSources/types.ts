@@ -3,11 +3,11 @@ import { FormikBag } from 'formik/dist/withFormik';
 import { array, boolean, number, object, ObjectSchema, string } from 'yup';
 
 import {
-  CreateProductBatchesFromSourcesDto,
-  SourceProductBatchDto,
+  CreateProductBatchesFromSourcesItemDto,
+  CreateProductBatchesFromSourcesListDto,
 } from '../../gql-types/graphql';
 
-export type FormValues = CreateProductBatchesFromSourcesDto & {
+export type FormValues = CreateProductBatchesFromSourcesListDto & {
   grouped: boolean;
 };
 export type FormProps = FormikProps<FormValues>;
@@ -16,27 +16,32 @@ export interface Props {
   initialValues: Partial<FormValues>;
   closeModal: () => void;
   onSubmit: (
-    values: CreateProductBatchesFromSourcesDto,
-    formikBag: FormikBag<Props, CreateProductBatchesFromSourcesDto>,
+    values: CreateProductBatchesFromSourcesListDto,
+    formikBag: FormikBag<Props, CreateProductBatchesFromSourcesListDto>,
   ) => Promise<unknown>;
 }
 
-export const SourceProductBatchValidationSchema: ObjectSchema<SourceProductBatchDto> =
-  object().shape({
-    id: number().required(),
-    productId: number().required(),
-    selectedCount: number().required(),
-  });
+export const createProductBatchesFromSourcesItemValidationSchema =
+  (): ObjectSchema<CreateProductBatchesFromSourcesItemDto> =>
+    object().shape({
+      productId: number().required(),
+      count: number().required(),
+      sourceIds: array(number().required()).required(),
+    });
 
 export const createProductBatchesFromSourcesValidationSchema =
-  (): ObjectSchema<CreateProductBatchesFromSourcesDto> => {
+  (): ObjectSchema<CreateProductBatchesFromSourcesListDto> => {
     return object().shape({
+      statusId: number().required(),
       groupId: number().nullable(),
-      statusId: number().nullable(),
       grouped: boolean().nullable(),
       groupName: string().when('grouped', ([grouped], schema) => {
         return grouped ? schema.required() : schema.nullable();
       }),
-      sources: array(SourceProductBatchValidationSchema.required()).required(),
+      items: array(
+        createProductBatchesFromSourcesItemValidationSchema().required(),
+      )
+        .required()
+        .min(1),
     });
   };

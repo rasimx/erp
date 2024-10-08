@@ -1,21 +1,21 @@
 import { Field, InputType, Int } from '@nestjs/graphql';
 
 @InputType()
-export class SourceProductBatchDto {
+export class CreateProductBatchesFromSourcesItemDto {
   @Field(() => Int)
   productId: number;
 
   @Field(() => Int)
-  id: number;
+  count: number;
 
-  @Field(() => Int)
-  selectedCount: number;
+  @Field(() => [Int])
+  sourceIds: number[];
 }
 
 @InputType()
-export class CreateProductBatchesFromSourcesDto {
-  @Field(() => Int, { nullable: true, defaultValue: null })
-  statusId: number | null;
+export class CreateProductBatchesFromSourcesListDto {
+  @Field(() => Int)
+  statusId: number;
 
   @Field(() => Int, { nullable: true, defaultValue: null })
   groupId: number | null;
@@ -26,6 +26,6 @@ export class CreateProductBatchesFromSourcesDto {
   @Field(() => String, { nullable: true, defaultValue: null })
   groupName: string | null;
 
-  @Field(() => [SourceProductBatchDto])
-  sources: SourceProductBatchDto[];
+  @Field(() => [CreateProductBatchesFromSourcesItemDto])
+  items: CreateProductBatchesFromSourcesItemDto[];
 }

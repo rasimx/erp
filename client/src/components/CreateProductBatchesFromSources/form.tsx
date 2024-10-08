@@ -41,37 +41,35 @@ const CreateProductBatchesFromSourcesForm: FC<Props & FormProps> = props => {
 
   const [activeTab, setActiveTab] = useState<number | null>(null);
 
-  const [productMap, setProductMap] = useState<Map<number, Product>>(new Map());
+  const [products, setProducts] = useState<Product[]>([]);
 
   const addProduct = useCallback(
     (product: Nullable<Product>) => {
       if (product) {
-        setProductMap(map => {
-          map.set(product.id, product);
-          return new Map(map);
-        });
+        const index = products.findIndex(item => item.id === product.id);
+        if (index == -1) setProducts(products.concat([product]));
       }
     },
-    [setProductMap],
+    [products, setProducts],
   );
   const removeProduct = useCallback(
     (productId: number, index: number) => (e: SyntheticEvent) => {
       e.stopPropagation();
+
       if (activeTab == index) setActiveTab(null);
-      setProductMap(map => {
-        map.delete(productId);
-        return new Map(map);
+      setProducts(products => {
+        products.splice(index, 1);
+        return products;
       });
-      void setValues({
+
+      void setValues(values => ({
         ...values,
-        sources: [
-          ...(values.sources || []).filter(
-            item => item.productId !== productId,
-          ),
+        items: [
+          ...(values.items || []).filter(item => item.productId !== productId),
         ],
-      });
+      }));
     },
-    [setProductMap, activeTab],
+    [setProducts, activeTab],
   );
 
   const productBatchModal = useModal(SelectProductBatchModal);
@@ -81,18 +79,29 @@ const CreateProductBatchesFromSourcesForm: FC<Props & FormProps> = props => {
       e.stopPropagation();
       productBatchModal.show({
         productId: productId,
-        excludedIds: values.sources?.map(({ id }) => id),
+        excludedIds: values.items
+          ?.filter(item => item.productId == productId)
+          .flatMap(item => item.sourceIds),
         onSelect: (batch: ProductBatch) => {
-          if (!values.sources?.some(item => item.id === batch.id)) {
+          if (
+            !values.items?.some(
+              item =>
+                item.productId == batch.productId &&
+                item.sourceIds.includes(batch.id),
+            )
+          ) {
             setActiveTab(index);
-            void setValues({
-              ...values,
-              sources: [
-                // @ts-expect-error .....
-                ...(values.sources || []),
-                // @ts-expect-error .....
-                { selectedCount: null, productId, id: batch.id },
-              ],
+            void setValues(values => {
+              values.items = [
+                ...(values.items || []),
+                {
+                  productId,
+                  count: 0,
+                  sourceIds: [batch.id],
+                },
+              ];
+
+              return values;
             });
           }
         },
@@ -102,27 +111,35 @@ const CreateProductBatchesFromSourcesForm: FC<Props & FormProps> = props => {
   );
 
   const updateSelectedCount = useCallback(
-    (productBatchId: number) => (event: InputNumberValueChangeEvent) => {
-      if (event.value) {
-        void setValues({
-          ...values,
-          // @ts-expect-error .....
-          sources: values.sources.map(item => ({
-            ...item,
-            selectedCount:
-              item.id == productBatchId ? event.value : item.selectedCount,
-          })),
-        });
-      }
-    },
+    (productId: number, productBatchId: number) =>
+      (event: InputNumberValueChangeEvent) => {
+        if (event.value) {
+          void setValues({
+            ...values,
+            // @ts-expect-error .....
+            items: values.items.map(item => ({
+              ...item,
+              count:
+                item.productId == productId &&
+                item.sourceIds.includes(productBatchId)
+                  ? event.value
+                  : item.count,
+            })),
+          });
+        }
+      },
     [setValues, values],
   );
   const removeProductBatch = useCallback(
-    (productBatchId: number) => (e: SyntheticEvent) => {
+    (productId: number, productBatchId: number) => (e: SyntheticEvent) => {
       e.stopPropagation();
       void setValues({
         ...values,
-        sources: values.sources.filter(item => item.id != productBatchId),
+        items: values.items.filter(
+          item =>
+            item.productId != productId ||
+            !item.sourceIds.includes(productBatchId),
+        ),
       });
     },
     [setValues, values],
@@ -137,10 +154,10 @@ const CreateProductBatchesFromSourcesForm: FC<Props & FormProps> = props => {
   );
 
   const onSubmitHandler = useCallback(() => {
-    const sourcesProductIds = [
-      ...new Set([...(values.sources || []).map(item => item.productId)]),
-    ];
-    if ([...productMap.keys()].every(id => sourcesProductIds.includes(id))) {
+    const sourcesProductIds = values.items.map(item => item.productId);
+    if (
+      products.map(({ id }) => id).every(id => sourcesProductIds.includes(id))
+    ) {
       void submitForm();
     }
   }, [submitForm, values]);
@@ -158,7 +175,7 @@ const CreateProductBatchesFromSourcesForm: FC<Props & FormProps> = props => {
           setActiveTab(e.index as number);
         }}
       >
-        {[...productMap.values()].map((product, index) => {
+        {products.map((product, index) => {
           return (
             <AccordionTab
               key={product.id}
@@ -167,20 +184,18 @@ const CreateProductBatchesFromSourcesForm: FC<Props & FormProps> = props => {
               //     .length && classes.error,
               // )}
               headerClassName={classes.accordionHeader}
-              disabled={
-                !values.sources?.filter(item => item.productId == product.id)
-                  .length
-              }
+              // disabled={
+              //   !values.items?.filter(item => item.productId == product.id)
+              //     .length
+              // }
               header={
                 <div className={classes.accordionHeaderInner}>
                   <div>{product.sku}</div>
                   <div>
-                    {values.sources?.reduce(
+                    {values.items?.reduce(
                       (prev, cur) =>
                         prev +
-                        (cur.productId == product.id
-                          ? cur.selectedCount ?? 0
-                          : 0),
+                        (cur.productId == product.id ? cur.count ?? 0 : 0),
                       0,
                     )}{' '}
                     шт
@@ -188,7 +203,7 @@ const CreateProductBatchesFromSourcesForm: FC<Props & FormProps> = props => {
                   <ButtonGroup>
                     <Button
                       label="Добавить партию"
-                      icon="pi pi-check"
+                      // icon="pi pi-check"
                       type="button"
                       onClick={addProductBatchHandle(product.id, index)}
                     />
@@ -201,26 +216,31 @@ const CreateProductBatchesFromSourcesForm: FC<Props & FormProps> = props => {
                 </div>
               }
             >
-              {values.sources
+              {values.items
                 ?.filter(item => item.productId == product.id)
-                .map(item => (
-                  <div>
-                    {item.id}:{' '}
-                    <InputNumber
-                      required
-                      placeholder=" шт"
-                      suffix=" шт"
-                      maxFractionDigits={0}
-                      value={item.selectedCount}
-                      onValueChange={updateSelectedCount(item.id)}
-                    />
-                    <Button
-                      icon="pi pi-trash"
-                      onClick={removeProductBatch(item.id)}
-                      type="button"
-                    />
-                  </div>
-                ))}
+                .map(item =>
+                  item.sourceIds.map(sourceId => (
+                    <div>
+                      {sourceId}:{' '}
+                      <InputNumber
+                        required
+                        placeholder=" шт"
+                        suffix=" шт"
+                        maxFractionDigits={0}
+                        value={item.count}
+                        onValueChange={updateSelectedCount(
+                          product.id,
+                          sourceId,
+                        )}
+                      />
+                      <Button
+                        icon="pi pi-trash"
+                        onClick={removeProductBatch(product.id, sourceId)}
+                        type="button"
+                      />
+                    </div>
+                  )),
+                )}
             </AccordionTab>
           );
         })}

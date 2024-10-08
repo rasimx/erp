@@ -21,18 +21,6 @@ const CreateProductBatchesByAssemblingForm: FC<Props & FormProps> = props => {
 
   const [state, setState] = useState<FormState>({});
 
-  useEffect(() => {
-    setValues(values => ({
-      ...values,
-      fullCount: state.fullCount,
-      productSetId: state.productSetId,
-      sources: state.sources?.map(item => ({
-        selectedCount: item.selectedCount,
-        id: item.id,
-      })),
-    }));
-  }, [state]);
-
   const stepperRef = useRef<StepperRefAttributes>(null);
   const [activeStep, setActiveStep] = useState(0);
   const nextStep = useCallback(() => {
@@ -47,7 +35,7 @@ const CreateProductBatchesByAssemblingForm: FC<Props & FormProps> = props => {
   const nextStepDisabled = useMemo(() => {
     switch (activeStep) {
       case 1:
-        return !state.productSet || !state.fullCount;
+        return !state.product || !state.count;
       case 2:
         return false;
       default:
@@ -62,15 +50,15 @@ const CreateProductBatchesByAssemblingForm: FC<Props & FormProps> = props => {
       },
       {
         label: 'Выбор партий',
-        disabled: !state.productSet || !state.fullCount,
+        disabled: !state.product || !state.count,
       },
       {
         label: 'Предпросмотр',
         // todo: fix
         disabled:
-          state.fullCount == null ||
-          state.fullCount == 0 ||
-          state.fullCount !=
+          state.count == null ||
+          state.count == 0 ||
+          state.count !=
             state.sources?.reduce(
               (prev, cur) => prev + (cur.selectedCount || 0),
               0,
@@ -92,7 +80,7 @@ const CreateProductBatchesByAssemblingForm: FC<Props & FormProps> = props => {
         <div>
           {activeStep == 0 && <Step_1 />}
           {activeStep == 1 && <Step_2 />}
-          {activeStep == 2 && <Step_3 />}
+          {activeStep == 2 && <Step_3 {...props} />}
         </div>
 
         <div className={classes.bottom}>

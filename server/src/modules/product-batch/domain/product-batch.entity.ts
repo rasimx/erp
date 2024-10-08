@@ -20,7 +20,7 @@ import { StatusEntity } from '@/status/status.entity.js';
 
 @Entity({ name: 'product_batch' })
 export class ProductBatchEntity {
-  @PrimaryColumn({ type: 'bigint' })
+  @PrimaryColumn()
   id: number;
 
   @Column({

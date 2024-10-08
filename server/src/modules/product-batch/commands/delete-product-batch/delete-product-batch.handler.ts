@@ -6,7 +6,7 @@ import { ContextService } from '@/context/context.service.js';
 import type { CustomDataSource } from '@/database/custom.data-source.js';
 import { ProductEventStore } from '@/product/eventstore/product.eventstore.js';
 import { ProductBatchRepository } from '@/product-batch/domain/product-batch.repository.js';
-import { ProductBatchEventStore } from '@/product-batch/eventstore/product-batch.eventstore.js';
+// import { ProductBatchEventStore } from '@/product-batch/eventstore/product-batch.eventstore.js';
 import { ProductBatchService } from '@/product-batch/product-batch.service.js';
 
 import { DeleteProductBatchCommand } from './delete-product-batch.command.js';
@@ -19,7 +19,7 @@ export class DeleteProductBatchHandler
     @InjectDataSource()
     private dataSource: CustomDataSource,
     private readonly productBatchRepository: ProductBatchRepository,
-    private readonly productBatchEventStore: ProductBatchEventStore,
+    // private readonly productBatchEventStore: ProductBatchEventStore,
     private readonly productEventStore: ProductEventStore,
     private readonly contextService: ContextService,
     private readonly productBatchService: ProductBatchService,
@@ -37,51 +37,51 @@ export class DeleteProductBatchHandler
 
     throw new Error('как удалять если есть source');
 
-    try {
-      const { id } = command;
-      const transactionalProductBatchRepository =
-        queryRunner.manager.withRepository(this.productBatchRepository);
-
-      const productBatch =
-        await transactionalProductBatchRepository.findOneOrFail({
-          where: { id },
-        });
-
-      await transactionalProductBatchRepository.softDelete({ id });
-
-      await this.productBatchService.relinkPostings({
-        queryRunner,
-        deletedIds: [id],
-      });
-
-      const eventData = pick(productBatch, ['id', 'count']);
-      const { appendResult, cancel } =
-        await this.productBatchEventStore.appendProductBatchDeletedEvent({
-          eventId: requestId,
-          data: eventData,
-        });
-      if (!appendResult.success) throw new Error('????');
-      cancels.push(cancel);
-
-      const { appendResult: productAppendResult, cancel: productCancel } =
-        await this.productEventStore.appendProductBatchDeletedEvent({
-          eventId: requestId,
-          productId: productBatch.productId,
-          data: eventData,
-        });
-
-      if (!productAppendResult.success) throw new Error('????');
-
-      await queryRunner.commitTransaction();
-    } catch (err) {
-      await queryRunner.rollbackTransaction();
-      for (const cancel of cancels) {
-        await cancel();
-      }
-      throw err;
-    } finally {
-      // you need to release a queryRunner which was manually instantiated
-      await queryRunner.release();
-    }
+    // try {
+    //   const { id } = command;
+    //   const transactionalProductBatchRepository =
+    //     queryRunner.manager.withRepository(this.productBatchRepository);
+    //
+    //   const productBatch =
+    //     await transactionalProductBatchRepository.findOneOrFail({
+    //       where: { id },
+    //     });
+    //
+    //   await transactionalProductBatchRepository.softDelete({ id });
+    //
+    //   await this.productBatchService.relinkPostings({
+    //     queryRunner,
+    //     deletedIds: [id],
+    //   });
+    //
+    //   const eventData = pick(productBatch, ['id', 'count']);
+    //   const { appendResult, cancel } =
+    //     await this.productBatchEventStore.appendProductBatchDeletedEvent({
+    //       eventId: requestId,
+    //       data: eventData,
+    //     });
+    //   if (!appendResult.success) throw new Error('????');
+    //   cancels.push(cancel);
+    //
+    //   const { appendResult: productAppendResult, cancel: productCancel } =
+    //     await this.productEventStore.appendProductBatchDeletedEvent({
+    //       eventId: requestId,
+    //       productId: productBatch.productId,
+    //       data: eventData,
+    //     });
+    //
+    //   if (!productAppendResult.success) throw new Error('????');
+    //
+    //   await queryRunner.commitTransaction();
+    // } catch (err) {
+    //   await queryRunner.rollbackTransaction();
+    //   for (const cancel of cancels) {
+    //     await cancel();
+    //   }
+    //   throw err;
+    // } finally {
+    //   // you need to release a queryRunner which was manually instantiated
+    //   await queryRunner.release();
+    // }
   }
 }

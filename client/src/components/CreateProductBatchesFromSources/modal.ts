@@ -4,7 +4,7 @@ import { FormikBag } from 'formik/dist/withFormik';
 import omit from 'lodash/omit';
 import { confirmDialog } from 'primereact/confirmdialog';
 
-import { CREATE_PRODUCT_BATCHES_FROM_SOURCES_MUTATION } from '../../api/product-batch/product-batch.gql';
+import { CREATE_PRODUCT_BATCHES_FROM_SOURCES_LIST_MUTATION } from '../../api/product-batch/product-batch.gql';
 import apolloClient from '../../apollo-client';
 import { CreateProductBatchesFromSourcesDto } from '../../gql-types/graphql';
 import withModal from '../withModal';
@@ -44,7 +44,7 @@ const CreateProductBatchesFromSourcesForm = withFormik<Props, FormValues>({
       accept: () => {
         apolloClient
           .mutate({
-            mutation: CREATE_PRODUCT_BATCHES_FROM_SOURCES_MUTATION,
+            mutation: CREATE_PRODUCT_BATCHES_FROM_SOURCES_LIST_MUTATION,
             variables: { dto: values },
           })
           .then(result => {

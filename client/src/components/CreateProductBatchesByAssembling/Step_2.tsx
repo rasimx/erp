@@ -10,7 +10,7 @@ const Step_1: FC<Props> = props => {
 
   return (
     <div>
-      {state.productSet?.setItems.map(setItem => (
+      {state.product?.setItems.map(setItem => (
         <ProductSetItem key={setItem.productId} setItem={setItem} />
       ))}
     </div>

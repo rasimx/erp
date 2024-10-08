@@ -1,10 +1,12 @@
 import { v7 as uuidV7 } from 'uuid';
 
-import type { ProductBatchProps } from '@/product-batch/domain/product-batch.interfaces.js';
+import type {
+  CreateProductBatchProps,
+  ProductBatchProps,
+} from '@/product-batch/domain/product-batch.interfaces.js';
 
 import {
   type ProductBatchChildCreatedEvent,
-  type ProductBatchChildCreatedEventData,
   type ProductBatchCreatedEvent,
   type ProductBatchCreatedEventData,
   type ProductBatchEditedEvent,
@@ -21,16 +23,23 @@ export class ProductBatch {
   private events: RevisionProductBatchEvent[] = [];
   private constructor(private props: ProductBatchProps) {
     if (!props.id) throw new Error('id must be defined');
-    this.id = props.id;
+    this.id = Number(props.id);
   }
 
-  public static create(props: ProductBatchProps): ProductBatch {
-    const productBatch = new ProductBatch(props);
+  public static create(
+    props: CreateProductBatchProps,
+    metadata?: Record<string, unknown>,
+  ): ProductBatch {
+    const productBatch = new ProductBatch({
+      ...props,
+      initialCount: props.count,
+    });
 
     const event: ProductBatchCreatedEvent = {
       id: uuidV7(),
       type: ProductBatchEventType.ProductBatchCreated,
       data: productBatch.toObject(),
+      metadata,
     };
 
     productBatch.revision = 0;
@@ -45,47 +54,57 @@ export class ProductBatch {
     productId: number;
     statusId: number | null;
     groupId: number | null;
+    order: number;
     sources: { qty: number; productBatch: ProductBatch }[];
-  }) {
-    // const productBatch = ProductBatch.create({
-    //   id: data.id,
-    //   count: data.count,
-    //   productId: data.id,
-    //   costPricePerUnit: data.sources.reduce(
-    //     (prev, cur) => prev + cur.productBatch.getCostPricePerUnit() * cur.qty,
-    //     0,
-    //   ),
-    //   exchangeRate: null,
-    //   operationsPrice: 0,
-    //   operationsPricePerUnit: 0,
-    //   currencyCostPricePerUnit: 0,
-    //   statusId: data.statusId,
-    //   groupId: data.groupId,
-    //   sourceIds: data.sources.map(item => item.productBatch.id),
-    // });
-    // productBatch.revision = 0;
-  }
-
-  public createChild(data: ProductBatchChildCreatedEventData): ProductBatch {
-    const child = ProductBatch.create({
-      ...this.props,
-      ...data,
-      sourceIds: [this.id],
-      count: data.count * data.qty,
+  }): ProductBatch {
+    const sourceEvents: ProductBatchChildCreatedEvent[] = [];
+    data.sources.forEach(item => {
+      const event: ProductBatchChildCreatedEvent = {
+        id: uuidV7(),
+        type: ProductBatchEventType.ProductBatchChildCreated,
+        data: {
+          childId: data.id,
+          qty: item.qty,
+          count: item.qty * data.count,
+        },
+      };
+      item.productBatch.appendEvent(event);
+      sourceEvents.push(event);
     });
 
-    const event: ProductBatchChildCreatedEvent = {
-      id: uuidV7(),
-      type: ProductBatchEventType.ProductBatchChildCreated,
-      data,
-    };
-    this.appendEvent(event);
-    // this.applyEvent(event);
-
-    return child;
+    return ProductBatch.create(
+      {
+        id: data.id,
+        count: data.count,
+        productId: data.productId,
+        costPricePerUnit: data.sources.reduce(
+          (prev, cur) =>
+            prev + cur.productBatch.toObject().costPricePerUnit * cur.qty,
+          0,
+        ),
+        exchangeRate: null,
+        operationsPrice: data.sources.reduce(
+          (prev, cur) =>
+            prev + cur.productBatch.toObject().operationsPrice * cur.qty,
+          0,
+        ),
+        operationsPricePerUnit: data.sources.reduce(
+          (prev, cur) =>
+            prev + cur.productBatch.toObject().operationsPricePerUnit * cur.qty,
+          0,
+        ),
+        currencyCostPricePerUnit: null,
+        statusId: data.statusId,
+        groupId: data.groupId,
+        sourceIds: data.sources.map(item => item.productBatch.id),
+        order: data.order,
+      },
+      { sourceEvents },
+    );
   }
 
-  public static buildFromEvents(events: RevisionProductBatchEvent[]) {
+  public static buildFromEvents(origEvents: RevisionProductBatchEvent[]) {
+    const events = [...origEvents].toSorted((a, b) => a.revision - b.revision);
     const zeroEvent = events.shift();
 
     if (!zeroEvent) throw new Error('not found');
@@ -170,6 +189,9 @@ export class ProductBatch {
   getOrder(): number {
     return this.props.order;
   }
+  getProductId(): number {
+    return this.props.productId;
+  }
   getStatusId(): number | null {
     return this.props.statusId;
   }
@@ -182,7 +204,7 @@ export class ProductBatch {
   }
 
   toObject() {
-    return { ...this.props, id: this.id, revision: this.revision, userId: 1 };
+    return { ...this.props, id: this.id, revision: this.revision };
   }
 
   public move({ order, groupId, statusId }: ProductBatchMovedEventData): void {

@@ -1,4 +1,5 @@
 import React, { FC } from 'react';
+import ReactJson from 'react-json-view';
 
 import { EventFragment } from '../../gql-types/graphql';
 
@@ -19,11 +20,9 @@ const EventListItem: FC<Props> = props => {
       <div onClick={handleClick} style={{ cursor: 'pointer' }}>
         {event.type}
       </div>
-      {/*<Collapse in={open}>*/}
-      {/*  <div>*/}
-      {/*    <pre>{JSON.stringify(event.data, null, 2)}</pre>*/}
-      {/*  </div>*/}
-      {/*</Collapse>*/}
+      <div style={{ display: open ? 'block' : 'none' }}>
+        <ReactJson src={event.data} />
+      </div>
     </div>
   );
 };

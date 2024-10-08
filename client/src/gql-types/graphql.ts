@@ -18,11 +18,6 @@ export type Scalars = {
   JSONObject: { input: any; output: any; }
 };
 
-export type AssemblingSourceDto = {
-  id: Scalars['Int']['input'];
-  selectedCount: Scalars['Int']['input'];
-};
-
 export type CommandResponse = {
   __typename?: 'CommandResponse';
   success: Scalars['Boolean']['output'];
@@ -62,20 +57,18 @@ export type CreateProductBatchListDto = {
   statusId: Scalars['Int']['input'];
 };
 
-export type CreateProductBatchesByAssemblingDto = {
-  fullCount: Scalars['Int']['input'];
-  groupId?: InputMaybe<Scalars['Int']['input']>;
-  productSetId: Scalars['Int']['input'];
-  sources: Array<AssemblingSourceDto>;
-  statusId?: InputMaybe<Scalars['Int']['input']>;
+export type CreateProductBatchesFromSourcesItemDto = {
+  count: Scalars['Int']['input'];
+  productId: Scalars['Int']['input'];
+  sourceIds: Array<Scalars['Int']['input']>;
 };
 
-export type CreateProductBatchesFromSourcesDto = {
+export type CreateProductBatchesFromSourcesListDto = {
   groupId?: InputMaybe<Scalars['Int']['input']>;
   groupName?: InputMaybe<Scalars['String']['input']>;
   grouped?: InputMaybe<Scalars['Boolean']['input']>;
-  sources: Array<SourceProductBatchDto>;
-  statusId?: InputMaybe<Scalars['Int']['input']>;
+  items: Array<CreateProductBatchesFromSourcesItemDto>;
+  statusId: Scalars['Int']['input'];
 };
 
 export type CreateProductDto = {
@@ -134,7 +127,6 @@ export type Mutation = {
   createProduct: ProductDto;
   createProductBatch: CommandResponse;
   createProductBatchGroup: CommandResponse;
-  createProductBatchesByAssembling: CommandResponse;
   createProductBatchesFromSources: CommandResponse;
   createStatus: Array<StatusDto>;
   deleteProductBatch: CommandResponse;
@@ -166,13 +158,8 @@ export type MutationCreateProductBatchGroupArgs = {
 };
 
 
-export type MutationCreateProductBatchesByAssemblingArgs = {
-  dto: CreateProductBatchesByAssemblingDto;
-};
-
-
 export type MutationCreateProductBatchesFromSourcesArgs = {
-  dto: CreateProductBatchesFromSourcesDto;
+  dto: CreateProductBatchesFromSourcesListDto;
 };
 
 
@@ -367,12 +354,6 @@ export type SetItemDto = {
   sku: Scalars['String']['output'];
 };
 
-export type SourceProductBatchDto = {
-  id: Scalars['Int']['input'];
-  productId: Scalars['Int']['input'];
-  selectedCount: Scalars['Int']['input'];
-};
-
 export type StatusDto = {
   __typename?: 'StatusDto';
   id: Scalars['Int']['output'];
@@ -513,19 +494,12 @@ export type EditProductBatchMutationVariables = Exact<{
 
 export type EditProductBatchMutation = { __typename?: 'Mutation', editProductBatch: { __typename?: 'CommandResponse', success: boolean } };
 
-export type CreateProductBatchesByAssemblingMutationVariables = Exact<{
-  dto: CreateProductBatchesByAssemblingDto;
+export type CreateProductBatchesFromSourcesListDtoMutationVariables = Exact<{
+  dto: CreateProductBatchesFromSourcesListDto;
 }>;
 
 
-export type CreateProductBatchesByAssemblingMutation = { __typename?: 'Mutation', createProductBatchesByAssembling: { __typename?: 'CommandResponse', success: boolean } };
-
-export type CreateProductBatchesFromSourcesMutationVariables = Exact<{
-  dto: CreateProductBatchesFromSourcesDto;
-}>;
-
-
-export type CreateProductBatchesFromSourcesMutation = { __typename?: 'Mutation', createProductBatchesFromSources: { __typename?: 'CommandResponse', success: boolean } };
+export type CreateProductBatchesFromSourcesListDtoMutation = { __typename?: 'Mutation', createProductBatchesFromSources: { __typename?: 'CommandResponse', success: boolean } };
 
 export type DeleteProductBatchMutationVariables = Exact<{
   id: Scalars['Int']['input'];
@@ -627,8 +601,7 @@ export const ProductBatchListDocument = {"kind":"Document","definitions":[{"kind
 export const MoveProductBatchDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"moveProductBatch"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"dto"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"MoveProductBatchDto"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"moveProductBatch"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"dto"},"value":{"kind":"Variable","name":{"kind":"Name","value":"dto"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"success"}}]}}]}}]} as unknown as DocumentNode<MoveProductBatchMutation, MoveProductBatchMutationVariables>;
 export const CreateProductBatchDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"createProductBatch"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"dto"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"CreateProductBatchListDto"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"createProductBatch"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"dto"},"value":{"kind":"Variable","name":{"kind":"Name","value":"dto"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"success"}}]}}]}}]} as unknown as DocumentNode<CreateProductBatchMutation, CreateProductBatchMutationVariables>;
 export const EditProductBatchDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"editProductBatch"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"dto"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"EditProductBatchDto"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"editProductBatch"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"dto"},"value":{"kind":"Variable","name":{"kind":"Name","value":"dto"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"success"}}]}}]}}]} as unknown as DocumentNode<EditProductBatchMutation, EditProductBatchMutationVariables>;
-export const CreateProductBatchesByAssemblingDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"createProductBatchesByAssembling"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"dto"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"CreateProductBatchesByAssemblingDto"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"createProductBatchesByAssembling"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"dto"},"value":{"kind":"Variable","name":{"kind":"Name","value":"dto"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"success"}}]}}]}}]} as unknown as DocumentNode<CreateProductBatchesByAssemblingMutation, CreateProductBatchesByAssemblingMutationVariables>;
-export const CreateProductBatchesFromSourcesDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"createProductBatchesFromSources"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"dto"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"CreateProductBatchesFromSourcesDto"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"createProductBatchesFromSources"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"dto"},"value":{"kind":"Variable","name":{"kind":"Name","value":"dto"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"success"}}]}}]}}]} as unknown as DocumentNode<CreateProductBatchesFromSourcesMutation, CreateProductBatchesFromSourcesMutationVariables>;
+export const CreateProductBatchesFromSourcesListDtoDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"CreateProductBatchesFromSourcesListDto"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"dto"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"CreateProductBatchesFromSourcesListDto"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"createProductBatchesFromSources"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"dto"},"value":{"kind":"Variable","name":{"kind":"Name","value":"dto"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"success"}}]}}]}}]} as unknown as DocumentNode<CreateProductBatchesFromSourcesListDtoMutation, CreateProductBatchesFromSourcesListDtoMutationVariables>;
 export const DeleteProductBatchDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"deleteProductBatch"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"deleteProductBatch"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"success"}}]}}]}}]} as unknown as DocumentNode<DeleteProductBatchMutation, DeleteProductBatchMutationVariables>;
 export const ProductListDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"productList"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"ids"}},"type":{"kind":"ListType","type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"productList"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"ids"},"value":{"kind":"Variable","name":{"kind":"Name","value":"ids"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"items"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"Product"}}]}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"SetItem"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"SetItemDto"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"productId"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"sku"}},{"kind":"Field","name":{"kind":"Name","value":"qty"}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"Product"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"ProductDto"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"sku"}},{"kind":"Field","name":{"kind":"Name","value":"setItems"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"SetItem"}}]}}]}}]} as unknown as DocumentNode<ProductListQuery, ProductListQueryVariables>;
 export const ProductSetListDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"productSetList"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"productSetList"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"items"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"Product"}}]}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"SetItem"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"SetItemDto"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"productId"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"sku"}},{"kind":"Field","name":{"kind":"Name","value":"qty"}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"Product"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"ProductDto"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"sku"}},{"kind":"Field","name":{"kind":"Name","value":"setItems"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"SetItem"}}]}}]}}]} as unknown as DocumentNode<ProductSetListQuery, ProductSetListQueryVariables>;

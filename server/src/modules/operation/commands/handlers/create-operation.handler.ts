@@ -8,7 +8,7 @@ import type { CustomDataSource } from '@/database/custom.data-source.js';
 import { CreateOperationCommand } from '@/operation/commands/impl/create-operation.command.js';
 import { OperationEntity } from '@/operation/operation.entity.js';
 import { ProductBatchEntity } from '@/product-batch/domain/product-batch.entity.js';
-import { ProductBatchEventStore } from '@/product-batch/eventstore/product-batch.eventstore.js';
+// import { ProductBatchEventStore } from '@/product-batch/eventstore/product-batch.eventstore.js';
 import { ProductBatchGroupEventStore } from '@/product-batch-group/eventstore/prodict-batch-group.eventstore.js';
 import { ProductBatchOperationEntity } from '@/product-batch-operation/product-batch-operation.entity.js';
 
@@ -20,7 +20,7 @@ export class CreateOperationHandler
     @InjectDataSource()
     private dataSource: CustomDataSource,
     private readonly contextService: ContextService,
-    private readonly productBatchEventStore: ProductBatchEventStore,
+    // private readonly productBatchEventStore: ProductBatchEventStore,
     private readonly productBatchGroupEventStore: ProductBatchGroupEventStore,
   ) {}
 
@@ -111,30 +111,30 @@ export class CreateOperationHandler
           cancels.push(cancel);
         }
 
-        if (dto.productBatchProportions.length > 1) {
-          for (const productBatchProportion of dto.productBatchProportions) {
-            const { appendResult, cancel } =
-              await this.productBatchEventStore.appendGroupOperationCreatedEvent(
-                {
-                  eventId: requestId,
-                  productBatchId: productBatchProportion.productBatchId,
-                  data: dto,
-                },
-              );
-
-            if (!appendResult.success) throw new Error('????');
-            cancels.push(cancel);
-          }
-        } else {
-          const { appendResult, cancel } =
-            await this.productBatchEventStore.appendOperationCreatedEvent({
-              eventId: requestId,
-              productBatchId: dto.productBatchProportions[0].productBatchId,
-              data: dto,
-            });
-          if (!appendResult.success) throw new Error('????');
-          cancels.push(cancel);
-        }
+        // if (dto.productBatchProportions.length > 1) {
+        //   for (const productBatchProportion of dto.productBatchProportions) {
+        //     const { appendResult, cancel } =
+        //       await this.productBatchEventStore.appendGroupOperationCreatedEvent(
+        //         {
+        //           eventId: requestId,
+        //           productBatchId: productBatchProportion.productBatchId,
+        //           data: dto,
+        //         },
+        //       );
+        //
+        //     if (!appendResult.success) throw new Error('????');
+        //     cancels.push(cancel);
+        //   }
+        // } else {
+        //   const { appendResult, cancel } =
+        //     await this.productBatchEventStore.appendOperationCreatedEvent({
+        //       eventId: requestId,
+        //       productBatchId: dto.productBatchProportions[0].productBatchId,
+        //       data: dto,
+        //     });
+        //   if (!appendResult.success) throw new Error('????');
+        //   cancels.push(cancel);
+        // }
       } catch (e) {
         for (const cancel of cancels) {
           await cancel();

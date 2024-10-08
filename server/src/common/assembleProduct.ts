@@ -1,15 +1,6 @@
-export interface ProductBatch {
-  id: number;
-  productId: number;
-  count: number;
-  costPricePerUnit: number;
-  operationsPricePerUnit: number;
-  product: { id: number; name: string; sku: string };
-}
-
 export interface SetItem {
-  setId: number;
   productId: number;
+  sku: string;
   qty: number;
 }
 
@@ -20,42 +11,41 @@ export interface ProductSet {
 
 export interface SourceItem {
   id: number;
+  productId: number;
+  count: number;
   selectedCount: number;
 }
 
 export interface AssembleItem {
-  productSet: ProductSet;
-  fullCount: number;
+  product: ProductSet;
+  count: number;
   sources: SourceItem[];
-  productBatches: ProductBatch[];
 }
+type QtySourceItem = SourceItem & {
+  qty: number;
+  sku: string;
+};
 
 export interface ResultProductBatch {
   count: number;
-  sources: {
-    selectedCount: number;
-    productBatch: ProductBatch;
-    qty: number;
-  }[];
+  sources: QtySourceItem[];
 }
 
 export const assembleProduct = ({
-  productSet,
-  fullCount,
-  sources,
-  productBatches,
+  product,
+  count,
+  sources: originalSources,
 }: AssembleItem): ResultProductBatch[] => {
-  if (!productSet.setItems.length)
-    throw new Error(`Product ${productSet.id.toString()} is not Set`);
+  const sources = originalSources.map(source => ({ ...source }));
+  if (!product.setItems.length)
+    throw new Error(`Product ${product.id.toString()} is not Set`);
 
-  const sourceBatchMapById = new Map(
-    productBatches.map(item => [item.id, item]),
-  );
+  const sourceBatchMapById = new Map(sources.map(item => [item.id, item]));
 
   if (
-    productSet.setItems.filter(
+    product.setItems.filter(
       setItem =>
-        setItem.qty * fullCount !=
+        setItem.qty * count !=
         sources
           .filter(item => {
             const batch = sourceBatchMapById.get(item.id);
@@ -70,45 +60,23 @@ export const assembleProduct = ({
     throw new Error(`count error`);
   }
 
-  const sourceBatchMap = new Map<
-    number,
-    {
-      selectedCount: number;
-      productBatch: ProductBatch;
-    }[]
-  >();
-  sources.forEach(({ id, selectedCount }) => {
-    const productBatch = sourceBatchMapById.get(id);
-    if (!productBatch) throw new Error(`sourceId ${id.toString()} not found`);
-
-    const mapItem = sourceBatchMap.get(productBatch.productId) ?? [];
-    mapItem.push({
-      selectedCount,
-      productBatch,
-    });
-    sourceBatchMap.set(productBatch.productId, mapItem);
+  const sourceBatchMapByProductId = new Map<number, SourceItem[]>();
+  sources.forEach(item => {
+    const mapItem = sourceBatchMapByProductId.get(item.productId) ?? [];
+    mapItem.push(item);
+    sourceBatchMapByProductId.set(item.productId, mapItem);
   });
 
   const entities: {
     count: number;
-    sources: {
-      selectedCount: number;
-      productBatch: ProductBatch;
-      qty: number;
-    }[];
+    sources: QtySourceItem[];
   }[] = [];
-  const remains = new Map<
-    number,
-    { selectedCount: number; productBatch: ProductBatch; qty: number }[]
-  >();
+  const remains = new Map<number, QtySourceItem[]>();
   for (;;) {
-    const items: {
-      qty: number;
-      source: { selectedCount: number; productBatch: ProductBatch };
-    }[] = [];
+    const items: QtySourceItem[] = [];
 
-    productSet.setItems.forEach(setItem => {
-      let sources = sourceBatchMap.get(setItem.productId);
+    product.setItems.forEach(setItem => {
+      let sources = sourceBatchMapByProductId.get(setItem.productId);
       if (!sources)
         throw new Error(
           `not found source batches for ${setItem.productId.toString()}`,
@@ -117,73 +85,66 @@ export const assembleProduct = ({
       sources = sources.filter(item => item.selectedCount > 0);
       if (sources.length > 0) {
         items.push({
+          ...sources.toSorted((a, b) => b.selectedCount - a.selectedCount)[0],
           qty: setItem.qty,
-          source: sources.toSorted(
-            (a, b) => b.selectedCount - a.selectedCount,
-          )[0],
+          sku: setItem.sku,
         });
-        sourceBatchMap.set(setItem.productId, sources);
       }
     });
-    if (productSet.setItems.length == items.length) {
-      items.sort(
-        (a, b) =>
-          a.source.selectedCount / a.qty - b.source.selectedCount / b.qty,
-      );
+    if (product.setItems.length == items.length) {
+      items.sort((a, b) => a.selectedCount / a.qty - b.selectedCount / b.qty);
       const minItem = items[0];
-      const itemCount = Math.floor(minItem.source.selectedCount / minItem.qty);
+      const itemCount = Math.floor(minItem.selectedCount / minItem.qty);
       if (itemCount > 0) {
         entities.push({
           count: itemCount,
-          sources: items.map(({ qty, source }) => ({
-            selectedCount: qty * itemCount,
-            productBatch: source.productBatch,
-            qty,
+          sources: items.map(item => ({
+            ...item,
+            selectedCount: item.qty * itemCount,
           })),
         });
         items.forEach(item => {
-          item.source.selectedCount -= itemCount * item.qty;
+          item.selectedCount -= itemCount * item.qty;
+          const original = sourceBatchMapById.get(item.id);
+          if (original) original.selectedCount -= itemCount * item.qty;
         });
       }
 
-      if (minItem.source.selectedCount % minItem.qty) {
-        const remainsMapItem =
-          remains.get(minItem.source.productBatch.productId) ?? [];
-        remainsMapItem.push({ ...minItem.source, qty: minItem.qty });
-        remains.set(minItem.source.productBatch.productId, remainsMapItem);
-        minItem.source.selectedCount = 0;
+      if (minItem.selectedCount % minItem.qty) {
+        const remainsMapItem = remains.get(minItem.productId) ?? [];
+        remainsMapItem.push({ ...minItem, qty: minItem.qty });
+        remains.set(minItem.productId, remainsMapItem);
+        minItem.selectedCount = 0;
+        const original = sourceBatchMapById.get(minItem.id);
+        if (original) {
+          original.selectedCount = 0;
+        } else {
+          throw new Error(
+            `not found source batches for ${minItem.id.toString()}`,
+          );
+        }
       }
       if (
-        ![...sourceBatchMap.values()].filter(
-          item => !!item.filter(item => item.selectedCount > 0).length,
-        ).length
+        ![...sourceBatchMapById.values()].filter(item => item.selectedCount > 0)
+          .length
       )
         break;
     } else {
       items.forEach(item => {
-        const remainsMapItem =
-          remains.get(item.source.productBatch.productId) ?? [];
-        remainsMapItem.push({ ...item.source, qty: item.qty });
-        remains.set(item.source.productBatch.productId, remainsMapItem);
+        const remainsMapItem = remains.get(item.productId) ?? [];
+        remainsMapItem.push({ ...item, qty: item.qty });
+        remains.set(item.productId, remainsMapItem);
       });
       break;
     }
   }
   while (remains.size > 0) {
-    const remainEntities: {
-      selectedCount: number;
-      productBatch: ProductBatch;
-      qty: number;
-    }[] = [];
-    productSet.setItems.forEach(setItem => {
+    const remainEntities: QtySourceItem[] = [];
+    product.setItems.forEach(setItem => {
       const list = remains.get(setItem.productId);
       if (!list) throw new Error('aaaa');
 
-      const selectedItems: {
-        selectedCount: number;
-        productBatch: ProductBatch;
-        qty: number;
-      }[] = [];
+      const selectedItems: SourceItem[] = [];
       while (
         selectedItems.reduce((prev, cur) => prev + cur.selectedCount, 0) <
         setItem.qty
@@ -192,7 +153,13 @@ export const assembleProduct = ({
         if (a) selectedItems.push(a);
         else break;
       }
-      remainEntities.push(...selectedItems);
+      remainEntities.push(
+        ...selectedItems.map(item => ({
+          ...item,
+          qty: setItem.qty,
+          sku: setItem.sku,
+        })),
+      );
       if (list.length == 0) {
         remains.delete(setItem.productId);
       }

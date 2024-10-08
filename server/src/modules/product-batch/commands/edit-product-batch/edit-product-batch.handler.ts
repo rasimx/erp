@@ -7,7 +7,7 @@ import type { CustomDataSource } from '@/database/custom.data-source.js';
 import { ProductEventStore } from '@/product/eventstore/product.eventstore.js';
 import { EditProductBatchCommand } from '@/product-batch/commands/edit-product-batch/edit-product-batch.command.js';
 import { ProductBatchRepository } from '@/product-batch/domain/product-batch.repository.js';
-import { ProductBatchEventStore } from '@/product-batch/eventstore/product-batch.eventstore.js';
+// import { ProductBatchEventStore } from '@/product-batch/eventstore/product-batch.eventstore.js';
 import { ProductBatchService } from '@/product-batch/product-batch.service.js';
 
 @CommandHandler(EditProductBatchCommand)
@@ -18,7 +18,7 @@ export class EditProductBatchHandler
     @InjectDataSource()
     private dataSource: CustomDataSource,
     private readonly productBatchRepository: ProductBatchRepository,
-    private readonly productBatchEventStore: ProductBatchEventStore,
+    // private readonly productBatchEventStore: ProductBatchEventStore,
     private readonly productEventStore: ProductEventStore,
     private readonly contextService: ContextService,
     private readonly productBatchService: ProductBatchService,
@@ -59,23 +59,23 @@ export class EditProductBatchHandler
         affectedIds,
       });
 
-      const { appendResult, cancel } =
-        await this.productBatchEventStore.appendProductBatchEditedEvent({
-          eventId: requestId,
-          data: dto,
-        });
-      if (!appendResult.success) throw new Error('????');
-      cancels.push(cancel);
-
-      // todo: если меняется количество - добавляем событие в product, иначе наверно не стоит
-      const { appendResult: productAppendResult, cancel: productCancel } =
-        await this.productEventStore.appendProductBatchEditedEvent({
-          eventId: requestId,
-          productId: entity.productId,
-          data: dto,
-        });
-
-      if (!productAppendResult.success) throw new Error('????');
+      // const { appendResult, cancel } =
+      //   await this.productBatchEventStore.appendProductBatchEditedEvent({
+      //     eventId: requestId,
+      //     data: dto,
+      //   });
+      // if (!appendResult.success) throw new Error('????');
+      // cancels.push(cancel);
+      //
+      // // todo: если меняется количество - добавляем событие в product, иначе наверно не стоит
+      // const { appendResult: productAppendResult, cancel: productCancel } =
+      //   await this.productEventStore.appendProductBatchEditedEvent({
+      //     eventId: requestId,
+      //     productId: entity.productId,
+      //     data: dto,
+      //   });
+      //
+      // if (!productAppendResult.success) throw new Error('????');
 
       await queryRunner.commitTransaction();
     } catch (err) {

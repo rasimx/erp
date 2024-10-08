@@ -38,7 +38,7 @@ export class ProductBatchGroupEventRepository extends Repository<ProductBatchGro
   ): Promise<Map<number, ProductBatchGroupEventEntity[]>> {
     const rows = await this.find({
       where: { aggregateId: In(aggregateIds) },
-      order: { createdAt: 'ASC' },
+      order: { revision: 'ASC' },
     });
     const map = new Map<number, ProductBatchGroupEventEntity[]>();
     rows.forEach(row =>
@@ -52,7 +52,7 @@ export class ProductBatchGroupEventRepository extends Repository<ProductBatchGro
   ): Promise<ProductBatchGroupEventEntity[]> {
     return this.find({
       where: { aggregateId },
-      order: { createdAt: 'ASC' },
+      order: { revision: 'ASC' },
     });
   }
 }

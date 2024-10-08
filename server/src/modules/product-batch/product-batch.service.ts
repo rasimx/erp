@@ -3,6 +3,7 @@ import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { type FindOptionsWhere, In } from 'typeorm';
 
+import { assembleProduct } from '@/common/assembleProduct.js';
 import { ContextService } from '@/context/context.service.js';
 import { CustomDataSource } from '@/database/custom.data-source.js';
 import type { CustomPostgresQueryRunner } from '@/database/custom.query-runner.js';
@@ -14,6 +15,28 @@ import { ProductBatch } from '@/product-batch/domain/product-batch.js';
 import { ProductBatchRepository } from '@/product-batch/domain/product-batch.repository.js';
 import { ProductBatchEventRepository } from '@/product-batch/domain/product-batch-event.repository.js';
 import { StatusService } from '@/status/status.service.js';
+
+// try {
+//   const result = assembleProduct({
+//     product: {
+//       id: 10,
+//       setItems: [
+//         { productId: 11, qty: 1 },
+//         { productId: 12, qty: 2 },
+//       ],
+//     },
+//     count: 100,
+//     sources: [
+//       { id: 1, productId: 11, count: 1000, selectedCount: 100 },
+//       // { id: 2, productId: 11, count: 1000, selectedCount: 50 },
+//       { id: 3, productId: 12, count: 1000, selectedCount: 150 },
+//       { id: 4, productId: 12, count: 1000, selectedCount: 60 },
+//     ],
+//   });
+//   console.log('RESULT', result);
+// } catch (e) {
+//   console.log('error!!!', e);
+// }
 
 @Injectable()
 export class ProductBatchService {

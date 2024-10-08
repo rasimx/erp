@@ -15,7 +15,7 @@ import { StatusEntity } from '@/status/status.entity.js';
 
 @Entity({ name: 'product_batch_group' })
 export class ProductBatchGroupEntity {
-  @PrimaryColumn({ type: 'bigint' })
+  @PrimaryColumn()
   id: number;
 
   @Column({

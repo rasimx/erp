@@ -10,7 +10,7 @@ import { Injectable } from '@nestjs/common';
 import { ContextService } from '@/context/context.service.js';
 import { EventStoreService } from '@/event-store/event-store.service.js';
 import type { CreateOperationDto } from '@/operation/dtos/create-operation.dto.js';
-import { type OperationCreatedEvent } from '@/product-batch/eventstore/events.js';
+// import { type OperationCreatedEvent } from '@/product-batch/eventstore/events.js';
 import {
   type ProductBatchGroupCreatedEvent,
   type ProductBatchGroupCreatedEventData,
@@ -107,7 +107,7 @@ export class ProductBatchGroupEventStore {
     if (!data.groupId) throw new Error('groupId is required');
 
     const userId = this.contextService.userId;
-    const event = jsonEvent<OperationCreatedEvent>({
+    const event = jsonEvent({
       id: eventId,
       type: 'OperationCreated',
       data: { ...data, userId },

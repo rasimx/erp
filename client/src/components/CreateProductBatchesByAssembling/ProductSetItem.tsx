@@ -57,7 +57,7 @@ const ProductSetItem: FC<Props> = props => {
         <div className={styles.header}>
           <div>
             <strong>x{setItem.qty}</strong> :{' '}
-            {state.fullCount ? setItem.qty * state.fullCount : '0'}
+            {state.count ? setItem.qty * state.count : '0'}
           </div>
           <div>
             {productBathes.reduce(

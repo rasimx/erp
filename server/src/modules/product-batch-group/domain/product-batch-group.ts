@@ -46,7 +46,8 @@ export class ProductBatchGroup {
     return productBatchGroup;
   }
 
-  public static buildFromEvents(events: RevisionProductBatchGroupEvent[]) {
+  public static buildFromEvents(origEvents: RevisionProductBatchGroupEvent[]) {
+    const events = [...origEvents].toSorted((a, b) => a.revision - b.revision);
     const zeroEvent = events.shift();
 
     if (!zeroEvent) throw new Error('not found');

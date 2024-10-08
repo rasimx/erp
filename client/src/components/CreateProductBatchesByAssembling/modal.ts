@@ -3,31 +3,25 @@ import { FormikErrors, withFormik } from 'formik';
 import { FormikBag } from 'formik/dist/withFormik';
 import { confirmDialog } from 'primereact/confirmdialog';
 
-import { CREATE_PRODUCT_BATCHES_BY_ASSEMBLING_MUTATION } from '../../api/product-batch/product-batch.gql';
+import { CREATE_PRODUCT_BATCHES_FROM_SOURCES_LIST_MUTATION } from '../../api/product-batch/product-batch.gql';
 import apolloClient from '../../apollo-client';
-import {
-  CreateProductBatchesByAssemblingDto,
-  CreateProductBatchesFromSourcesDto,
-} from '../../gql-types/graphql';
+import { CreateProductBatchesFromSourcesListDto } from '../../gql-types/graphql';
+import { createProductBatchesFromSourcesValidationSchema } from '../CreateProductBatchesFromSources/types';
 import withModal from '../withModal';
 import Form from './form';
-import {
-  createProductBatchesByAssemblingValidationSchema,
-  FormValues,
-  Props,
-} from './types';
+import { FormValues, Props } from './types';
 
 const CreateProductBatchesByAssemblingFormik = withFormik<Props, FormValues>({
-  validationSchema: () => createProductBatchesByAssemblingValidationSchema(),
+  validationSchema: () => createProductBatchesFromSourcesValidationSchema(),
   mapPropsToValues: props => {
     return {
       ...props.initialValues,
-    } as CreateProductBatchesByAssemblingDto;
+    } as CreateProductBatchesFromSourcesListDto;
   },
 
   // Add a custom validation function (this can be async too!)
   validate: (values: FormValues) => {
-    const errors: FormikErrors<CreateProductBatchesByAssemblingDto> = {};
+    const errors: FormikErrors<CreateProductBatchesFromSourcesListDto> = {};
     // if (!values.email) {
     //   errors.email = 'Required';
     // } else if (!isValidEmail(values.email)) {
@@ -46,8 +40,10 @@ const CreateProductBatchesByAssemblingFormik = withFormik<Props, FormValues>({
       accept: () => {
         apolloClient
           .mutate({
-            mutation: CREATE_PRODUCT_BATCHES_BY_ASSEMBLING_MUTATION,
-            variables: { dto: values as CreateProductBatchesByAssemblingDto },
+            mutation: CREATE_PRODUCT_BATCHES_FROM_SOURCES_LIST_MUTATION,
+            variables: {
+              dto: values as CreateProductBatchesFromSourcesListDto,
+            },
           })
           .then(result => {
             console.log(result);
@@ -56,10 +52,10 @@ const CreateProductBatchesByAssemblingFormik = withFormik<Props, FormValues>({
             } else {
               formikBag.props.closeModal();
               formikBag.props.onSubmit(
-                values as CreateProductBatchesByAssemblingDto,
+                values as CreateProductBatchesFromSourcesListDto,
                 formikBag as FormikBag<
                   Props,
-                  CreateProductBatchesByAssemblingDto
+                  CreateProductBatchesFromSourcesListDto
                 >,
               );
             }

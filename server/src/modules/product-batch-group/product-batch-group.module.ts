@@ -8,13 +8,13 @@ import { EventStoreModule } from '@/event-store/event-store.module.js';
 import { Microservices } from '@/microservices/microservices.js';
 import { ProductModule } from '@/product/product.module.js';
 import { ProductBatchModule } from '@/product-batch/product-batch.module.js';
+import { CreateProductBatchGroupHandler } from '@/product-batch-group/commands/create-product-batch-group/create-product-batch-group.handler.js';
 import { ProductBatchGroupEventEntity } from '@/product-batch-group/domain/product-batch-group-event.entity.js';
 import { ProductBatchGroupEventRepositoryProvider } from '@/product-batch-group/domain/product-batch-group-event.repository.js';
 import { GetProductBatchGroupHandler } from '@/product-batch-group/queries/handlers/get-product-batch-group.handler.js';
 import { RequestModule } from '@/request/request.module.js';
 import { StatusModule } from '@/status/status.module.js';
 
-import { CreateProductBatchGroupHandler } from './commands/handlers/create-product-batch-group.handler.js';
 import { DeleteProductBatchGroupHandler } from './commands/handlers/delete-product-batch-group.handler.js';
 import { MoveProductBatchGroupHandler } from './commands/move-product-batch-group/move-product-batch-group.handler.js';
 import { ProductBatchGroupEntity } from './domain/product-batch-group.entity.js';

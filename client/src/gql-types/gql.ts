@@ -30,8 +30,7 @@ const documents = {
     "\n  mutation moveProductBatch($dto: MoveProductBatchDto!) {\n    moveProductBatch(dto: $dto) {\n      success\n    }\n  }\n": types.MoveProductBatchDocument,
     "\n  mutation createProductBatch($dto: CreateProductBatchListDto!) {\n    createProductBatch(dto: $dto) {\n      success\n    }\n  }\n": types.CreateProductBatchDocument,
     "\n  mutation editProductBatch($dto: EditProductBatchDto!) {\n    editProductBatch(dto: $dto) {\n      success\n    }\n  }\n": types.EditProductBatchDocument,
-    "\n  mutation createProductBatchesByAssembling(\n    $dto: CreateProductBatchesByAssemblingDto!\n  ) {\n    createProductBatchesByAssembling(dto: $dto) {\n      success\n    }\n  }\n": types.CreateProductBatchesByAssemblingDocument,
-    "\n  mutation createProductBatchesFromSources(\n    $dto: CreateProductBatchesFromSourcesDto!\n  ) {\n    createProductBatchesFromSources(dto: $dto) {\n      success\n    }\n  }\n": types.CreateProductBatchesFromSourcesDocument,
+    "\n  mutation CreateProductBatchesFromSourcesListDto(\n    $dto: CreateProductBatchesFromSourcesListDto!\n  ) {\n    createProductBatchesFromSources(dto: $dto) {\n      success\n    }\n  }\n": types.CreateProductBatchesFromSourcesListDtoDocument,
     "\n  mutation deleteProductBatch($id: Int!) {\n    deleteProductBatch(id: $id) {\n      success\n    }\n  }\n": types.DeleteProductBatchDocument,
     "\n  fragment SetItem on SetItemDto {\n    productId\n    name\n    sku\n    qty\n  }\n": types.SetItemFragmentDoc,
     "\n  fragment Product on ProductDto {\n    id\n    name\n    sku\n    setItems {\n      ...SetItem\n    }\n  }\n": types.ProductFragmentDoc,
@@ -130,11 +129,7 @@ export function graphql(source: "\n  mutation editProductBatch($dto: EditProduct
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  mutation createProductBatchesByAssembling(\n    $dto: CreateProductBatchesByAssemblingDto!\n  ) {\n    createProductBatchesByAssembling(dto: $dto) {\n      success\n    }\n  }\n"): (typeof documents)["\n  mutation createProductBatchesByAssembling(\n    $dto: CreateProductBatchesByAssemblingDto!\n  ) {\n    createProductBatchesByAssembling(dto: $dto) {\n      success\n    }\n  }\n"];
-/**
- * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
- */
-export function graphql(source: "\n  mutation createProductBatchesFromSources(\n    $dto: CreateProductBatchesFromSourcesDto!\n  ) {\n    createProductBatchesFromSources(dto: $dto) {\n      success\n    }\n  }\n"): (typeof documents)["\n  mutation createProductBatchesFromSources(\n    $dto: CreateProductBatchesFromSourcesDto!\n  ) {\n    createProductBatchesFromSources(dto: $dto) {\n      success\n    }\n  }\n"];
+export function graphql(source: "\n  mutation CreateProductBatchesFromSourcesListDto(\n    $dto: CreateProductBatchesFromSourcesListDto!\n  ) {\n    createProductBatchesFromSources(dto: $dto) {\n      success\n    }\n  }\n"): (typeof documents)["\n  mutation CreateProductBatchesFromSourcesListDto(\n    $dto: CreateProductBatchesFromSourcesListDto!\n  ) {\n    createProductBatchesFromSources(dto: $dto) {\n      success\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

@@ -3,6 +3,7 @@ import { InjectDataSource } from '@nestjs/typeorm';
 
 import { ContextService } from '@/context/context.service.js';
 import type { CustomDataSource } from '@/database/custom.data-source.js';
+import type { ProductBatchEntity } from '@/product-batch/domain/product-batch.entity.js';
 import { ProductBatch } from '@/product-batch/domain/product-batch.js';
 import { ProductBatchRepository } from '@/product-batch/domain/product-batch.repository.js';
 import { ProductBatchEventRepository } from '@/product-batch/domain/product-batch-event.repository.js';
@@ -67,11 +68,15 @@ export class CreateProductBatchHandler
       const aggregatedIds = await productBatchRepo.nextIds(dto.items.length);
 
       const lastOrder = dto.groupId
-        ? await productBatchRepo.getLastOrderInGroup(dto.groupId)
+        ? null
         : await productBatchRepo.getLastOrderInStatus(dto.statusId);
+
+      const aggregates: ProductBatch[] = [];
 
       for (let index = 0; index < dto.items.length; ++index) {
         const aggregateId = aggregatedIds.shift();
+        if (!aggregateId) throw new Error('aggregateId was not defined');
+
         const item = dto.items[index];
 
         const order = lastOrder ? lastOrder + index + 1 : index + 1;
@@ -85,13 +90,15 @@ export class CreateProductBatchHandler
           order,
         });
 
-        await productBatchEventRepo.saveAggregateEvents({
-          aggregates: [productBatch],
-          requestId,
-        });
-
-        await productBatchRepo.save(productBatch.toObject());
+        aggregates.push(productBatch);
       }
+
+      await productBatchEventRepo.saveAggregateEvents({
+        aggregates,
+        requestId,
+      });
+
+      await productBatchRepo.save(aggregates.map(item => item.toObject()));
 
       // await this.productBatchService.relinkPostings({
       //   queryRunner,

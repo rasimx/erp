@@ -141,69 +141,69 @@ export class ProductBatchRepository extends Repository<ProductBatchEntity> {
     return newEntity;
   }
 
-  async createByAssembling(
-    dto: ResultProductBatch & {
-      productSetId: number;
-      statusId: number | null;
-      groupId: number | null;
-    },
-  ) {
-    const { statusId, groupId } = dto;
-
-    let sourceProductBatches = await this.find({
-      where: { id: In(dto.sources.map(item => item.productBatch.id)) },
-    });
-    const sourceMap = new Map(
-      sourceProductBatches.map(item => [item.id, item]),
-    );
-
-    let newEntity = new ProductBatchEntity();
-    newEntity.productId = dto.productSetId;
-    newEntity.count = dto.count;
-    newEntity.costPricePerUnit = dto.sources.reduce(
-      (prev, cur) => prev + cur.productBatch.costPricePerUnit * cur.qty,
-      0,
-    );
-    newEntity.operationsPricePerUnit = dto.sources.reduce(
-      (prev, cur) => prev + cur.productBatch.operationsPricePerUnit * cur.qty,
-      0,
-    );
-    newEntity.operationsPrice =
-      newEntity.count * newEntity.operationsPricePerUnit;
-    newEntity.statusId = statusId;
-    newEntity.groupId = groupId;
-
-    newEntity = await this.save(newEntity);
-
-    const forSave = dto.sources.map(source => {
-      const sourceBatch = sourceMap.get(source.productBatch.id);
-      if (!sourceBatch)
-        throw new Error(
-          `Source ${source.productBatch.id.toString()} not found`,
-        );
-
-      const closureEntity = new ProductBatchClosureEntity();
-      closureEntity.destination = newEntity;
-      closureEntity.source = sourceBatch;
-      closureEntity.count = source.selectedCount;
-      closureEntity.qty = source.qty;
-
-      sourceBatch.count -= source.selectedCount;
-      if (sourceBatch.count < 0)
-        throw new Error(`количество в исходной партии меньше, чем требуется`);
-      return { sourceBatch, closureEntity };
-    });
-
-    await this.manager.save(
-      ProductBatchClosureEntity,
-      forSave.map(({ closureEntity }) => closureEntity),
-    );
-    sourceProductBatches = await this.save(
-      forSave.map(({ sourceBatch }) => sourceBatch),
-    );
-
-    return { newEntity, sourceProductBatches };
-  }
+  // async createByAssembling(
+  //   dto: ResultProductBatch & {
+  //     productSetId: number;
+  //     statusId: number | null;
+  //     groupId: number | null;
+  //   },
+  // ) {
+  //   const { statusId, groupId } = dto;
+  //
+  //   let sourceProductBatches = await this.find({
+  //     where: { id: In(dto.sources.map(item => item.productBatch.id)) },
+  //   });
+  //   const sourceMap = new Map(
+  //     sourceProductBatches.map(item => [item.id, item]),
+  //   );
+  //
+  //   let newEntity = new ProductBatchEntity();
+  //   newEntity.productId = dto.productSetId;
+  //   newEntity.count = dto.count;
+  //   newEntity.costPricePerUnit = dto.sources.reduce(
+  //     (prev, cur) => prev + cur.productBatch.costPricePerUnit * cur.qty,
+  //     0,
+  //   );
+  //   newEntity.operationsPricePerUnit = dto.sources.reduce(
+  //     (prev, cur) => prev + cur.productBatch.operationsPricePerUnit * cur.qty,
+  //     0,
+  //   );
+  //   newEntity.operationsPrice =
+  //     newEntity.count * newEntity.operationsPricePerUnit;
+  //   newEntity.statusId = statusId;
+  //   newEntity.groupId = groupId;
+  //
+  //   newEntity = await this.save(newEntity);
+  //
+  //   const forSave = dto.sources.map(source => {
+  //     const sourceBatch = sourceMap.get(source.productBatch.id);
+  //     if (!sourceBatch)
+  //       throw new Error(
+  //         `Source ${source.productBatch.id.toString()} not found`,
+  //       );
+  //
+  //     const closureEntity = new ProductBatchClosureEntity();
+  //     closureEntity.destination = newEntity;
+  //     closureEntity.source = sourceBatch;
+  //     closureEntity.count = source.selectedCount;
+  //     closureEntity.qty = source.qty;
+  //
+  //     sourceBatch.count -= source.selectedCount;
+  //     if (sourceBatch.count < 0)
+  //       throw new Error(`количество в исходной партии меньше, чем требуется`);
+  //     return { sourceBatch, closureEntity };
+  //   });
+  //
+  //   await this.manager.save(
+  //     ProductBatchClosureEntity,
+  //     forSave.map(({ closureEntity }) => closureEntity),
+  //   );
+  //   sourceProductBatches = await this.save(
+  //     forSave.map(({ sourceBatch }) => sourceBatch),
+  //   );
+  //
+  //   return { newEntity, sourceProductBatches };
+  // }
 
   async createFromSources(dto: {
     id: number;

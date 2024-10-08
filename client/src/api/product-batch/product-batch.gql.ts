@@ -93,19 +93,9 @@ export const EDIT_PRODUCT_BATCH_MUTATION = graphql(`
   }
 `);
 
-export const CREATE_PRODUCT_BATCHES_BY_ASSEMBLING_MUTATION = graphql(`
-  mutation createProductBatchesByAssembling(
-    $dto: CreateProductBatchesByAssemblingDto!
-  ) {
-    createProductBatchesByAssembling(dto: $dto) {
-      success
-    }
-  }
-`);
-
-export const CREATE_PRODUCT_BATCHES_FROM_SOURCES_MUTATION = graphql(`
-  mutation createProductBatchesFromSources(
-    $dto: CreateProductBatchesFromSourcesDto!
+export const CREATE_PRODUCT_BATCHES_FROM_SOURCES_LIST_MUTATION = graphql(`
+  mutation CreateProductBatchesFromSourcesListDto(
+    $dto: CreateProductBatchesFromSourcesListDto!
   ) {
     createProductBatchesFromSources(dto: $dto) {
       success

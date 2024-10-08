@@ -38,11 +38,14 @@ export class ProductBatchEventRepository extends Repository<ProductBatchEventEnt
   ): Promise<Map<number, ProductBatchEventEntity[]>> {
     const rows = await this.find({
       where: { aggregateId: In(aggregateIds) },
-      order: { createdAt: 'ASC' },
+      order: { revision: 'ASC' },
     });
     const map = new Map<number, ProductBatchEventEntity[]>();
     rows.forEach(row =>
-      map.set(row.aggregateId, [...(map.get(row.aggregateId) || []), row]),
+      map.set(Number(row.aggregateId), [
+        ...(map.get(row.aggregateId) || []),
+        row,
+      ]),
     );
     return map;
   }
