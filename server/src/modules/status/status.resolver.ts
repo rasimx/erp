@@ -3,14 +3,14 @@ import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { Args, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
 
 import { UserInterceptor } from '@/auth/user.interceptor.js';
-import { MoveStatusCommand } from '@/status/commands/impl/move-status.command.js';
+import { MoveStatusCommand } from '@/status/commands/move-status/move-status.command.js';
 import { CreateStatusDto } from '@/status/dtos/create-status.dto.js';
 import { MoveStatusDto } from '@/status/dtos/move-status.dto.js';
 import { StatusDto } from '@/status/dtos/status.dto.js';
-import { GetStatusListQuery } from '@/status/queries/impl/get-status-list.query.js';
+import { GetStatusListQuery } from '@/status/queries/get-status-list/get-status-list.query.js';
 import { StatusService } from '@/status/status.service.js';
 
-import { GetStatusQuery } from './queries/impl/get-status.query.js';
+import { GetStatusQuery } from './queries/get-status/get-status.query.js';
 
 @Resolver()
 @UseInterceptors(UserInterceptor)

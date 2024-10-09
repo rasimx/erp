@@ -3,7 +3,6 @@ import { CqrsModule } from '@nestjs/cqrs';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { AppConfigModule } from '@/config/app/config.module.js';
-import { EventStoreModule } from '@/event-store/event-store.module.js';
 import { Microservices } from '@/microservices/microservices.js';
 import { OperationModule } from '@/operation/operation.module.js';
 import { ProductModule } from '@/product/product.module.js';
@@ -47,7 +46,6 @@ const queryHandlers = [GetProductBatchHandler, GetProductBatchListHandler];
     ProductBatchGroupModule,
     StatusModule,
     CqrsModule,
-    EventStoreModule,
     forwardRef(() => OperationModule),
   ],
   providers: [

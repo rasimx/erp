@@ -44,9 +44,6 @@ export class CreateProductBatchHandler
     await queryRunner.connect();
     await queryRunner.startTransaction();
 
-    const requestRepo = queryRunner.manager.withRepository(this.requestRepo);
-    const request = await requestRepo.insert({ id: requestId });
-
     const productRepo = queryRunner.manager.withRepository(this.productRepo);
     const productEventRepo = queryRunner.manager.withRepository(
       this.productEventRepo,
@@ -59,6 +56,9 @@ export class CreateProductBatchHandler
     );
 
     try {
+      const requestRepo = queryRunner.manager.withRepository(this.requestRepo);
+      await requestRepo.insert({ id: requestId });
+
       const { dto } = command;
 
       if (dto.grouped) {
@@ -91,7 +91,7 @@ export class CreateProductBatchHandler
       // });
       //
       // const products = productsEntities.map(entity => {
-      //   return Product.create({
+      //   return Status.create({
       //     id: entity.id,
       //     name: entity.name,
       //     sku: entity.sku,

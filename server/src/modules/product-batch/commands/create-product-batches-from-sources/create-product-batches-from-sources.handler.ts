@@ -26,13 +26,13 @@ export class CreateProductBatchesFromSourcesHandler
 
     const queryRunner = this.dataSource.createQueryRunner();
 
-    const requestRepo = queryRunner.manager.withRepository(this.requestRepo);
-    await requestRepo.insert({ id: requestId });
-
     await queryRunner.connect();
     await queryRunner.startTransaction();
 
     try {
+      const requestRepo = queryRunner.manager.withRepository(this.requestRepo);
+      await requestRepo.insert({ id: requestId });
+
       const { dto } = command;
 
       await this.productBatchService.createFromSources({

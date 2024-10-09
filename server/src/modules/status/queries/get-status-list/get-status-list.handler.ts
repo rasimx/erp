@@ -1,7 +1,7 @@
 import { type IQueryHandler, QueryHandler } from '@nestjs/cqrs';
 
-import { GetStatusListQuery } from '@/status/queries/impl/get-status-list.query.js';
-import { StatusRepository } from '@/status/status.repository.js';
+import { StatusRepository } from '@/status/domain/status.repository.js';
+import { GetStatusListQuery } from '@/status/queries/get-status-list/get-status-list.query.js';
 
 @QueryHandler(GetStatusListQuery)
 export class GetStatusListHandler implements IQueryHandler<GetStatusListQuery> {

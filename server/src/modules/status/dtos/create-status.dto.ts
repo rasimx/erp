@@ -8,8 +8,8 @@ export class CreateStatusDto {
   title: string;
 
   @Field(() => Number, { nullable: true, defaultValue: null })
-  storeId: number;
+  storeId: number | null;
 
   @Field(() => StatusType, { nullable: true, defaultValue: StatusType.custom })
-  type: string;
+  type: StatusType;
 }

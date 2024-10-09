@@ -49,9 +49,6 @@ export class AddGroupOperationHandler
 
     const queryRunner = this.dataSource.createQueryRunner();
 
-    const requestRepo = queryRunner.manager.withRepository(this.requestRepo);
-    const request = await requestRepo.insert({ id: requestId });
-
     const productBatchGroupRepo = queryRunner.manager.withRepository(
       this.productBatchGroupRepo,
     );
@@ -61,7 +58,11 @@ export class AddGroupOperationHandler
 
     await queryRunner.connect();
     await queryRunner.startTransaction();
+
     try {
+      const requestRepo = queryRunner.manager.withRepository(this.requestRepo);
+      await requestRepo.insert({ id: requestId });
+
       const groupOperation = await this.operationService.createGroupOperation(
         dto,
         queryRunner,

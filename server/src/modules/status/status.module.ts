@@ -3,35 +3,38 @@ import { CqrsModule } from '@nestjs/cqrs';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { AppConfigModule } from '@/config/app/config.module.js';
-import { EventStoreModule } from '@/event-store/event-store.module.js';
-import { CreateStatusHandler } from '@/status/commands/handlers/create-status.handler.js';
-import { MoveStatusHandler } from '@/status/commands/handlers/move-status.handler.js';
-import { GetStatusHandler } from '@/status/queries/handlers/get-status.handler.js';
-import { GetStatusListHandler } from '@/status/queries/handlers/get-status-list.handler.js';
-import { StatusEventStore } from '@/status/status.eventstore.js';
-import { StatusRepositoryProvider } from '@/status/status.repository.js';
+import { CreateStatusHandler } from '@/status/commands/create-status/create-status.handler.js';
+import { MoveStatusHandler } from '@/status/commands/move-status/move-status.handler.js';
+import { StatusRepositoryProvider } from '@/status/domain/status.repository.js';
+import { StatusEventEntity } from '@/status/domain/status-event.entity.js';
+import { StatusEventRepositoryProvider } from '@/status/domain/status-event.repository.js';
+import { GetStatusHandler } from '@/status/queries/get-status/get-status.handler.js';
+import { GetStatusListHandler } from '@/status/queries/get-status-list/get-status-list.handler.js';
 import { StatusResolver } from '@/status/status.resolver.js';
 
-import { StatusEntity } from './status.entity.js';
+import { StatusEntity } from './domain/status.entity.js';
 import { StatusService } from './status.service.js';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([StatusEntity]),
+    TypeOrmModule.forFeature([StatusEntity, StatusEventEntity]),
     AppConfigModule,
     CqrsModule,
-    EventStoreModule,
   ],
   providers: [
     StatusService,
-    StatusEventStore,
     StatusResolver,
     GetStatusListHandler,
     GetStatusHandler,
     CreateStatusHandler,
     MoveStatusHandler,
     StatusRepositoryProvider,
+    StatusEventRepositoryProvider,
   ],
-  exports: [StatusService, StatusRepositoryProvider],
+  exports: [
+    StatusService,
+    StatusRepositoryProvider,
+    StatusEventRepositoryProvider,
+  ],
 })
 export class StatusModule {}

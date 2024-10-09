@@ -3,16 +3,15 @@ import {
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
-  PrimaryGeneratedColumn,
+  PrimaryColumn,
   UpdateDateColumn,
 } from 'typeorm';
 
-import type { AtLeast } from '@/common/helpers/utils.js';
 import { StatusType } from '@/status/dtos/status.dto.js';
 
 @Entity({ name: 'status' })
 export class StatusEntity {
-  @PrimaryGeneratedColumn()
+  @PrimaryColumn()
   id: number;
 
   @Column()
@@ -46,6 +45,3 @@ export class StatusEntity {
   @DeleteDateColumn({ nullable: true })
   deletedDate: Date | null;
 }
-
-export type StatusInsertEntity = AtLeast<StatusEntity, 'title'>;
-export type StatusByStoreEntity = StatusEntity & { storeId: number };

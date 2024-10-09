@@ -5,7 +5,7 @@ import { ProductBatchEntity } from '@/product-batch/domain/product-batch.entity.
 import type { GetProductBatchListDto } from '@/product-batch/dtos/get-product-batch-list.dto.js';
 import type { CreateProductBatchGroupDto } from '@/product-batch-group/dtos/create-product-batch-group.dto.js';
 import type { MoveProductBatchGroupDto } from '@/product-batch-group/dtos/move-product-batch-group.dto.js';
-import { StatusEntity } from '@/status/status.entity.js';
+import { StatusEntity } from '@/status/domain/status.entity.js';
 
 import { ProductBatchGroupEntity } from './product-batch-group.entity.js';
 import type { ProductBatchGroup } from './product-batch-group.js';

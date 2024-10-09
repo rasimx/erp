@@ -2,7 +2,6 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { AppConfigModule } from '@/config/app/config.module.js';
-import { EventStoreModule } from '@/event-store/event-store.module.js';
 import { ProductRepositoryProvider } from '@/product/domain/product.repository.js';
 import { ProductEventEntity } from '@/product/domain/product-event.entity.js';
 import { ProductEventRepositoryProvider } from '@/product/domain/product-event.repository.js';
@@ -21,7 +20,6 @@ import { ProductService } from './product.service.js';
       ProductSetClosureEntity,
     ]),
     AppConfigModule,
-    EventStoreModule,
   ],
   providers: [
     ProductService,

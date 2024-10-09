@@ -39,25 +39,26 @@ export class MoveProductBatchGroupHandler
 
     await queryRunner.connect();
     await queryRunner.startTransaction();
+
+    const productBatchRepo = queryRunner.manager.withRepository(
+      this.productBatchRepo,
+    );
+    const productBatchEventRepo = queryRunner.manager.withRepository(
+      this.productBatchEventRepo,
+    );
+
+    const productBatchGroupRepo = queryRunner.manager.withRepository(
+      this.productBatchGroupRepo,
+    );
+    const productBatchGroupEventRepo = queryRunner.manager.withRepository(
+      this.productBatchGroupEventRepo,
+    );
+
     try {
       const { dto } = command;
 
-      const productBatchRepo = queryRunner.manager.withRepository(
-        this.productBatchRepo,
-      );
-      const productBatchEventRepo = queryRunner.manager.withRepository(
-        this.productBatchEventRepo,
-      );
-
-      const productBatchGroupRepo = queryRunner.manager.withRepository(
-        this.productBatchGroupRepo,
-      );
-      const productBatchGroupEventRepo = queryRunner.manager.withRepository(
-        this.productBatchGroupEventRepo,
-      );
-
       const requestRepo = queryRunner.manager.withRepository(this.requestRepo);
-      const request = await requestRepo.insert({ id: requestId });
+      await requestRepo.insert({ id: requestId });
 
       const targetEvents = await productBatchGroupEventRepo.findByAggregateId(
         dto.id,

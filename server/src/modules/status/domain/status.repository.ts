@@ -1,12 +1,44 @@
 import { BadRequestException } from '@nestjs/common';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { type FindOptionsWhere, In, IsNull, Not, Repository } from 'typeorm';
+import {
+  type FindOptionsWhere,
+  In,
+  IsNull,
+  MoreThanOrEqual,
+  Not,
+  Repository,
+} from 'typeorm';
 
+import { StatusEntity } from '@/status/domain/status.entity.js';
 import type { CreateStatusDto } from '@/status/dtos/create-status.dto.js';
 import type { MoveStatusDto } from '@/status/dtos/move-status.dto.js';
-import { StatusEntity } from '@/status/status.entity.js';
 
 export class StatusRepository extends Repository<StatusEntity> {
+  async nextIds(count = 1): Promise<number[]> {
+    const rows: { nextval: number }[] = await this.query(
+      `SELECT nextval('status_id_seq')::int FROM generate_series(1, ${count.toString()});`,
+    );
+    return rows.map(item => item.nextval);
+  }
+
+  async getLastOrder(): Promise<number | null> {
+    return this.findOne({
+      select: ['order'],
+      order: { order: 'desc' },
+    }).then(row => row?.order ?? null);
+  }
+
+  async getIdsMoreThanOrEqualOrder(order: number) {
+    const rows = await this.find({
+      select: ['id'],
+      where: {
+        order: MoreThanOrEqual(order),
+      },
+      order: { order: 'ASC' },
+    });
+    return rows.map(({ id }) => id);
+  }
+
   async createFromDto(dto: CreateStatusDto) {
     const lastStatus = await this.findOne({
       where: { id: Not(IsNull()) },

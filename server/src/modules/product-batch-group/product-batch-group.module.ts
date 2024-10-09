@@ -4,7 +4,6 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { AppConfigModule } from '@/config/app/config.module.js';
 import { ContextModule } from '@/context/context.module.js';
-import { EventStoreModule } from '@/event-store/event-store.module.js';
 import { Microservices } from '@/microservices/microservices.js';
 import { OperationModule } from '@/operation/operation.module.js';
 import { ProductModule } from '@/product/product.module.js';
@@ -38,7 +37,6 @@ import { GetProductBatchGroupListHandler } from './queries/get-product-batch-gro
     StatusModule,
     CqrsModule,
     ContextModule,
-    EventStoreModule,
     RequestModule,
     forwardRef(() => OperationModule),
   ],

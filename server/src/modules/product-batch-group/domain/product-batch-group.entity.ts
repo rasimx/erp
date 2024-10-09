@@ -11,7 +11,7 @@ import {
 } from 'typeorm';
 
 import { ProductBatchEntity } from '@/product-batch/domain/product-batch.entity.js';
-import { StatusEntity } from '@/status/status.entity.js';
+import { StatusEntity } from '@/status/domain/status.entity.js';
 
 @Entity({ name: 'product_batch_group' })
 export class ProductBatchGroupEntity {

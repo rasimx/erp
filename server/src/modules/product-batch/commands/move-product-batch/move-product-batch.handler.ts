@@ -39,6 +39,9 @@ export class MoveProductBatchHandler
     await queryRunner.connect();
     await queryRunner.startTransaction();
     try {
+      const requestRepo = queryRunner.manager.withRepository(this.requestRepo);
+      await requestRepo.insert({ id: requestId });
+
       const { dto } = command;
 
       const productBatchRepo = queryRunner.manager.withRepository(
@@ -68,9 +71,6 @@ export class MoveProductBatchHandler
         aggregates.push(productBatch);
         productBatch = newChildBatch;
       }
-
-      const requestRepo = queryRunner.manager.withRepository(this.requestRepo);
-      const request = await requestRepo.insert({ id: requestId });
 
       const otherItems: { id: number; order: number }[] = [];
       const otherGroups: { id: number; order: number }[] = [];

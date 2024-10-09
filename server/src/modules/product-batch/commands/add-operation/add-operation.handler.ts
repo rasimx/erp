@@ -31,12 +31,13 @@ export class AddOperationHandler
 
     const queryRunner = this.dataSource.createQueryRunner();
 
-    const requestRepo = queryRunner.manager.withRepository(this.requestRepo);
-    const request = await requestRepo.insert({ id: requestId });
-
     await queryRunner.connect();
     await queryRunner.startTransaction();
+
     try {
+      const requestRepo = queryRunner.manager.withRepository(this.requestRepo);
+      await requestRepo.insert({ id: requestId });
+
       let productBatch = await this.productBatchService.buildFromEvents({
         id: dto.productBatchId,
         queryRunner,

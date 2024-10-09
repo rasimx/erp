@@ -78,7 +78,7 @@ export class ProductBatchService {
 
   async recover() {
     // const events = await this.productBatchEventRepo.findByAggregateId(451);
-    // const productBatch = Product.buildFromEvents(events);
+    // const productBatch = Status.buildFromEvents(events);
     //
     // await this.productBatchRepo.save(productBatch.toObject());
     // console.log('AAAAAAAA');

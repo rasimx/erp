@@ -20,7 +20,7 @@ import type { GetProductBatchListDto } from '@/product-batch/dtos/get-product-ba
 import type { MoveProductBatchDto } from '@/product-batch/dtos/move-product-batch.dto.js';
 import { ProductBatchClosureEntity } from '@/product-batch/product-batch-closure.entity.js';
 import { ProductBatchGroupEntity } from '@/product-batch-group/domain/product-batch-group.entity.js';
-import { StatusEntity } from '@/status/status.entity.js';
+import { StatusEntity } from '@/status/domain/status.entity.js';
 
 export class ProductBatchRepository extends Repository<ProductBatchEntity> {
   async move(items: ProductBatch[]) {
