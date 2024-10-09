@@ -293,7 +293,11 @@ export class ProductBatchGroupRepository extends Repository<ProductBatchGroupEnt
   // todo: productId
   async findItems({ productIds, statusIds }: GetProductBatchListDto) {
     let query = this.createQueryBuilder('pbg')
-      .leftJoinAndSelect('pbg.productBatchList', 'productBatchList')
+      .leftJoinAndSelect(
+        'pbg.productBatchList',
+        'productBatchList',
+        'productBatchList.count > 0',
+      )
       .leftJoinAndSelect('productBatchList.product', 'product')
       .leftJoinAndSelect('product.setItems', 'setItems')
       .leftJoinAndSelect('setItems.product', 'setItemsProduct')

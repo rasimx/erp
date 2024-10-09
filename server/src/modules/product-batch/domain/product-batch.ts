@@ -28,6 +28,8 @@ export class ProductBatch {
   private revision: number;
   private events: RevisionProductBatchEvent[] = [];
   private product: Product;
+  private lastEvent: ProductBatchEvent;
+
   private constructor(private props: ProductBatchProps) {
     if (!props.id) throw new Error('id must be defined');
     this.id = Number(props.id);
@@ -52,6 +54,7 @@ export class ProductBatch {
 
     productBatch.revision = 0;
     productBatch.events.push({ ...event, revision: productBatch.revision });
+    productBatch.lastEvent = event;
 
     return productBatch;
   }
@@ -122,6 +125,7 @@ export class ProductBatch {
       zeroEvent.data as ProductBatchCreatedEventData,
     );
     productBatch.revision = zeroEvent.revision;
+    productBatch.lastEvent = zeroEvent;
 
     events.forEach(event => {
       productBatch.applyEvent(event);
@@ -192,6 +196,8 @@ export class ProductBatch {
       default:
         throw new Error('unknown eventType');
     }
+
+    this.lastEvent = event;
   }
 
   getUncommittedEvents(): RevisionProductBatchEvent[] {
@@ -283,6 +289,10 @@ export class ProductBatch {
       metadata,
     };
     this.appendEvent(event);
+  }
+
+  public getLastEvent(): ProductBatchEvent {
+    return this.lastEvent;
   }
 
   changeStatus(statusId: number) {

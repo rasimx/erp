@@ -102,6 +102,8 @@ export class ProductBatchRepository extends Repository<ProductBatchEntity> {
       });
     }
 
+    query = query.andWhere('pb.count > 0');
+
     const items = await query.orderBy('pb.order', 'ASC').getMany();
     // @ts-ignore
     return items.map(item => ({

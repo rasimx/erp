@@ -10,6 +10,7 @@ import type { RevisionProductBatchEvent } from '@/product-batch/domain/product-b
 import { ProductBatch } from '@/product-batch/domain/product-batch.js';
 import { ProductBatchRepository } from '@/product-batch/domain/product-batch.repository.js';
 import { ProductBatchEventRepository } from '@/product-batch/domain/product-batch-event.repository.js';
+import { ProductBatchService } from '@/product-batch/product-batch.service.js';
 import { AddGroupOperationCommand } from '@/product-batch-group/commands/add-group-operation/add-group-operation.command.js';
 import {
   ProductBatchGroupEventType,
@@ -37,6 +38,7 @@ export class AddGroupOperationHandler
     private readonly productBatchEventRepo: ProductBatchEventRepository,
     private readonly productBatchGroupRepo: ProductBatchGroupRepository,
     private readonly productBatchGroupEventRepo: ProductBatchGroupEventRepository,
+    private readonly productBatchService: ProductBatchService,
   ) {}
 
   async execute(command: AddGroupOperationCommand) {
@@ -50,12 +52,6 @@ export class AddGroupOperationHandler
     const requestRepo = queryRunner.manager.withRepository(this.requestRepo);
     const request = await requestRepo.insert({ id: requestId });
 
-    const productBatchRepo = queryRunner.manager.withRepository(
-      this.productBatchRepo,
-    );
-    const productBatchEventRepo = queryRunner.manager.withRepository(
-      this.productBatchEventRepo,
-    );
     const productBatchGroupRepo = queryRunner.manager.withRepository(
       this.productBatchGroupRepo,
     );
@@ -95,46 +91,54 @@ export class AddGroupOperationHandler
         await productBatchGroupRepo.save(group.toObject());
       }
 
-      const productBatchEvents =
-        await productBatchEventRepo.findManyByAggregateId(
-          dto.items.map(item => item.productBatchId),
-        );
-
-      const productBatchMap = new Map(
-        [...productBatchEvents.entries()].map(([aggregateId, events]) => [
-          aggregateId,
-          ProductBatch.buildFromEvents(events as RevisionProductBatchEvent[]),
-        ]),
-      );
-
-      groupOperation.operations.forEach(operation => {
-        const productBatch = productBatchMap.get(operation.productBatchId);
-        if (!productBatch) throw new Error('product batch not found');
-        productBatch.appendGroupOperation(
-          {
-            id: operation.id,
-            productBatchId: operation.productBatchId,
-            name: operation.name,
-            cost: operation.cost,
-            currencyCost: operation.currencyCost,
-            exchangeRate: operation.currencyCost,
-            date: operation.date,
-            proportion: operation.proportion,
-            groupOperationCost: dto.cost,
-            groupOperationId: groupOperation.id,
-          },
-          { groupOperationEventId },
-        );
+      const productBatchMap = await this.productBatchService.buildFromEvents({
+        id: dto.items.map(item => item.productBatchId),
+        queryRunner,
       });
 
-      const operationEvents = await productBatchEventRepo.saveAggregateEvents({
-        aggregates: [...productBatchMap.values()],
-        requestId,
-      });
+      const parentAggregates: ProductBatch[] = [];
 
-      await productBatchRepo.save(
-        [...productBatchMap.values()].map(item => item.toObject()),
+      await Promise.all(
+        groupOperation.operations.map(async operation => {
+          let productBatch = productBatchMap.get(operation.productBatchId);
+          if (!productBatch) throw new Error('product batch not found');
+
+          const newChildBatch =
+            await this.productBatchService.shouldSplitAndReturnNewChild({
+              productBatch,
+              queryRunner,
+            });
+
+          if (newChildBatch) {
+            parentAggregates.push(productBatch);
+            productBatch = newChildBatch;
+            productBatchMap.set(operation.productBatchId, productBatch); // заменяем оригинал дочерним
+          }
+
+          productBatch.appendGroupOperation(
+            {
+              id: operation.id,
+              productBatchId: operation.productBatchId,
+              name: operation.name,
+              cost: operation.cost,
+              currencyCost: operation.currencyCost,
+              exchangeRate: operation.currencyCost,
+              date: operation.date,
+              proportion: operation.proportion,
+              groupOperationCost: dto.cost,
+              groupOperationId: groupOperation.id,
+            },
+            { groupOperationEventId },
+          );
+        }),
       );
+
+      const { events: operationEvents } =
+        await this.productBatchService.saveAggregates({
+          aggregates: [...productBatchMap.values(), ...parentAggregates],
+          requestId,
+          queryRunner,
+        });
 
       if (!group) {
         const event = new ProductBatchGroupEventEntity();

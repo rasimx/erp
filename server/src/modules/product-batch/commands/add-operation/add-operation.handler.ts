@@ -4,10 +4,8 @@ import { InjectDataSource } from '@nestjs/typeorm';
 import { ContextService } from '@/context/context.service.js';
 import type { CustomDataSource } from '@/database/custom.data-source.js';
 import { OperationService } from '@/operation/operation.service.js';
-import type { RevisionProductBatchEvent } from '@/product-batch/domain/product-batch.events.js';
 import { ProductBatch } from '@/product-batch/domain/product-batch.js';
-import { ProductBatchRepository } from '@/product-batch/domain/product-batch.repository.js';
-import { ProductBatchEventRepository } from '@/product-batch/domain/product-batch-event.repository.js';
+import { ProductBatchService } from '@/product-batch/product-batch.service.js';
 import { RequestRepository } from '@/request/request.repository.js';
 
 import { AddOperationCommand } from './add-operation.command.js';
@@ -22,8 +20,7 @@ export class AddOperationHandler
     private readonly contextService: ContextService,
     private readonly operationService: OperationService,
     private readonly requestRepo: RequestRepository,
-    private readonly productBatchRepo: ProductBatchRepository,
-    private readonly productBatchEventRepo: ProductBatchEventRepository,
+    private readonly productBatchService: ProductBatchService,
   ) {}
 
   async execute(command: AddOperationCommand) {
@@ -37,38 +34,43 @@ export class AddOperationHandler
     const requestRepo = queryRunner.manager.withRepository(this.requestRepo);
     const request = await requestRepo.insert({ id: requestId });
 
-    const productBatchRepo = queryRunner.manager.withRepository(
-      this.productBatchRepo,
-    );
-    const productBatchEventRepo = queryRunner.manager.withRepository(
-      this.productBatchEventRepo,
-    );
-
     await queryRunner.connect();
     await queryRunner.startTransaction();
     try {
+      let productBatch = await this.productBatchService.buildFromEvents({
+        id: dto.productBatchId,
+        queryRunner,
+      });
+
+      const aggregates: ProductBatch[] = [];
+
+      const newChildBatch =
+        await this.productBatchService.shouldSplitAndReturnNewChild({
+          productBatch,
+          queryRunner,
+        });
+
+      if (newChildBatch) {
+        aggregates.push(productBatch);
+        productBatch = newChildBatch;
+      }
+
       const operations = await this.operationService.createOperations(
-        [dto],
+        [{ ...dto, productBatchId: productBatch.id }],
         queryRunner,
       );
 
       const operation = operations[0];
 
-      const targetEvents = await productBatchEventRepo.findByAggregateId(
-        dto.productBatchId,
-      );
-      const productBatch = ProductBatch.buildFromEvents(
-        targetEvents as RevisionProductBatchEvent[],
-      );
-
       productBatch.addOperation({ ...dto, id: operation.id });
 
-      await productBatchEventRepo.saveAggregateEvents({
-        aggregates: [productBatch],
-        requestId,
-      });
+      aggregates.push(productBatch);
 
-      await productBatchRepo.save(productBatch.toObject());
+      await this.productBatchService.saveAggregates({
+        aggregates,
+        requestId,
+        queryRunner,
+      });
 
       await queryRunner.commitTransaction();
     } catch (err) {

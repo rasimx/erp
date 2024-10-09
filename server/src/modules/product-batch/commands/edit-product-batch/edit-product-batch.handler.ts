@@ -43,6 +43,7 @@ export class EditProductBatchHandler
       });
 
       // todo: обработать нуль
+      // todo: обработать ранее был
       if (dto.count == 0) throw new Error('не может быть нулем');
 
       entity.count = dto.count;

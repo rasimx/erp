@@ -5,10 +5,8 @@ import { isNil } from '@/common/helpers/utils.js';
 import { ContextService } from '@/context/context.service.js';
 import type { CustomDataSource } from '@/database/custom.data-source.js';
 import { MoveProductBatchCommand } from '@/product-batch/commands/move-product-batch/move-product-batch.command.js';
-import type { RevisionProductBatchEvent } from '@/product-batch/domain/product-batch.events.js';
 import { ProductBatch } from '@/product-batch/domain/product-batch.js';
 import { ProductBatchRepository } from '@/product-batch/domain/product-batch.repository.js';
-import { ProductBatchEventRepository } from '@/product-batch/domain/product-batch-event.repository.js';
 // import { ProductBatchEventStore } from '@/product-batch/eventstore/product-batch.eventstore.js';
 import { ProductBatchService } from '@/product-batch/product-batch.service.js';
 import type { RevisionProductBatchGroupEvent } from '@/product-batch-group/domain/product-batch-group.events.js';
@@ -26,7 +24,6 @@ export class MoveProductBatchHandler
     private dataSource: CustomDataSource,
     private readonly requestRepo: RequestRepository,
     private readonly productBatchRepo: ProductBatchRepository,
-    private readonly productBatchEventRepo: ProductBatchEventRepository,
     private readonly productBatchGroupRepo: ProductBatchGroupRepository,
     private readonly productBatchGroupEventRepo: ProductBatchGroupEventRepository,
     private readonly contextService: ContextService,
@@ -47,9 +44,6 @@ export class MoveProductBatchHandler
       const productBatchRepo = queryRunner.manager.withRepository(
         this.productBatchRepo,
       );
-      const productBatchEventRepo = queryRunner.manager.withRepository(
-        this.productBatchEventRepo,
-      );
 
       const productBatchGroupRepo = queryRunner.manager.withRepository(
         this.productBatchGroupRepo,
@@ -58,12 +52,22 @@ export class MoveProductBatchHandler
         this.productBatchGroupEventRepo,
       );
 
-      const targetEvents = await productBatchEventRepo.findByAggregateId(
-        dto.id,
-      );
-      const productBatch = ProductBatch.buildFromEvents(
-        targetEvents as RevisionProductBatchEvent[],
-      );
+      let productBatch = await this.productBatchService.buildFromEvents({
+        id: dto.id,
+        queryRunner,
+      });
+      const aggregates: ProductBatch[] = [];
+
+      const newChildBatch =
+        await this.productBatchService.shouldSplitAndReturnNewChild({
+          productBatch,
+          queryRunner,
+        });
+
+      if (newChildBatch) {
+        aggregates.push(productBatch);
+        productBatch = newChildBatch;
+      }
 
       const requestRepo = queryRunner.manager.withRepository(this.requestRepo);
       const request = await requestRepo.insert({ id: requestId });
@@ -275,33 +279,23 @@ export class MoveProductBatchHandler
       });
 
       // save productBatches
-      const otherEvents = await productBatchEventRepo.findManyByAggregateId(
-        otherItems.map(item => item.id),
-      );
-      const productBatchMap = new Map(
-        [...otherEvents.entries()].map(([aggregateId, events]) => [
-          aggregateId,
-          ProductBatch.buildFromEvents(events as RevisionProductBatchEvent[]),
-        ]),
-      );
+      const productBatchMap = await this.productBatchService.buildFromEvents({
+        queryRunner,
+        id: otherItems.map(item => item.id),
+      });
       otherItems.forEach(({ id, order }) => {
         const productBatch = productBatchMap.get(id);
         if (!productBatch) throw new Error('product batch was not found');
         productBatch.move({ order });
       });
 
-      await productBatchEventRepo.saveAggregateEvents({
-        aggregates: [...productBatchMap.values(), productBatch],
-        requestId,
-      });
+      aggregates.push(...productBatchMap.values(), productBatch);
 
-      await productBatchRepo.upsert(
-        [
-          ...[...productBatchMap.values()].map(item => item.toObject()),
-          productBatch.toObject(),
-        ],
-        ['id'],
-      );
+      await this.productBatchService.saveAggregates({
+        aggregates,
+        requestId,
+        queryRunner,
+      });
 
       // save groups
       const groupEvents =
