@@ -15,15 +15,11 @@ import { RadioButton } from 'primereact/radiobutton';
 import React, { type FC, useCallback } from 'react';
 import { array, mixed, number, object, ObjectSchema, string } from 'yup';
 
-import { CREATE_GROUP_OPERATION_MUTATION } from '../../api/operation/operation.gql';
+import { ADD_GROUP_OPERATION_MUTATION } from '../../api/operation/operation.gql';
 import { ProductBatch } from '../../api/product-batch/product-batch.gql';
 import { ProductBatchDetail } from '../../api/product-batch/product-batch-detail.gql';
 import apolloClient from '../../apollo-client';
-import {
-  CreateGroupOperationDto,
-  CreateOperationDto,
-  ProportionType,
-} from '../../gql-types/graphql';
+import { AddGroupOperationDto, ProportionType } from '../../gql-types/graphql';
 import { fromRouble } from '../../utils';
 import withModal from '../withModal';
 import DataCell from './DataCell';
@@ -33,14 +29,14 @@ import { OperationFormContextProvider } from './GroupOperationFormContext';
 export interface Props {
   productBatches: ProductBatch[] | ProductBatchDetail[];
   closeModal: () => void;
-  initialValues: Partial<CreateGroupOperationDto>;
+  initialValues: Partial<AddGroupOperationDto>;
   onSubmit: (
-    values: CreateGroupOperationDto,
-    formikBag: FormikBag<Props, CreateGroupOperationDto>,
+    values: AddGroupOperationDto,
+    formikBag: FormikBag<Props, AddGroupOperationDto>,
   ) => Promise<unknown>;
 }
 
-const Form: FC<Props & FormikProps<CreateGroupOperationDto>> = props => {
+const Form: FC<Props & FormikProps<AddGroupOperationDto>> = props => {
   const {
     productBatches,
     setFieldValue,
@@ -53,7 +49,7 @@ const Form: FC<Props & FormikProps<CreateGroupOperationDto>> = props => {
   } = props;
 
   const changeNumberValue = useCallback(
-    (fieldName: keyof CreateGroupOperationDto) =>
+    (fieldName: keyof AddGroupOperationDto) =>
       (event: InputNumberValueChangeEvent) => {
         if (event.value === values[fieldName]) return;
         const value = event.value;
@@ -310,7 +306,7 @@ const Form: FC<Props & FormikProps<CreateGroupOperationDto>> = props => {
 //   };
 
 export const createGroupOperationValidationSchema =
-  (): ObjectSchema<CreateGroupOperationDto> => {
+  (): ObjectSchema<AddGroupOperationDto> => {
     return object().shape({
       name: string().required(),
       cost: number().required(),
@@ -334,19 +330,19 @@ export const createGroupOperationValidationSchema =
     });
   };
 
-const GroupOperationForm = withFormik<Props, CreateGroupOperationDto>({
+const GroupOperationForm = withFormik<Props, AddGroupOperationDto>({
   validationSchema: createGroupOperationValidationSchema(),
   mapPropsToValues: props => {
     return {
       proportionType:
         props.productBatches.length == 1 ? ProportionType.equal : undefined,
       ...props.initialValues,
-    } as CreateGroupOperationDto;
+    } as AddGroupOperationDto;
   },
 
   // Add a custom validation function (this can be async too!)
-  validate: (values: CreateGroupOperationDto) => {
-    const errors: FormikErrors<CreateGroupOperationDto> = {};
+  validate: (values: AddGroupOperationDto) => {
+    const errors: FormikErrors<AddGroupOperationDto> = {};
     // if (!values.email) {
     //   errors.email = 'Required';
     // } else if (!isValidEmail(values.email)) {
@@ -379,7 +375,7 @@ const GroupOperationForm = withFormik<Props, CreateGroupOperationDto>({
         };
         apolloClient
           .mutate({
-            mutation: CREATE_GROUP_OPERATION_MUTATION,
+            mutation: ADD_GROUP_OPERATION_MUTATION,
             variables: {
               dto,
             },

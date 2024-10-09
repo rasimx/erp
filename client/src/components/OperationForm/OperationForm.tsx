@@ -14,23 +14,23 @@ import { InputText } from 'primereact/inputtext';
 import React, { type FC, useCallback } from 'react';
 import { number, object, ObjectSchema, string } from 'yup';
 
-import { CREATE_OPERATION_MUTATION } from '../../api/operation/operation.gql';
+import { ADD_OPERATION_MUTATION } from '../../api/operation/operation.gql';
 import apolloClient from '../../apollo-client';
-import { CreateOperationDto } from '../../gql-types/graphql';
+import { AddOperationDto } from '../../gql-types/graphql';
 import { fromRouble } from '../../utils';
 import withModal from '../withModal';
 import classes from './OperationForm.module.scss';
 
 export interface Props {
   closeModal: () => void;
-  initialValues: Partial<CreateOperationDto>;
+  initialValues: Partial<AddOperationDto>;
   onSubmit: (
-    values: CreateOperationDto,
-    formikBag: FormikBag<Props, CreateOperationDto>,
+    values: AddOperationDto,
+    formikBag: FormikBag<Props, AddOperationDto>,
   ) => Promise<unknown>;
 }
 
-const Form: FC<Props & FormikProps<CreateOperationDto>> = props => {
+const Form: FC<Props & FormikProps<AddOperationDto>> = props => {
   const {
     setFieldValue,
     setValues,
@@ -42,7 +42,7 @@ const Form: FC<Props & FormikProps<CreateOperationDto>> = props => {
   } = props;
 
   const changeNumberValue = useCallback(
-    (fieldName: keyof CreateOperationDto) =>
+    (fieldName: keyof AddOperationDto) =>
       (event: InputNumberValueChangeEvent) => {
         if (event.value === values[fieldName]) return;
         const value = event.value;
@@ -181,7 +181,7 @@ const Form: FC<Props & FormikProps<CreateOperationDto>> = props => {
 };
 
 export const createOperationValidationSchema =
-  (): ObjectSchema<CreateOperationDto> => {
+  (): ObjectSchema<AddOperationDto> => {
     return object().shape({
       name: string().required(),
       cost: number().required(),
@@ -192,17 +192,17 @@ export const createOperationValidationSchema =
     });
   };
 
-const OperationForm = withFormik<Props, CreateOperationDto>({
+const OperationForm = withFormik<Props, AddOperationDto>({
   validationSchema: createOperationValidationSchema(),
   mapPropsToValues: props => {
     return {
       ...props.initialValues,
-    } as CreateOperationDto;
+    } as AddOperationDto;
   },
 
   // Add a custom validation function (this can be async too!)
-  validate: (values: CreateOperationDto) => {
-    const errors: FormikErrors<CreateOperationDto> = {};
+  validate: (values: AddOperationDto) => {
+    const errors: FormikErrors<AddOperationDto> = {};
     // if (!values.email) {
     //   errors.email = 'Required';
     // } else if (!isValidEmail(values.email)) {
@@ -231,7 +231,7 @@ const OperationForm = withFormik<Props, CreateOperationDto>({
         };
         apolloClient
           .mutate({
-            mutation: CREATE_OPERATION_MUTATION,
+            mutation: ADD_OPERATION_MUTATION,
             variables: {
               dto,
             },

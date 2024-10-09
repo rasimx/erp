@@ -3,15 +3,15 @@ import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { Args, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
 
 import { UserInterceptor } from '@/auth/user.interceptor.js';
+import { AddOperationCommand } from '@/product-batch/commands/add-operation/add-operation.command.js';
 import { CommandResponse } from '@/product-batch-group/dtos/product-batch-group.dto.js';
 
-import { CreateOperationCommand } from './commands/create-operation/create-operation.command.js';
 import { CreateProductBatchCommand } from './commands/create-product-batch/create-product-batch.command.js';
 import { CreateProductBatchesFromSourcesCommand } from './commands/create-product-batches-from-sources/create-product-batches-from-sources.command.js';
 import { DeleteProductBatchCommand } from './commands/delete-product-batch/delete-product-batch.command.js';
 import { EditProductBatchCommand } from './commands/edit-product-batch/edit-product-batch.command.js';
 import { MoveProductBatchCommand } from './commands/move-product-batch/move-product-batch.command.js';
-import { CreateOperationDto } from './dtos/create-operation.dto.js';
+import { AddOperationDto } from './dtos/add-operation.dto.js';
 import { CreateProductBatchListDto } from './dtos/create-product-batch-list.dto.js';
 import { CreateProductBatchesFromSourcesListDto } from './dtos/create-product-batches-from-sources-list.dto.js';
 import { EditProductBatchDto } from './dtos/edit-product-batch.dto.js';
@@ -73,10 +73,10 @@ export class ProductBatchResolver {
   }
 
   @Mutation(() => CommandResponse)
-  async createOperation(
-    @Args('dto', { type: () => CreateOperationDto }) dto: CreateOperationDto,
+  async addOperation(
+    @Args('dto', { type: () => AddOperationDto }) dto: AddOperationDto,
   ): Promise<CommandResponse> {
-    await this.commandBus.execute(new CreateOperationCommand(dto));
+    await this.commandBus.execute(new AddOperationCommand(dto));
     return { success: true };
   }
 

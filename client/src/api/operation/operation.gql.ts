@@ -1,16 +1,16 @@
 import { graphql } from '@/gql-types';
 
-export const CREATE_OPERATION_MUTATION = graphql(`
-  mutation createOperation($dto: CreateOperationDto!) {
-    createOperation(dto: $dto) {
+export const ADD_OPERATION_MUTATION = graphql(`
+  mutation addOperation($dto: AddOperationDto!) {
+    addOperation(dto: $dto) {
       success
     }
   }
 `);
 
-export const CREATE_GROUP_OPERATION_MUTATION = graphql(`
-  mutation createGroupOperation($dto: CreateGroupOperationDto!) {
-    createGroupOperation(dto: $dto) {
+export const ADD_GROUP_OPERATION_MUTATION = graphql(`
+  mutation addGroupOperation($dto: AddGroupOperationDto!) {
+    addGroupOperation(dto: $dto) {
       success
     }
   }

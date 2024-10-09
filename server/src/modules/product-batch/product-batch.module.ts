@@ -7,7 +7,7 @@ import { EventStoreModule } from '@/event-store/event-store.module.js';
 import { Microservices } from '@/microservices/microservices.js';
 import { OperationModule } from '@/operation/operation.module.js';
 import { ProductModule } from '@/product/product.module.js';
-import { CreateOperationHandler } from '@/product-batch/commands/create-operation/create-operation.handler.js';
+import { AddOperationHandler } from '@/product-batch/commands/add-operation/add-operation.handler.js';
 import { CreateProductBatchHandler } from '@/product-batch/commands/create-product-batch/create-product-batch.handler.js';
 import { CreateProductBatchesFromSourcesHandler } from '@/product-batch/commands/create-product-batches-from-sources/create-product-batches-from-sources.handler.js';
 import { DeleteProductBatchHandler } from '@/product-batch/commands/delete-product-batch/delete-product-batch.handler.js';
@@ -33,7 +33,7 @@ const commandHandlers = [
   CreateProductBatchHandler,
   EditProductBatchHandler,
   CreateProductBatchesFromSourcesHandler,
-  CreateOperationHandler,
+  AddOperationHandler,
 ];
 
 const queryHandlers = [GetProductBatchHandler, GetProductBatchListHandler];

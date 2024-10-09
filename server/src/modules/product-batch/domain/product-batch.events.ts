@@ -1,4 +1,6 @@
-import type { CreateOperationDto } from '../dtos/create-operation.dto.js';
+import type { ProductProps } from '@/product/domain/product.interfaces.js';
+
+import type { AddOperationDto } from '../dtos/add-operation.dto.js';
 import type { CreateProductBatchItemDto } from '../dtos/create-product-batch-list.dto.js';
 
 export enum ProductBatchEventType {
@@ -7,9 +9,8 @@ export enum ProductBatchEventType {
   ProductBatchEdited = 'ProductBatchEdited',
   ProductBatchMoved = 'ProductBatchMoved',
   ProductBatchDeleted = 'ProductBatchDeleted',
-  OperationCreated = 'OperationCreated',
-  GroupOperationCreated = 'GroupOperationCreated',
-  // ProductBatchCreatedFromSource = 'ProductBatchCreatedFromSource',
+  OperationAdded = 'OperationAdded',
+  GroupOperationAdded = 'GroupOperationAdded',
 }
 
 export type UID = string;
@@ -17,6 +18,7 @@ export type UID = string;
 export interface ProductBatchCreatedEventData
   extends CreateProductBatchItemDto {
   id: number;
+  productProps: ProductProps;
   initialCount: number;
   order: number;
   statusId: number | null;
@@ -76,27 +78,26 @@ export interface ProductBatchDeletedEvent {
   metadata?: Record<string, unknown>;
 }
 
-export interface OperationCreatedEventData extends CreateOperationDto {
+export interface OperationAddedEventData extends AddOperationDto {
   id: number;
 }
 
-export interface OperationCreatedEvent {
+export interface OperationAddedEvent {
   id: UID;
-  type: ProductBatchEventType.OperationCreated;
-  data: OperationCreatedEventData;
+  type: ProductBatchEventType.OperationAdded;
+  data: OperationAddedEventData;
   metadata?: Record<string, unknown>;
 }
-export interface GroupOperationCreatedEventData
-  extends OperationCreatedEventData {
+export interface GroupOperationAddedEventData extends OperationAddedEventData {
   proportion: number;
   groupOperationId: number;
   groupOperationCost: number;
 }
 
-export interface GroupOperationCreatedEvent {
+export interface GroupOperationAddedEvent {
   id: UID;
-  type: ProductBatchEventType.GroupOperationCreated;
-  data: GroupOperationCreatedEventData;
+  type: ProductBatchEventType.GroupOperationAdded;
+  data: GroupOperationAddedEventData;
   metadata?: Record<string, unknown>;
 }
 
@@ -106,8 +107,8 @@ export type ProductBatchEvent =
   | ProductBatchEditedEvent
   | ProductBatchMovedEvent
   | ProductBatchDeletedEvent
-  | OperationCreatedEvent
-  | GroupOperationCreatedEvent;
+  | OperationAddedEvent
+  | GroupOperationAddedEvent;
 
 export type RevisionProductBatchEvent = ProductBatchEvent & {
   revision: number;

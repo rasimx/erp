@@ -4,10 +4,7 @@ import { createContext, FC, ReactNode, useContext, useEffect } from 'react';
 
 import { ProductBatch } from '../../api/product-batch/product-batch.gql';
 import { ProductBatchDetail } from '../../api/product-batch/product-batch-detail.gql';
-import {
-  CreateGroupOperationDto,
-  ProportionType,
-} from '../../gql-types/graphql';
+import { AddGroupOperationDto, ProportionType } from '../../gql-types/graphql';
 import { useProportionMap } from './hooks';
 
 export type ProportionValue = {
@@ -35,7 +32,7 @@ export type Props = {
 };
 
 export const OperationFormContextProvider: FC<
-  Props & FormikProps<CreateGroupOperationDto>
+  Props & FormikProps<AddGroupOperationDto>
 > = props => {
   const { children, productBatches, values, setFieldValue } = props;
 

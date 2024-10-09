@@ -4,11 +4,11 @@ import { useCallback } from 'react';
 
 import { CreateOperationDto } from '@/gql-types/graphql';
 
-import { CREATE_OPERATION_MUTATION } from './operation.gql';
+import { ADD_OPERATION_MUTATION } from './operation.gql';
 
 export const useOperation = () => {
   const { enqueueSnackbar } = useSnackbar();
-  const [create] = useMutation(CREATE_OPERATION_MUTATION);
+  const [create] = useMutation(ADD_OPERATION_MUTATION);
   const createOperation = useCallback((dto: CreateOperationDto) => {
     return create({ variables: { dto } })
       .then(res => {

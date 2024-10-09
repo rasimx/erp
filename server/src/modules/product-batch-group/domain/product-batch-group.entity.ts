@@ -27,7 +27,7 @@ export class ProductBatchGroupEntity {
   @Column()
   name: string;
 
-  @ManyToOne(() => StatusEntity, { cascade: ['insert'] })
+  @ManyToOne(() => StatusEntity)
   @JoinColumn()
   status: Relation<StatusEntity>;
 

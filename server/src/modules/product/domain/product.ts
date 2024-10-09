@@ -13,7 +13,7 @@ export class Product {
   readonly id: number;
   private revision: number;
   private events: RevisionProductEvent[] = [];
-  private constructor(private props: ProductProps) {
+  constructor(private props: ProductProps) {
     if (!props.id) throw new Error('id must be defined');
     this.id = Number(props.id);
   }
@@ -103,6 +103,19 @@ export class Product {
 
   getId(): number {
     return this.id;
+  }
+
+  getWeight(): number {
+    return this.props.weight;
+  }
+
+  getVolume(): number {
+    const volume =
+      (((this.props.width * this.props.height * this.props.length) / 1000_000) *
+        100) /
+      100;
+
+    return Number(volume.toFixed(2));
   }
 
   toObject() {

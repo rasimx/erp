@@ -10,7 +10,7 @@ import type { RevisionProductBatchEvent } from '@/product-batch/domain/product-b
 import { ProductBatch } from '@/product-batch/domain/product-batch.js';
 import { ProductBatchRepository } from '@/product-batch/domain/product-batch.repository.js';
 import { ProductBatchEventRepository } from '@/product-batch/domain/product-batch-event.repository.js';
-import { CreateGroupOperationCommand } from '@/product-batch-group/commands/create-group-operation/create-group-operation.command.js';
+import { AddGroupOperationCommand } from '@/product-batch-group/commands/add-group-operation/add-group-operation.command.js';
 import {
   ProductBatchGroupEventType,
   type RevisionProductBatchGroupEvent,
@@ -23,9 +23,9 @@ import { RequestRepository } from '@/request/request.repository.js';
 
 // import { ProductBatchEventStore } from '@/product-batch/eventstore/product-batch.eventstore.js';
 
-@CommandHandler(CreateGroupOperationCommand)
-export class CreateGroupOperationHandler
-  implements ICommandHandler<CreateGroupOperationCommand>
+@CommandHandler(AddGroupOperationCommand)
+export class AddGroupOperationHandler
+  implements ICommandHandler<AddGroupOperationCommand>
 {
   constructor(
     @InjectDataSource()
@@ -39,7 +39,7 @@ export class CreateGroupOperationHandler
     private readonly productBatchGroupEventRepo: ProductBatchGroupEventRepository,
   ) {}
 
-  async execute(command: CreateGroupOperationCommand) {
+  async execute(command: AddGroupOperationCommand) {
     const requestId = this.contextService.requestId;
     if (!requestId) throw new Error('requestId was not defined');
 
@@ -82,7 +82,7 @@ export class CreateGroupOperationHandler
           groupEvents as RevisionProductBatchGroupEvent[],
         );
 
-        group.appendOperation({
+        group.addOperation({
           id: groupOperationEventId,
           data: { ...dto, id: groupOperation.id },
         });
@@ -141,7 +141,7 @@ export class CreateGroupOperationHandler
         event.id = groupOperationEventId;
         event.requestId = requestId;
         event.aggregateId = null;
-        event.type = ProductBatchGroupEventType.GroupOperationCreated;
+        event.type = ProductBatchGroupEventType.GroupOperationAdded;
         event.revision = null;
         event.data = { ...dto, id: groupOperation.id };
 

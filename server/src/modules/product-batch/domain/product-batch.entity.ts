@@ -29,7 +29,7 @@ export class ProductBatchEntity {
   })
   userId: number;
 
-  @ManyToOne(() => ProductEntity, { cascade: ['insert'] })
+  @ManyToOne(() => ProductEntity)
   @JoinColumn()
   product: Relation<ProductEntity>;
 
@@ -37,7 +37,7 @@ export class ProductBatchEntity {
   @Column()
   productId: number;
 
-  @ManyToOne(() => StatusEntity, { cascade: ['insert'] })
+  @ManyToOne(() => StatusEntity)
   @JoinColumn()
   status: Relation<StatusEntity> | null;
 
@@ -54,7 +54,7 @@ export class ProductBatchEntity {
   @OneToMany(() => ProductBatchClosureEntity, entity => entity.destination)
   sourcesClosure: ProductBatchClosureEntity[];
 
-  @ManyToOne(() => ProductBatchGroupEntity, { cascade: ['insert'] })
+  @ManyToOne(() => ProductBatchGroupEntity)
   @JoinColumn()
   group: Relation<ProductBatchGroupEntity> | null;
 

@@ -9,7 +9,7 @@ import { Microservices } from '@/microservices/microservices.js';
 import { OperationModule } from '@/operation/operation.module.js';
 import { ProductModule } from '@/product/product.module.js';
 import { ProductBatchModule } from '@/product-batch/product-batch.module.js';
-import { CreateGroupOperationHandler } from '@/product-batch-group/commands/create-group-operation/create-group-operation.handler.js';
+import { AddGroupOperationHandler } from '@/product-batch-group/commands/add-group-operation/add-group-operation.handler.js';
 import { CreateProductBatchGroupHandler } from '@/product-batch-group/commands/create-product-batch-group/create-product-batch-group.handler.js';
 import { ProductBatchGroupEventEntity } from '@/product-batch-group/domain/product-batch-group-event.entity.js';
 import { ProductBatchGroupEventRepositoryProvider } from '@/product-batch-group/domain/product-batch-group-event.repository.js';
@@ -50,7 +50,7 @@ import { GetProductBatchGroupListHandler } from './queries/get-product-batch-gro
     CreateProductBatchGroupHandler,
     MoveProductBatchGroupHandler,
     DeleteProductBatchGroupHandler,
-    CreateGroupOperationHandler,
+    AddGroupOperationHandler,
     ProductBatchGroupRepositoryProvider,
     ProductBatchGroupEventRepositoryProvider,
   ],

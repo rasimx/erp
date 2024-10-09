@@ -5,7 +5,10 @@ import { In } from 'typeorm';
 import { ContextService } from '@/context/context.service.js';
 import type { CustomDataSource } from '@/database/custom.data-source.js';
 import type { ProductEntity } from '@/product/domain/product.entity.js';
+import type { RevisionProductEvent } from '@/product/domain/product.events.js';
+import { Product } from '@/product/domain/product.js';
 import { ProductRepository } from '@/product/domain/product.repository.js';
+import { ProductEventRepository } from '@/product/domain/product-event.repository.js';
 import type { RevisionProductBatchEvent } from '@/product-batch/domain/product-batch.events.js';
 import { ProductBatch } from '@/product-batch/domain/product-batch.js';
 import { ProductBatchRepository } from '@/product-batch/domain/product-batch.repository.js';
@@ -25,6 +28,7 @@ export class CreateProductBatchesFromSourcesHandler
     private dataSource: CustomDataSource,
     private readonly requestRepo: RequestRepository,
     private readonly productRepo: ProductRepository,
+    private readonly productEventRepo: ProductEventRepository,
     private readonly productBatchRepo: ProductBatchRepository,
     private readonly productBatchEventRepo: ProductBatchEventRepository,
     private readonly productBatchGroupService: ProductBatchGroupService,
@@ -42,6 +46,9 @@ export class CreateProductBatchesFromSourcesHandler
     const request = await requestRepo.insert({ id: requestId });
 
     const productRepo = queryRunner.manager.withRepository(this.productRepo);
+    const productEventRepo = queryRunner.manager.withRepository(
+      this.productEventRepo,
+    );
     const productBatchRepo = queryRunner.manager.withRepository(
       this.productBatchRepo,
     );
@@ -90,12 +97,22 @@ export class CreateProductBatchesFromSourcesHandler
         ]),
       );
 
-      const products = await productRepo.find({
-        where: { id: In(dto.items.map(({ productId }) => productId)) },
-        relations: ['setItems'],
-      });
-      const productsMap = new Map<number, ProductEntity>(
-        products.map(product => [product.id, product]),
+      // const products = await productRepo.find({
+      //   where: { id: In(dto.items.map(({ productId }) => productId)) },
+      //   relations: ['setItems'],
+      // });
+      // const productsMap = new Map<number, ProductEntity>(
+      //   products.map(product => [product.id, product]),
+      // );
+
+      const productEvents = await productEventRepo.findManyByAggregateId(
+        dto.items.map(({ productId }) => productId),
+      );
+      const productsMap = new Map<number, Product>(
+        [...productEvents.entries()].map(([productId, productEvents]) => [
+          productId,
+          Product.buildFromEvents(productEvents as RevisionProductEvent[]),
+        ]),
       );
 
       const aggregates: ProductBatch[] = [];
@@ -114,7 +131,7 @@ export class CreateProductBatchesFromSourcesHandler
         const newProductBatch = ProductBatch.createFromSources({
           id: aggregateId,
           count: item.count,
-          productId: item.productId,
+          productProps: product.toObject(),
           statusId: dto.groupId ? null : dto.statusId,
           groupId: dto.groupId,
           order,
@@ -123,10 +140,12 @@ export class CreateProductBatchesFromSourcesHandler
             if (!sourceAggregate)
               throw new Error('sourceAggregate was not found');
             // todo: проверить productId через productSet
-            const qty = product.setItems.length
-              ? product.setItems.find(
-                  item => item.productId === sourceAggregate.getProductId(),
-                )?.qty || 1
+            const qty = product.toObject().setItems.length
+              ? product
+                  .toObject()
+                  .setItems.find(
+                    item => item.productId === sourceAggregate.getProductId(),
+                  )?.qty || 1
               : 1;
 
             return {

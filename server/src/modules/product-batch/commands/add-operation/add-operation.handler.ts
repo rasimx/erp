@@ -10,11 +10,11 @@ import { ProductBatchRepository } from '@/product-batch/domain/product-batch.rep
 import { ProductBatchEventRepository } from '@/product-batch/domain/product-batch-event.repository.js';
 import { RequestRepository } from '@/request/request.repository.js';
 
-import { CreateOperationCommand } from './create-operation.command.js';
+import { AddOperationCommand } from './add-operation.command.js';
 
-@CommandHandler(CreateOperationCommand)
-export class CreateOperationHandler
-  implements ICommandHandler<CreateOperationCommand>
+@CommandHandler(AddOperationCommand)
+export class AddOperationHandler
+  implements ICommandHandler<AddOperationCommand>
 {
   constructor(
     @InjectDataSource()
@@ -26,7 +26,7 @@ export class CreateOperationHandler
     private readonly productBatchEventRepo: ProductBatchEventRepository,
   ) {}
 
-  async execute(command: CreateOperationCommand) {
+  async execute(command: AddOperationCommand) {
     const requestId = this.contextService.requestId;
     if (!requestId) throw new Error('requestId was not defined');
 
@@ -61,7 +61,7 @@ export class CreateOperationHandler
         targetEvents as RevisionProductBatchEvent[],
       );
 
-      productBatch.appendOperation({ ...dto, id: operation.id });
+      productBatch.addOperation({ ...dto, id: operation.id });
 
       await productBatchEventRepo.saveAggregateEvents({
         aggregates: [productBatch],

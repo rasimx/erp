@@ -4,12 +4,12 @@ import { Args, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
 
 import { UserInterceptor } from '@/auth/user.interceptor.js';
 import { GetProductBatchListDto } from '@/product-batch/dtos/get-product-batch-list.dto.js';
+import { AddGroupOperationCommand } from '@/product-batch-group/commands/add-group-operation/add-group-operation.command.js';
 
-import { CreateGroupOperationCommand } from './commands/create-group-operation/create-group-operation.command.js';
 import { CreateProductBatchGroupCommand } from './commands/create-product-batch-group/create-product-batch-group.command.js';
 import { DeleteProductBatchGroupCommand } from './commands/delete-product-batch-group/delete-product-batch-group.command.js';
 import { MoveProductBatchGroupCommand } from './commands/move-product-batch-group/move-product-batch-group.command.js';
-import { CreateGroupOperationDto } from './dtos/create-group-operation.dto.js';
+import { AddGroupOperationDto } from './dtos/add-group-operation.dto.js';
 import { CreateProductBatchGroupDto } from './dtos/create-product-batch-group.dto.js';
 import { MoveProductBatchGroupDto } from './dtos/move-product-batch-group.dto.js';
 import {
@@ -56,11 +56,11 @@ export class ProductBatchGroupResolver {
   }
 
   @Mutation(() => CommandResponse)
-  async createGroupOperation(
-    @Args('dto', { type: () => CreateGroupOperationDto })
-    dto: CreateGroupOperationDto,
+  async addGroupOperation(
+    @Args('dto', { type: () => AddGroupOperationDto })
+    dto: AddGroupOperationDto,
   ): Promise<CommandResponse> {
-    await this.commandBus.execute(new CreateGroupOperationCommand(dto));
+    await this.commandBus.execute(new AddGroupOperationCommand(dto));
     return { success: true };
   }
 

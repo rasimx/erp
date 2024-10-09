@@ -15,7 +15,7 @@ export class ProductBatchOperationDto {
 }
 
 @InputType()
-export class CreateGroupOperationDto {
+export class AddGroupOperationDto {
   @Field(() => String)
   name: string;
 

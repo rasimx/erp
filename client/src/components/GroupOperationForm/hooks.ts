@@ -2,10 +2,7 @@ import { useCallback, useMemo } from 'react';
 
 import { ProductBatch } from '../../api/product-batch/product-batch.gql';
 import { ProductBatchDetail } from '../../api/product-batch/product-batch-detail.gql';
-import {
-  CreateGroupOperationDto,
-  ProportionType,
-} from '../../gql-types/graphql';
+import { AddGroupOperationDto, ProportionType } from '../../gql-types/graphql';
 import { toRouble } from '../../utils';
 import { ProportionMap } from './GroupOperationFormContext';
 
@@ -13,7 +10,7 @@ export const useProportionMap = ({
   values,
   productBatches,
 }: {
-  values: CreateGroupOperationDto;
+  values: AddGroupOperationDto;
   productBatches: ProductBatch[] | ProductBatchDetail[];
 }) => {
   const percentages = useCallback(

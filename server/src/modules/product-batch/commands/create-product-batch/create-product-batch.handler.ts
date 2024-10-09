@@ -3,6 +3,14 @@ import { InjectDataSource } from '@nestjs/typeorm';
 
 import { ContextService } from '@/context/context.service.js';
 import type { CustomDataSource } from '@/database/custom.data-source.js';
+import type { ProductEntity } from '@/product/domain/product.entity.js';
+import type {
+  ProductEvent,
+  RevisionProductEvent,
+} from '@/product/domain/product.events.js';
+import { Product } from '@/product/domain/product.js';
+import { ProductRepository } from '@/product/domain/product.repository.js';
+import { ProductEventRepository } from '@/product/domain/product-event.repository.js';
 import { ProductBatch } from '@/product-batch/domain/product-batch.js';
 import { ProductBatchRepository } from '@/product-batch/domain/product-batch.repository.js';
 import { ProductBatchEventRepository } from '@/product-batch/domain/product-batch-event.repository.js';
@@ -19,6 +27,8 @@ export class CreateProductBatchHandler
     @InjectDataSource()
     private dataSource: CustomDataSource,
     private readonly requestRepo: RequestRepository,
+    private readonly productRepo: ProductRepository,
+    private readonly productEventRepo: ProductEventRepository,
     private readonly productBatchRepo: ProductBatchRepository,
     private readonly productBatchEventRepo: ProductBatchEventRepository,
     private readonly productBatchGroupService: ProductBatchGroupService,
@@ -37,6 +47,10 @@ export class CreateProductBatchHandler
     const requestRepo = queryRunner.manager.withRepository(this.requestRepo);
     const request = await requestRepo.insert({ id: requestId });
 
+    const productRepo = queryRunner.manager.withRepository(this.productRepo);
+    const productEventRepo = queryRunner.manager.withRepository(
+      this.productEventRepo,
+    );
     const productBatchRepo = queryRunner.manager.withRepository(
       this.productBatchRepo,
     );
@@ -62,6 +76,41 @@ export class CreateProductBatchHandler
         dto.groupId = group.id;
       }
 
+      const productEvents = await productEventRepo.findManyByAggregateId(
+        dto.items.map(({ productId }) => productId),
+      );
+      const productsMap = new Map<number, Product>(
+        [...productEvents.entries()].map(([productId, productEvents]) => [
+          productId,
+          Product.buildFromEvents(productEvents as RevisionProductEvent[]),
+        ]),
+      );
+
+      // const productsEntities = await productRepo.find({
+      //   relations: ['setItems'],
+      // });
+      //
+      // const products = productsEntities.map(entity => {
+      //   return Product.create({
+      //     id: entity.id,
+      //     name: entity.name,
+      //     sku: entity.sku,
+      //     width: entity.width,
+      //     height: entity.height,
+      //     length: entity.length,
+      //     weight: entity.weight,
+      //     setItems: entity.setItems.map(item => ({
+      //       productId: item.productId,
+      //       qty: item.qty,
+      //     })),
+      //   });
+      // });
+      //
+      // await productEventRepo.saveAggregateEvents({
+      //   aggregates: products,
+      //   requestId,
+      // });
+
       const affectedIds: number[] = [];
 
       const aggregatedIds = await productBatchRepo.nextIds(dto.items.length);
@@ -78,6 +127,9 @@ export class CreateProductBatchHandler
 
         const item = dto.items[index];
 
+        const product = productsMap.get(item.productId);
+        if (!product) throw new Error('productId was not found');
+
         const order = lastOrder ? lastOrder + index + 1 : index + 1;
 
         const productBatch = ProductBatch.create({
@@ -87,6 +139,7 @@ export class CreateProductBatchHandler
           statusId: dto.groupId ? null : dto.statusId,
           groupId: dto.groupId,
           order,
+          productProps: product.toObject(),
         });
 
         aggregates.push(productBatch);

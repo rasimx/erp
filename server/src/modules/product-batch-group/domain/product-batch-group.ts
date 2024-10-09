@@ -4,8 +4,8 @@ import { ProductBatchEventType } from '@/product-batch/domain/product-batch.even
 import type { ProductBatchGroupProps } from '@/product-batch-group/domain/product-batch-group.interfaces.js';
 
 import {
+  type GroupOperationAddedEventData,
   type GroupOperationCreatedEvent,
-  type GroupOperationCreatedEventData,
   type ProductBatchGroupCreatedEvent,
   type ProductBatchGroupCreatedEventData,
   type ProductBatchGroupEvent,
@@ -140,16 +140,16 @@ export class ProductBatchGroup {
     }
   }
 
-  public appendOperation({
+  public addOperation({
     id,
     data,
   }: {
     id?: string;
-    data: GroupOperationCreatedEventData;
+    data: GroupOperationAddedEventData;
   }): void {
     const event: GroupOperationCreatedEvent = {
       id: id || uuidV7(),
-      type: ProductBatchGroupEventType.GroupOperationCreated,
+      type: ProductBatchGroupEventType.GroupOperationAdded,
       data,
     };
     this.appendEvent(event);

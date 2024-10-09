@@ -1,15 +1,17 @@
 import { v7 as uuidV7 } from 'uuid';
 
+import type { ProductProps } from '@/product/domain/product.interfaces.js';
+import { Product } from '@/product/domain/product.js';
 import type {
   CreateProductBatchProps,
   ProductBatchProps,
 } from '@/product-batch/domain/product-batch.interfaces.js';
 
 import {
-  type GroupOperationCreatedEvent,
-  type GroupOperationCreatedEventData,
-  type OperationCreatedEvent,
-  type OperationCreatedEventData,
+  type GroupOperationAddedEvent,
+  type GroupOperationAddedEventData,
+  type OperationAddedEvent,
+  type OperationAddedEventData,
   type ProductBatchChildCreatedEvent,
   type ProductBatchCreatedEvent,
   type ProductBatchCreatedEventData,
@@ -25,9 +27,11 @@ export class ProductBatch {
   readonly id: number;
   private revision: number;
   private events: RevisionProductBatchEvent[] = [];
+  private product: Product;
   private constructor(private props: ProductBatchProps) {
     if (!props.id) throw new Error('id must be defined');
     this.id = Number(props.id);
+    this.product = new Product(props.productProps);
   }
 
   public static create(
@@ -55,7 +59,7 @@ export class ProductBatch {
   public static createFromSources(data: {
     id: number;
     count: number;
-    productId: number;
+    productProps: ProductProps;
     statusId: number | null;
     groupId: number | null;
     order: number;
@@ -80,7 +84,8 @@ export class ProductBatch {
       {
         id: data.id,
         count: data.count,
-        productId: data.productId,
+        productProps: data.productProps,
+        productId: data.productProps.id,
         costPricePerUnit: data.sources.reduce(
           (prev, cur) =>
             prev + cur.productBatch.toObject().costPricePerUnit * cur.qty,
@@ -166,8 +171,8 @@ export class ProductBatch {
       case ProductBatchEventType.ProductBatchMoved:
         this.props = { ...this.props, ...event.data };
         break;
-      case ProductBatchEventType.GroupOperationCreated:
-      case ProductBatchEventType.OperationCreated:
+      case ProductBatchEventType.GroupOperationAdded:
+      case ProductBatchEventType.OperationAdded:
         {
           const operationPricePerUnit = event.data.cost / this.props.count;
 
@@ -201,11 +206,19 @@ export class ProductBatch {
     return this.id;
   }
 
+  getWeight(): number {
+    return this.product.getWeight() * this.props.count;
+  }
+
+  getVolume(): number {
+    return this.product.getVolume() * this.props.count;
+  }
+
   getOrder(): number {
     return this.props.order;
   }
   getProductId(): number {
-    return this.props.productId;
+    return this.product.id;
   }
   getStatusId(): number | null {
     return this.props.statusId;
@@ -247,25 +260,25 @@ export class ProductBatch {
     }
   }
 
-  public appendOperation(
-    data: OperationCreatedEventData,
+  public addOperation(
+    data: OperationAddedEventData,
     metadata?: Record<string, unknown>,
   ): void {
-    const event: OperationCreatedEvent = {
+    const event: OperationAddedEvent = {
       id: uuidV7(),
-      type: ProductBatchEventType.OperationCreated,
+      type: ProductBatchEventType.OperationAdded,
       data,
       metadata,
     };
     this.appendEvent(event);
   }
   public appendGroupOperation(
-    data: GroupOperationCreatedEventData,
+    data: GroupOperationAddedEventData,
     metadata?: Record<string, unknown>,
   ): void {
-    const event: GroupOperationCreatedEvent = {
+    const event: GroupOperationAddedEvent = {
       id: uuidV7(),
-      type: ProductBatchEventType.GroupOperationCreated,
+      type: ProductBatchEventType.GroupOperationAdded,
       data,
       metadata,
     };
