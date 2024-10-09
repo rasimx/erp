@@ -3,23 +3,25 @@ import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { Args, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
 
 import { UserInterceptor } from '@/auth/user.interceptor.js';
-import { CreateProductBatchCommand } from '@/product-batch/commands/create-product-batch/create-product-batch.command.js';
-import { CreateProductBatchesFromSourcesCommand } from '@/product-batch/commands/create-product-batches-from-sources/create-product-batches-from-sources.command.js';
-import { DeleteProductBatchCommand } from '@/product-batch/commands/delete-product-batch/delete-product-batch.command.js';
-import { EditProductBatchCommand } from '@/product-batch/commands/edit-product-batch/edit-product-batch.command.js';
-import { MoveProductBatchCommand } from '@/product-batch/commands/move-product-batch/move-product-batch.command.js';
-import { CreateProductBatchListDto } from '@/product-batch/dtos/create-product-batch-list.dto.js';
-import { CreateProductBatchesFromSourcesListDto } from '@/product-batch/dtos/create-product-batches-from-sources-list.dto.js';
-import { GetProductBatchListDto } from '@/product-batch/dtos/get-product-batch-list.dto.js';
-import { MoveProductBatchDto } from '@/product-batch/dtos/move-product-batch.dto.js';
-import { ProductBatchDto } from '@/product-batch/dtos/product-batch.dto.js';
-import { ProductBatchDetailDto } from '@/product-batch/dtos/product-batch-detail.dto.js';
-import { ProductBatchService } from '@/product-batch/product-batch.service.js';
-import { GetProductBatchQuery } from '@/product-batch/queries/impl/get-product-batch.query.js';
-import { GetProductBatchListQuery } from '@/product-batch/queries/impl/get-product-batch-list.query.js';
 import { CommandResponse } from '@/product-batch-group/dtos/product-batch-group.dto.js';
 
+import { CreateOperationCommand } from './commands/create-operation/create-operation.command.js';
+import { CreateProductBatchCommand } from './commands/create-product-batch/create-product-batch.command.js';
+import { CreateProductBatchesFromSourcesCommand } from './commands/create-product-batches-from-sources/create-product-batches-from-sources.command.js';
+import { DeleteProductBatchCommand } from './commands/delete-product-batch/delete-product-batch.command.js';
+import { EditProductBatchCommand } from './commands/edit-product-batch/edit-product-batch.command.js';
+import { MoveProductBatchCommand } from './commands/move-product-batch/move-product-batch.command.js';
+import { CreateOperationDto } from './dtos/create-operation.dto.js';
+import { CreateProductBatchListDto } from './dtos/create-product-batch-list.dto.js';
+import { CreateProductBatchesFromSourcesListDto } from './dtos/create-product-batches-from-sources-list.dto.js';
 import { EditProductBatchDto } from './dtos/edit-product-batch.dto.js';
+import { GetProductBatchListDto } from './dtos/get-product-batch-list.dto.js';
+import { MoveProductBatchDto } from './dtos/move-product-batch.dto.js';
+import { ProductBatchDto } from './dtos/product-batch.dto.js';
+import { ProductBatchDetailDto } from './dtos/product-batch-detail.dto.js';
+import { ProductBatchService } from './product-batch.service.js';
+import { GetProductBatchQuery } from './queries/impl/get-product-batch.query.js';
+import { GetProductBatchListQuery } from './queries/impl/get-product-batch-list.query.js';
 
 @Resolver()
 @UseInterceptors(UserInterceptor)
@@ -70,16 +72,13 @@ export class ProductBatchResolver {
     return { success: true };
   }
 
-  // @Mutation(() => CommandResponse)
-  // async createProductBatchesByAssembling(
-  //   @Args('dto', { type: () => CreateProductBatchesByAssemblingDto })
-  //   dto: CreateProductBatchesByAssemblingDto,
-  // ): Promise<CommandResponse> {
-  //   await this.commandBus.execute(
-  //     new CreateProductBatchesByAssemblingCommand(dto),
-  //   );
-  //   return { success: true };
-  // }
+  @Mutation(() => CommandResponse)
+  async createOperation(
+    @Args('dto', { type: () => CreateOperationDto }) dto: CreateOperationDto,
+  ): Promise<CommandResponse> {
+    await this.commandBus.execute(new CreateOperationCommand(dto));
+    return { success: true };
+  }
 
   @Mutation(() => CommandResponse)
   async createProductBatchesFromSources(

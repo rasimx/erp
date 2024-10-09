@@ -1,7 +1,7 @@
 import { useQuery } from '@apollo/client';
 import NiceModal, { useModal } from '@ebay/nice-modal-react';
 import { Button } from 'primereact/button';
-import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
+import { confirmDialog } from 'primereact/confirmdialog';
 import { Menu } from 'primereact/menu';
 import { MenuItem } from 'primereact/menuitem';
 import { ProgressSpinner } from 'primereact/progressspinner';
@@ -54,9 +54,8 @@ export const ProductBatchDetail = React.memo<Props>(props => {
         command: () =>
           operationFormModal.show({
             initialValues: {
-              groupId: null,
+              productBatchId,
             },
-            productBatches: productBatch ? [productBatch] : [],
             onSubmit: async values => {
               refetch();
             },

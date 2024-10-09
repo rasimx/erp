@@ -3,11 +3,11 @@ import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
 import { type FindOptionsWhere, In, Repository } from 'typeorm';
 
 import type { CustomDataSource } from '@/database/custom.data-source.js';
-import { ProductListDto } from '@/product/dtos/product-list.dto.js';
 import {
   ProductEntity,
   type ProductInsertEntity,
-} from '@/product/product.entity.js';
+} from '@/product/domain/product.entity.js';
+import { ProductListDto } from '@/product/dtos/product-list.dto.js';
 
 @Injectable()
 export class ProductService {

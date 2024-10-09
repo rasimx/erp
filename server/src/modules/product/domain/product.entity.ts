@@ -9,7 +9,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-import { ProductSetClosureEntity } from '@/product/product-set-closure.entity.js';
+import { ProductSetClosureEntity } from '@/product/domain/product-set-closure.entity.js';
 import { ProductBatchOperationEntity } from '@/product-batch-operation/product-batch-operation.entity.js';
 
 @Entity({ name: 'product' })

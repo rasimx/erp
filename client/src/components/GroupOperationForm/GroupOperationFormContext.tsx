@@ -1,17 +1,13 @@
 import { FormikProps } from 'formik';
 import pick from 'lodash/pick';
-import {
-  createContext,
-  FC,
-  ReactNode,
-  useContext,
-  useEffect,
-  useState,
-} from 'react';
+import { createContext, FC, ReactNode, useContext, useEffect } from 'react';
 
 import { ProductBatch } from '../../api/product-batch/product-batch.gql';
 import { ProductBatchDetail } from '../../api/product-batch/product-batch-detail.gql';
-import { CreateOperationDto, ProportionType } from '../../gql-types/graphql';
+import {
+  CreateGroupOperationDto,
+  ProportionType,
+} from '../../gql-types/graphql';
 import { useProportionMap } from './hooks';
 
 export type ProportionValue = {
@@ -28,9 +24,10 @@ export type ProportionMap = {
 export type OperationFormContextType = {
   proportionMap: ProportionMap;
 };
-export const OperationFormContext =
+export const GroupOperationFormContext =
   createContext<OperationFormContextType | null>(null);
-export const useOperationFormContext = () => useContext(OperationFormContext);
+export const useOperationFormContext = () =>
+  useContext(GroupOperationFormContext);
 
 export type Props = {
   productBatches: ProductBatch[] | ProductBatchDetail[];
@@ -38,7 +35,7 @@ export type Props = {
 };
 
 export const OperationFormContextProvider: FC<
-  Props & FormikProps<CreateOperationDto>
+  Props & FormikProps<CreateGroupOperationDto>
 > = props => {
   const { children, productBatches, values, setFieldValue } = props;
 
@@ -47,7 +44,7 @@ export const OperationFormContextProvider: FC<
   useEffect(() => {
     if (proportionMap && values.proportionType) {
       setFieldValue(
-        'productBatchProportions',
+        'items',
         [...proportionMap[values.proportionType].values()].map(item =>
           pick(item, ['productBatchId', 'proportion', 'cost']),
         ),
@@ -56,8 +53,8 @@ export const OperationFormContextProvider: FC<
   }, [proportionMap, values.proportionType]);
 
   return (
-    <OperationFormContext.Provider value={{ proportionMap }}>
+    <GroupOperationFormContext.Provider value={{ proportionMap }}>
       {children}
-    </OperationFormContext.Provider>
+    </GroupOperationFormContext.Provider>
   );
 };

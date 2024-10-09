@@ -8,7 +8,7 @@ import { ContextService } from '@/context/context.service.js';
 import { CustomDataSource } from '@/database/custom.data-source.js';
 import type { CustomPostgresQueryRunner } from '@/database/custom.query-runner.js';
 import { OzonPostingProductMicroservice } from '@/microservices/erp_ozon/ozon-posting-product-microservice.service.js';
-import { ProductRepository } from '@/product/product.repository.js';
+import { ProductRepository } from '@/product/domain/product.repository.js';
 import { ProductService } from '@/product/product.service.js';
 import { ProductBatchEntity } from '@/product-batch/domain/product-batch.entity.js';
 import { ProductBatch } from '@/product-batch/domain/product-batch.js';
@@ -66,7 +66,7 @@ export class ProductBatchService {
 
   async recover() {
     // const events = await this.productBatchEventRepo.findByAggregateId(451);
-    // const productBatch = ProductBatch.buildFromEvents(events);
+    // const productBatch = Product.buildFromEvents(events);
     //
     // await this.productBatchRepo.save(productBatch.toObject());
     // console.log('AAAAAAAA');

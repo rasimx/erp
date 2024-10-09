@@ -1,8 +1,11 @@
 import { v7 as uuidV7 } from 'uuid';
 
+import { ProductBatchEventType } from '@/product-batch/domain/product-batch.events.js';
 import type { ProductBatchGroupProps } from '@/product-batch-group/domain/product-batch-group.interfaces.js';
 
 import {
+  type GroupOperationCreatedEvent,
+  type GroupOperationCreatedEventData,
   type ProductBatchGroupCreatedEvent,
   type ProductBatchGroupCreatedEventData,
   type ProductBatchGroupEvent,
@@ -135,6 +138,21 @@ export class ProductBatchGroup {
       };
       this.appendEvent(event);
     }
+  }
+
+  public appendOperation({
+    id,
+    data,
+  }: {
+    id?: string;
+    data: GroupOperationCreatedEventData;
+  }): void {
+    const event: GroupOperationCreatedEvent = {
+      id: id || uuidV7(),
+      type: ProductBatchGroupEventType.GroupOperationCreated,
+      data,
+    };
+    this.appendEvent(event);
   }
 
   // changeStatus(statusId: number) {

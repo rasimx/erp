@@ -1,21 +1,21 @@
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
 
-import type { ProductBatchGroup } from '@/product-batch-group/domain/product-batch-group.js';
-import { ProductBatchGroupEventEntity } from '@/product-batch-group/domain/product-batch-group-event.entity.js';
+import type { Product } from '@/product/domain/product.js';
+import { ProductEventEntity } from '@/product/domain/product-event.entity.js';
 
-export class ProductBatchGroupEventRepository extends Repository<ProductBatchGroupEventEntity> {
+export class ProductEventRepository extends Repository<ProductEventEntity> {
   async saveAggregateEvents({
     aggregates,
     requestId,
   }: {
-    aggregates: ProductBatchGroup[];
+    aggregates: Product[];
     requestId: string;
   }) {
     await this.save(
       aggregates.flatMap(aggregate =>
         aggregate.getUncommittedEvents().map(item => {
-          const event = new ProductBatchGroupEventEntity();
+          const event = new ProductEventEntity();
           event.id = item.id;
           event.requestId = requestId;
           event.aggregateId = aggregate.getId();
@@ -35,36 +35,34 @@ export class ProductBatchGroupEventRepository extends Repository<ProductBatchGro
 
   async findManyByAggregateId(
     aggregateIds: number[],
-  ): Promise<Map<number, ProductBatchGroupEventEntity[]>> {
+  ): Promise<Map<number, ProductEventEntity[]>> {
     const rows = await this.find({
       where: { aggregateId: In(aggregateIds) },
       order: { revision: 'ASC' },
     });
-    const map = new Map<number, ProductBatchGroupEventEntity[]>();
+    const map = new Map<number, ProductEventEntity[]>();
     rows.forEach(row =>
-      map.set(row.aggregateId as number, [
-        ...(map.get(row.aggregateId as number) || []),
+      map.set(Number(row.aggregateId), [
+        ...(map.get(row.aggregateId) || []),
         row,
       ]),
     );
     return map;
   }
 
-  async findByAggregateId(
-    aggregateId: number,
-  ): Promise<ProductBatchGroupEventEntity[]> {
+  async findByAggregateId(aggregateId: number): Promise<ProductEventEntity[]> {
     return this.find({
       where: { aggregateId },
-      order: { revision: 'ASC' },
+      order: { createdAt: 'ASC' },
     });
   }
 }
 
-export const ProductBatchGroupEventRepositoryProvider = {
-  provide: ProductBatchGroupEventRepository,
-  inject: [getRepositoryToken(ProductBatchGroupEventEntity)],
-  useFactory: (repository: Repository<ProductBatchGroupEventEntity>) => {
-    return new ProductBatchGroupEventRepository(
+export const ProductEventRepositoryProvider = {
+  provide: ProductEventRepository,
+  inject: [getRepositoryToken(ProductEventEntity)],
+  useFactory: (repository: Repository<ProductEventEntity>) => {
+    return new ProductEventRepository(
       repository.target,
       repository.manager,
       repository.queryRunner,

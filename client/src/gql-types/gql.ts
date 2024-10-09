@@ -15,6 +15,7 @@ import { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/
 const documents = {
     "\n  query kanbanCards($dto: GetProductBatchListDto!) {\n    productBatchList(dto: $dto) {\n      ...ProductBatch\n    }\n    productBatchGroupList(dto: $dto) {\n      ...ProductBatchGroup\n    }\n  }\n": types.KanbanCardsDocument,
     "\n  mutation createOperation($dto: CreateOperationDto!) {\n    createOperation(dto: $dto) {\n      success\n    }\n  }\n": types.CreateOperationDocument,
+    "\n  mutation createGroupOperation($dto: CreateGroupOperationDto!) {\n    createGroupOperation(dto: $dto) {\n      success\n    }\n  }\n": types.CreateGroupOperationDocument,
     "\n  fragment ProductBatchGroupDetail on ProductBatchGroupDetailDto {\n    id\n    name\n    statusId\n    status {\n      id\n      title\n      order\n    }\n    order\n    productBatchList {\n      ...ProductBatch\n    }\n    events {\n      ...Event\n    }\n  }\n": types.ProductBatchGroupDetailFragmentDoc,
     "\n  query productBatchGroupDetail($id: Int!) {\n    productBatchGroupDetail(id: $id) {\n      ...ProductBatchGroupDetail\n    }\n  }\n": types.ProductBatchGroupDetailDocument,
     "\n  fragment ProductBatchGroup on ProductBatchGroupDto {\n    id\n    name\n    statusId\n    status {\n      id\n      title\n      order\n    }\n    order\n    productBatchList {\n      ...ProductBatch\n    }\n  }\n": types.ProductBatchGroupFragmentDoc,
@@ -66,6 +67,10 @@ export function graphql(source: "\n  query kanbanCards($dto: GetProductBatchList
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n  mutation createOperation($dto: CreateOperationDto!) {\n    createOperation(dto: $dto) {\n      success\n    }\n  }\n"): (typeof documents)["\n  mutation createOperation($dto: CreateOperationDto!) {\n    createOperation(dto: $dto) {\n      success\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation createGroupOperation($dto: CreateGroupOperationDto!) {\n    createGroupOperation(dto: $dto) {\n      success\n    }\n  }\n"): (typeof documents)["\n  mutation createGroupOperation($dto: CreateGroupOperationDto!) {\n    createGroupOperation(dto: $dto) {\n      success\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

@@ -3,8 +3,9 @@ import { InjectDataSource } from '@nestjs/typeorm';
 
 import { ContextService } from '@/context/context.service.js';
 import type { CustomDataSource } from '@/database/custom.data-source.js';
-import { CreateProductBatchGroupCommand } from '@/product-batch-group/commands/impl/create-product-batch-group.command.js';
 import { ProductBatchGroupService } from '@/product-batch-group/product-batch-group.service.js';
+
+import { CreateProductBatchGroupCommand } from './create-product-batch-group.command.js';
 
 @CommandHandler(CreateProductBatchGroupCommand)
 export class CreateProductBatchGroupHandler

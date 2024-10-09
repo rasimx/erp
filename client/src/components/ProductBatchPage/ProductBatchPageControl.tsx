@@ -7,7 +7,7 @@ import React, { FC, useCallback, useMemo, useRef } from 'react';
 
 import { useAppDispatch, useAppSelector } from '../../hooks';
 import { CreateProductBatchGroupModal } from '../CreateProductBatchGroup/CreateProductBatchGroupForm';
-import OperationForm from '../OperationForm/OperationForm';
+import GroupOperationForm from '../GroupOperationForm/GroupOperationForm';
 import {
   selectIsSelectingMode,
   selectSelectedProductBatches,
@@ -22,7 +22,7 @@ export const ProductBatchPageControl: FC = () => {
   const selectingHandle = useCallback(() => dispatch(toggleSelecting()), []);
 
   const createProductBatchGroupModal = useModal(CreateProductBatchGroupModal);
-  const operationFormModal = useModal(OperationForm);
+  const groupOperationFormModal = useModal(GroupOperationForm);
 
   const menu = useRef<Menu>(null);
   const toast = useRef(null);
@@ -42,14 +42,18 @@ export const ProductBatchPageControl: FC = () => {
         label: 'Добавить  сопутствующие расходы',
         icon: 'pi pi-plus',
         command: () =>
-          operationFormModal.show({
+          groupOperationFormModal.show({
             initialValues: {},
             productBatches: selectedProductBatches,
             onSubmit: async values => {},
           }),
       },
     ],
-    [operationFormModal, createProductBatchGroupModal, selectedProductBatches],
+    [
+      groupOperationFormModal,
+      createProductBatchGroupModal,
+      selectedProductBatches,
+    ],
   );
 
   return (

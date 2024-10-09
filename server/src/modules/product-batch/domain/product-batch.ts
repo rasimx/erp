@@ -6,6 +6,10 @@ import type {
 } from '@/product-batch/domain/product-batch.interfaces.js';
 
 import {
+  type GroupOperationCreatedEvent,
+  type GroupOperationCreatedEventData,
+  type OperationCreatedEvent,
+  type OperationCreatedEventData,
   type ProductBatchChildCreatedEvent,
   type ProductBatchCreatedEvent,
   type ProductBatchCreatedEventData,
@@ -161,6 +165,17 @@ export class ProductBatch {
         break;
       case ProductBatchEventType.ProductBatchMoved:
         this.props = { ...this.props, ...event.data };
+        break;
+      case ProductBatchEventType.GroupOperationCreated:
+      case ProductBatchEventType.OperationCreated:
+        {
+          const operationPricePerUnit = event.data.cost / this.props.count;
+
+          this.props.operationsPricePerUnit += Number(
+            operationPricePerUnit.toFixed(0),
+          );
+          this.props.operationsPrice = event.data.cost;
+        }
 
         // if (event.data.name) {
         //   this.name = event.data.name;
@@ -230,6 +245,31 @@ export class ProductBatch {
       };
       this.appendEvent(event);
     }
+  }
+
+  public appendOperation(
+    data: OperationCreatedEventData,
+    metadata?: Record<string, unknown>,
+  ): void {
+    const event: OperationCreatedEvent = {
+      id: uuidV7(),
+      type: ProductBatchEventType.OperationCreated,
+      data,
+      metadata,
+    };
+    this.appendEvent(event);
+  }
+  public appendGroupOperation(
+    data: GroupOperationCreatedEventData,
+    metadata?: Record<string, unknown>,
+  ): void {
+    const event: GroupOperationCreatedEvent = {
+      id: uuidV7(),
+      type: ProductBatchEventType.GroupOperationCreated,
+      data,
+      metadata,
+    };
+    this.appendEvent(event);
   }
 
   changeStatus(statusId: number) {

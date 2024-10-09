@@ -5,7 +5,7 @@ import { ProductBatch } from '../../api/product-batch/product-batch.gql';
 import { ProductBatchDetail } from '../../api/product-batch/product-batch-detail.gql';
 import { ProportionType } from '../../gql-types/graphql';
 import classes from './DataCell.module.scss';
-import { useOperationFormContext } from './OperationFormContext';
+import { useOperationFormContext } from './GroupOperationFormContext';
 
 export type Props = {
   type: ProportionType;

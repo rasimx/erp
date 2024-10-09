@@ -4,13 +4,9 @@ import { In } from 'typeorm';
 
 import { ContextService } from '@/context/context.service.js';
 import type { CustomDataSource } from '@/database/custom.data-source.js';
-import type { ProductEntity } from '@/product/product.entity.js';
-import { ProductRepository } from '@/product/product.repository.js';
-import { ProductBatchEntity } from '@/product-batch/domain/product-batch.entity.js';
-import type {
-  ProductBatchEvent,
-  RevisionProductBatchEvent,
-} from '@/product-batch/domain/product-batch.events.js';
+import type { ProductEntity } from '@/product/domain/product.entity.js';
+import { ProductRepository } from '@/product/domain/product.repository.js';
+import type { RevisionProductBatchEvent } from '@/product-batch/domain/product-batch.events.js';
 import { ProductBatch } from '@/product-batch/domain/product-batch.js';
 import { ProductBatchRepository } from '@/product-batch/domain/product-batch.repository.js';
 import { ProductBatchEventRepository } from '@/product-batch/domain/product-batch-event.repository.js';

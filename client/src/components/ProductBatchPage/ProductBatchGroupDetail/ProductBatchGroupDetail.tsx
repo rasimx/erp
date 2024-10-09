@@ -14,7 +14,7 @@ import {
   PRODUCT_BATCH_GROUP_DETAIL_QUERY,
 } from '../../../api/product-batch-group/product-batch-group-detail.gql';
 import { toRouble } from '../../../utils';
-import OperationForm from '../../OperationForm/OperationForm';
+import OperationForm from '../../GroupOperationForm/GroupOperationForm';
 import withDrawer from '../../withDrawer';
 import EventListItem from '../EventListItem';
 import classes from './ProductBatchGroupDetail.module.scss';

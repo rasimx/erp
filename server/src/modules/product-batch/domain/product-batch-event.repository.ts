@@ -11,8 +11,8 @@ export class ProductBatchEventRepository extends Repository<ProductBatchEventEnt
   }: {
     aggregates: ProductBatch[];
     requestId: string;
-  }) {
-    await this.save(
+  }): Promise<ProductBatchEventEntity[]> {
+    const events = await this.save(
       aggregates.flatMap(aggregate =>
         aggregate.getUncommittedEvents().map(item => {
           const event = new ProductBatchEventEntity();
@@ -31,6 +31,7 @@ export class ProductBatchEventRepository extends Repository<ProductBatchEventEnt
     aggregates.forEach(aggregate => {
       aggregate.clearEvents();
     });
+    return events;
   }
 
   async findManyByAggregateId(

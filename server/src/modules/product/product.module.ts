@@ -3,18 +3,23 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { AppConfigModule } from '@/config/app/config.module.js';
 import { EventStoreModule } from '@/event-store/event-store.module.js';
-import { ProductEventStore } from '@/product/eventstore/product.eventstore.js';
+import { ProductRepositoryProvider } from '@/product/domain/product.repository.js';
+import { ProductEventEntity } from '@/product/domain/product-event.entity.js';
+import { ProductEventRepositoryProvider } from '@/product/domain/product-event.repository.js';
+import { ProductSetClosureEntity } from '@/product/domain/product-set-closure.entity.js';
 import { ProductController } from '@/product/product.controller.js';
-import { ProductRepositoryProvider } from '@/product/product.repository.js';
 import { ProductResolver } from '@/product/product.resolver.js';
-import { ProductSetClosureEntity } from '@/product/product-set-closure.entity.js';
 
-import { ProductEntity } from './product.entity.js';
+import { ProductEntity } from './domain/product.entity.js';
 import { ProductService } from './product.service.js';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([ProductEntity, ProductSetClosureEntity]),
+    TypeOrmModule.forFeature([
+      ProductEntity,
+      ProductEventEntity,
+      ProductSetClosureEntity,
+    ]),
     AppConfigModule,
     EventStoreModule,
   ],
@@ -22,9 +27,13 @@ import { ProductService } from './product.service.js';
     ProductService,
     ProductResolver,
     ProductRepositoryProvider,
-    ProductEventStore,
+    ProductEventRepositoryProvider,
   ],
-  exports: [ProductService, ProductRepositoryProvider, ProductEventStore],
+  exports: [
+    ProductService,
+    ProductRepositoryProvider,
+    ProductEventRepositoryProvider,
+  ],
   controllers: [ProductController],
 })
 export class ProductModule {}

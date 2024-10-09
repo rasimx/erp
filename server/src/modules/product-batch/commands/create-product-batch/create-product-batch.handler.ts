@@ -3,7 +3,6 @@ import { InjectDataSource } from '@nestjs/typeorm';
 
 import { ContextService } from '@/context/context.service.js';
 import type { CustomDataSource } from '@/database/custom.data-source.js';
-import type { ProductBatchEntity } from '@/product-batch/domain/product-batch.entity.js';
 import { ProductBatch } from '@/product-batch/domain/product-batch.js';
 import { ProductBatchRepository } from '@/product-batch/domain/product-batch.repository.js';
 import { ProductBatchEventRepository } from '@/product-batch/domain/product-batch-event.repository.js';
@@ -35,15 +34,15 @@ export class CreateProductBatchHandler
     await queryRunner.connect();
     await queryRunner.startTransaction();
 
+    const requestRepo = queryRunner.manager.withRepository(this.requestRepo);
+    const request = await requestRepo.insert({ id: requestId });
+
     const productBatchRepo = queryRunner.manager.withRepository(
       this.productBatchRepo,
     );
     const productBatchEventRepo = queryRunner.manager.withRepository(
       this.productBatchEventRepo,
     );
-
-    const requestRepo = queryRunner.manager.withRepository(this.requestRepo);
-    const request = await requestRepo.insert({ id: requestId });
 
     try {
       const { dto } = command;

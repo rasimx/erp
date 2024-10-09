@@ -12,7 +12,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-import { ProductEntity } from '@/product/product.entity.js';
+import { ProductEntity } from '@/product/domain/product.entity.js';
 import { ProductBatchClosureEntity } from '@/product-batch/product-batch-closure.entity.js';
 import { ProductBatchGroupEntity } from '@/product-batch-group/domain/product-batch-group.entity.js';
 import { ProductBatchOperationEntity } from '@/product-batch-operation/product-batch-operation.entity.js';

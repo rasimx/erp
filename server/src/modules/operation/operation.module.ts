@@ -3,8 +3,9 @@ import { CqrsModule } from '@nestjs/cqrs';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { AppConfigModule } from '@/config/app/config.module.js';
-import { CreateOperationHandler } from '@/operation/commands/handlers/create-operation.handler.js';
-import { OperationResolver } from '@/operation/operation.resolver.js';
+import { GroupOperationEntity } from '@/operation/group-operation.entity.js';
+import { GroupOperationRepositoryProvider } from '@/operation/group-operation.repository.js';
+import { OperationRepositoryProvider } from '@/operation/operation.repository.js';
 import { ProductBatchModule } from '@/product-batch/product-batch.module.js';
 import { ProductBatchGroupModule } from '@/product-batch-group/product-batch-group.module.js';
 
@@ -13,12 +14,17 @@ import { OperationService } from './operation.service.js';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([OperationEntity]),
+    TypeOrmModule.forFeature([OperationEntity, GroupOperationEntity]),
     AppConfigModule,
     CqrsModule,
     ProductBatchModule,
     ProductBatchGroupModule,
   ],
-  providers: [OperationService, CreateOperationHandler, OperationResolver],
+  providers: [
+    OperationService,
+    OperationRepositoryProvider,
+    GroupOperationRepositoryProvider,
+  ],
+  exports: [OperationService],
 })
 export class OperationModule {}

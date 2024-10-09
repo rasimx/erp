@@ -7,7 +7,7 @@ import {
   RelationId,
 } from 'typeorm';
 
-import { ProductEntity } from '@/product/product.entity.js';
+import { ProductEntity } from '@/product/domain/product.entity.js';
 
 @Entity({ name: 'product_set_closure' })
 export class ProductSetClosureEntity {

@@ -1,4 +1,5 @@
-import type { CreateProductBatchItemDto } from '@/product-batch/dtos/create-product-batch-list.dto.js';
+import type { CreateOperationDto } from '../dtos/create-operation.dto.js';
+import type { CreateProductBatchItemDto } from '../dtos/create-product-batch-list.dto.js';
 
 export enum ProductBatchEventType {
   ProductBatchCreated = 'ProductBatchCreated',
@@ -6,6 +7,8 @@ export enum ProductBatchEventType {
   ProductBatchEdited = 'ProductBatchEdited',
   ProductBatchMoved = 'ProductBatchMoved',
   ProductBatchDeleted = 'ProductBatchDeleted',
+  OperationCreated = 'OperationCreated',
+  GroupOperationCreated = 'GroupOperationCreated',
   // ProductBatchCreatedFromSource = 'ProductBatchCreatedFromSource',
 }
 
@@ -73,12 +76,38 @@ export interface ProductBatchDeletedEvent {
   metadata?: Record<string, unknown>;
 }
 
+export interface OperationCreatedEventData extends CreateOperationDto {
+  id: number;
+}
+
+export interface OperationCreatedEvent {
+  id: UID;
+  type: ProductBatchEventType.OperationCreated;
+  data: OperationCreatedEventData;
+  metadata?: Record<string, unknown>;
+}
+export interface GroupOperationCreatedEventData
+  extends OperationCreatedEventData {
+  proportion: number;
+  groupOperationId: number;
+  groupOperationCost: number;
+}
+
+export interface GroupOperationCreatedEvent {
+  id: UID;
+  type: ProductBatchEventType.GroupOperationCreated;
+  data: GroupOperationCreatedEventData;
+  metadata?: Record<string, unknown>;
+}
+
 export type ProductBatchEvent =
   | ProductBatchCreatedEvent
   | ProductBatchChildCreatedEvent
   | ProductBatchEditedEvent
   | ProductBatchMovedEvent
-  | ProductBatchDeletedEvent;
+  | ProductBatchDeletedEvent
+  | OperationCreatedEvent
+  | GroupOperationCreatedEvent;
 
 export type RevisionProductBatchEvent = ProductBatchEvent & {
   revision: number;

@@ -1,9 +1,12 @@
+import { type UID } from '@/product-batch/domain/product-batch.events.js';
+import type { CreateGroupOperationDto } from '@/product-batch-group/dtos/create-group-operation.dto.js';
 import type { CreateProductBatchGroupDto } from '@/product-batch-group/dtos/create-product-batch-group.dto.js';
 
 export enum ProductBatchGroupEventType {
   ProductBatchGroupCreated = 'ProductBatchGroupCreated',
   ProductBatchGroupDeleted = 'ProductBatchGroupDeleted',
   ProductBatchGroupMoved = 'ProductBatchGroupMoved',
+  GroupOperationCreated = 'GroupOperationCreated',
 }
 
 export interface ProductBatchGroupCreatedEventData
@@ -37,10 +40,23 @@ export interface ProductBatchGroupDeletedEvent {
   metadata?: Record<string, unknown>;
 }
 
+export interface GroupOperationCreatedEventData
+  extends CreateGroupOperationDto {
+  id: number;
+}
+
+export interface GroupOperationCreatedEvent {
+  id: UID;
+  type: ProductBatchGroupEventType.GroupOperationCreated;
+  data: GroupOperationCreatedEventData;
+  metadata?: Record<string, unknown>;
+}
+
 export type ProductBatchGroupEvent =
   | ProductBatchGroupCreatedEvent
   | ProductBatchGroupMovedEvent
-  | ProductBatchGroupDeletedEvent;
+  | ProductBatchGroupDeletedEvent
+  | GroupOperationCreatedEvent;
 
 export type RevisionProductBatchGroupEvent = ProductBatchGroupEvent & {
   revision: number;

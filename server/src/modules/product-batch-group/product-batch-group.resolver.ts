@@ -4,20 +4,22 @@ import { Args, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
 
 import { UserInterceptor } from '@/auth/user.interceptor.js';
 import { GetProductBatchListDto } from '@/product-batch/dtos/get-product-batch-list.dto.js';
-import { CreateProductBatchGroupCommand } from '@/product-batch-group/commands/impl/create-product-batch-group.command.js';
-import { DeleteProductBatchGroupCommand } from '@/product-batch-group/commands/impl/delete-product-batch-group.command.js';
-import { MoveProductBatchGroupCommand } from '@/product-batch-group/commands/move-product-batch-group/move-product-batch-group.command.js';
-import { ProductBatchGroupDetailDto } from '@/product-batch-group/dtos/product-batch-group-detail.dto.js';
-import { GetProductBatchGroupQuery } from '@/product-batch-group/queries/impl/get-product-batch-group.query.js';
-import { GetProductBatchGroupListQuery } from '@/product-batch-group/queries/impl/get-product-batch-group-list.query.js';
 
+import { CreateGroupOperationCommand } from './commands/create-group-operation/create-group-operation.command.js';
+import { CreateProductBatchGroupCommand } from './commands/create-product-batch-group/create-product-batch-group.command.js';
+import { DeleteProductBatchGroupCommand } from './commands/delete-product-batch-group/delete-product-batch-group.command.js';
+import { MoveProductBatchGroupCommand } from './commands/move-product-batch-group/move-product-batch-group.command.js';
+import { CreateGroupOperationDto } from './dtos/create-group-operation.dto.js';
 import { CreateProductBatchGroupDto } from './dtos/create-product-batch-group.dto.js';
 import { MoveProductBatchGroupDto } from './dtos/move-product-batch-group.dto.js';
 import {
   CommandResponse,
   ProductBatchGroupDto,
 } from './dtos/product-batch-group.dto.js';
+import { ProductBatchGroupDetailDto } from './dtos/product-batch-group-detail.dto.js';
 import { ProductBatchGroupService } from './product-batch-group.service.js';
+import { GetProductBatchGroupQuery } from './queries/get-product-batch-group/get-product-batch-group.query.js';
+import { GetProductBatchGroupListQuery } from './queries/get-product-batch-group-list/get-product-batch-group-list.query.js';
 
 @Resolver()
 @UseInterceptors(UserInterceptor)
@@ -50,6 +52,15 @@ export class ProductBatchGroupResolver {
     dto: CreateProductBatchGroupDto,
   ): Promise<CommandResponse> {
     await this.commandBus.execute(new CreateProductBatchGroupCommand(dto));
+    return { success: true };
+  }
+
+  @Mutation(() => CommandResponse)
+  async createGroupOperation(
+    @Args('dto', { type: () => CreateGroupOperationDto })
+    dto: CreateGroupOperationDto,
+  ): Promise<CommandResponse> {
+    await this.commandBus.execute(new CreateGroupOperationCommand(dto));
     return { success: true };
   }
 

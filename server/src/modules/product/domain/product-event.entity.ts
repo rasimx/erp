@@ -10,12 +10,12 @@ import {
   Unique,
 } from 'typeorm';
 
-import { ProductBatchGroupEventType } from '@/product-batch-group/domain/product-batch-group.events.js';
+import { ProductEventType } from '@/product/domain/product.events.js';
 import { RequestEntity } from '@/request/request.entity.js';
 
-@Entity({ name: 'product_batch_group_event' })
+@Entity({ name: 'product_event' })
 @Unique(['aggregateId', 'revision'])
-export class ProductBatchGroupEventEntity {
+export class ProductEventEntity {
   @PrimaryColumn({ type: 'uuid' })
   id: string;
 
@@ -23,7 +23,7 @@ export class ProductBatchGroupEventEntity {
   @JoinColumn()
   request: Relation<RequestEntity>;
 
-  @RelationId((entity: ProductBatchGroupEventEntity) => entity.request)
+  @RelationId((entity: ProductEventEntity) => entity.request)
   @Column({ type: 'uuid' })
   requestId: string;
 
@@ -33,20 +33,20 @@ export class ProductBatchGroupEventEntity {
   })
   userId: number;
 
-  @Column({ type: 'integer', nullable: true })
-  revision: number | null;
+  @Column()
+  revision: number;
 
-  @Column({ type: 'integer', nullable: true })
-  aggregateId: number | null;
+  @Column()
+  aggregateId: number;
 
   @CreateDateColumn()
   createdAt: Date;
 
   @Column({
     type: 'enum',
-    enum: ProductBatchGroupEventType,
+    enum: ProductEventType,
   })
-  type: ProductBatchGroupEventType;
+  type: ProductEventType;
 
   @Column({
     type: 'jsonb',

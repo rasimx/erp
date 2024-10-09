@@ -2,7 +2,6 @@ import NiceModal from '@ebay/nice-modal-react';
 import { format, parse } from 'date-fns';
 import { FormikErrors, FormikProps, withFormik } from 'formik';
 import { FormikBag } from 'formik/dist/withFormik';
-import pick from 'lodash/pick';
 import { Button } from 'primereact/button';
 import { Calendar } from 'primereact/calendar';
 import { confirmDialog } from 'primereact/confirmdialog';
@@ -12,28 +11,17 @@ import {
   InputNumberValueChangeEvent,
 } from 'primereact/inputnumber';
 import { InputText } from 'primereact/inputtext';
-import { RadioButton } from 'primereact/radiobutton';
-import React, { type FC, useCallback, useEffect } from 'react';
-import { array, mixed, number, object, ObjectSchema, string } from 'yup';
+import React, { type FC, useCallback } from 'react';
+import { number, object, ObjectSchema, string } from 'yup';
 
 import { CREATE_OPERATION_MUTATION } from '../../api/operation/operation.gql';
-import {
-  CREATE_PRODUCT_BATCH_MUTATION,
-  EDIT_PRODUCT_BATCH_MUTATION,
-  ProductBatch,
-} from '../../api/product-batch/product-batch.gql';
-import { ProductBatchDetail } from '../../api/product-batch/product-batch-detail.gql';
 import apolloClient from '../../apollo-client';
-import { CreateOperationDto, ProportionType } from '../../gql-types/graphql';
+import { CreateOperationDto } from '../../gql-types/graphql';
 import { fromRouble } from '../../utils';
-import { FormState } from '../CreateProductBatch/types';
 import withModal from '../withModal';
-import DataCell from './DataCell';
 import classes from './OperationForm.module.scss';
-import { OperationFormContextProvider } from './OperationFormContext';
 
 export interface Props {
-  productBatches: ProductBatch[] | ProductBatchDetail[];
   closeModal: () => void;
   initialValues: Partial<CreateOperationDto>;
   onSubmit: (
@@ -44,7 +32,6 @@ export interface Props {
 
 const Form: FC<Props & FormikProps<CreateOperationDto>> = props => {
   const {
-    productBatches,
     setFieldValue,
     setValues,
     handleSubmit,
@@ -99,203 +86,97 @@ const Form: FC<Props & FormikProps<CreateOperationDto>> = props => {
     [values, setValues],
   );
 
-  console.log(errors);
-
   return (
-    <OperationFormContextProvider {...props}>
-      <form onSubmit={handleSubmit} noValidate autoComplete="off">
-        <div className={classes.field}>
-          <FloatLabel>
-            <InputText
-              value={values.name}
-              name="name"
-              onChange={handleChange}
-              onBlur={handleBlur}
-              className="p-inputtext-sm"
-              id="formName"
-            />
-            <label htmlFor="formName">Название</label>
-          </FloatLabel>
-        </div>
+    <form onSubmit={handleSubmit} noValidate autoComplete="off">
+      <div className={classes.field}>
+        <FloatLabel>
+          <InputText
+            value={values.name}
+            name="name"
+            onChange={handleChange}
+            onBlur={handleBlur}
+            className="p-inputtext-sm"
+            id="formName"
+          />
+          <label htmlFor="formName">Название</label>
+        </FloatLabel>
+      </div>
 
-        <div className={classes.field}>
-          <FloatLabel>
-            <InputNumber
-              inputId="exchangeRate"
-              required
-              mode="currency"
-              currency="RUB"
-              locale="ru-RU"
-              value={values.exchangeRate}
-              minFractionDigits={2}
-              maxFractionDigits={2}
-              name="exchangeRate"
-              onValueChange={changeNumberValue('exchangeRate')}
-              className={classes.input}
-            />
-            <label htmlFor="exchangeRate">Курс валют</label>
-          </FloatLabel>
-        </div>
-        <div className={classes.field}>
-          <FloatLabel>
-            <InputNumber
-              inputId="currencyCostPricePerUnit"
-              required
-              mode="currency"
-              currency="CNY"
-              locale="ru-RU"
-              value={values.currencyCost}
-              minFractionDigits={2}
-              maxFractionDigits={2}
-              name="currencyCost"
-              onValueChange={changeNumberValue('currencyCost')}
-              className={classes.input}
-            />
-            <label htmlFor="currencyCostPricePerUnit">Цена в валюте</label>
-          </FloatLabel>
-        </div>
+      <div className={classes.field}>
+        <FloatLabel>
+          <InputNumber
+            inputId="exchangeRate"
+            required
+            mode="currency"
+            currency="RUB"
+            locale="ru-RU"
+            value={values.exchangeRate}
+            minFractionDigits={2}
+            maxFractionDigits={2}
+            name="exchangeRate"
+            onValueChange={changeNumberValue('exchangeRate')}
+            className={classes.input}
+          />
+          <label htmlFor="exchangeRate">Курс валют</label>
+        </FloatLabel>
+      </div>
+      <div className={classes.field}>
+        <FloatLabel>
+          <InputNumber
+            inputId="currencyCostPricePerUnit"
+            required
+            mode="currency"
+            currency="CNY"
+            locale="ru-RU"
+            value={values.currencyCost}
+            minFractionDigits={2}
+            maxFractionDigits={2}
+            name="currencyCost"
+            onValueChange={changeNumberValue('currencyCost')}
+            className={classes.input}
+          />
+          <label htmlFor="currencyCostPricePerUnit">Цена в валюте</label>
+        </FloatLabel>
+      </div>
 
-        <div className={classes.field}>
-          <FloatLabel>
-            <label htmlFor="operationsPrice">Цена</label>
-            <InputNumber
-              inputId="operationsPrice"
-              required
-              mode="currency"
-              currency="RUB"
-              locale="ru-RU"
-              value={values.cost}
-              minFractionDigits={2}
-              maxFractionDigits={2}
-              onValueChange={changeNumberValue('cost')}
-            />
-          </FloatLabel>
-        </div>
-        <div className={classes.field}>
-          <FloatLabel>
-            <Calendar
-              value={
-                values.date
-                  ? parse(values.date, 'yyyy-MM-dd', new Date())
-                  : null
-              }
-              onChange={e =>
-                setFieldValue(
-                  'date',
-                  e.value ? format(e.value, 'yyyy-MM-dd') : undefined,
-                )
-              }
-              dateFormat="yy-mm-dd"
-            />
-            <label htmlFor="operationsPrice">Дата</label>
-          </FloatLabel>
-        </div>
+      <div className={classes.field}>
+        <FloatLabel>
+          <label htmlFor="operationsPrice">Цена</label>
+          <InputNumber
+            inputId="operationsPrice"
+            required
+            mode="currency"
+            currency="RUB"
+            locale="ru-RU"
+            value={values.cost}
+            minFractionDigits={2}
+            maxFractionDigits={2}
+            onValueChange={changeNumberValue('cost')}
+          />
+        </FloatLabel>
+      </div>
+      <div className={classes.field}>
+        <FloatLabel>
+          <Calendar
+            value={
+              values.date ? parse(values.date, 'yyyy-MM-dd', new Date()) : null
+            }
+            onChange={e =>
+              setFieldValue(
+                'date',
+                e.value ? format(e.value, 'yyyy-MM-dd') : undefined,
+              )
+            }
+            dateFormat="yy-mm-dd"
+          />
+          <label htmlFor="operationsPrice">Дата</label>
+        </FloatLabel>
+      </div>
 
-        <div>
-          {productBatches.length > 1 && (
-            <div style={{ marginTop: '10px' }}>
-              <table style={{ minWidth: 650 }}>
-                <thead>
-                  <tr style={{ textWrap: 'nowrap' }}>
-                    <th>Распределить стоимость</th>
-                    <th>
-                      <RadioButton
-                        inputId="weightRadio"
-                        name="proportionType"
-                        value={ProportionType.weight}
-                        onChange={e => setFieldValue('proportionType', e.value)}
-                        checked={values.proportionType == ProportionType.weight}
-                      />
-                      <label htmlFor="weightRadio">По весу</label>
-                    </th>
-                    <th>
-                      <RadioButton
-                        inputId="volumeRadio"
-                        name="proportionType"
-                        value={ProportionType.volume}
-                        onChange={e => setFieldValue('proportionType', e.value)}
-                        checked={values.proportionType == ProportionType.volume}
-                      />
-                      <label htmlFor="volumeRadio">По объему</label>
-                    </th>
-                    <th>
-                      <RadioButton
-                        inputId="costPriceRadio"
-                        name="proportionType"
-                        value={ProportionType.costPricePerUnit}
-                        onChange={e => setFieldValue('proportionType', e.value)}
-                        checked={
-                          values.proportionType ==
-                          ProportionType.costPricePerUnit
-                        }
-                      />
-                      <label htmlFor="costPriceRadio">По с/с единицы</label>
-                    </th>
-                    <th>
-                      <RadioButton
-                        inputId="costPriceRadio"
-                        name="proportionType"
-                        value={ProportionType.costPrice}
-                        onChange={e => setFieldValue('proportionType', e.value)}
-                        checked={
-                          values.proportionType == ProportionType.costPrice
-                        }
-                      />
-                      <label htmlFor="costPriceRadio">По с/с партии</label>
-                    </th>
-                    {/*<TableCell>*/}
-                    {/*  <Radio*/}
-                    {/*    size="small"*/}
-                    {/*    checked={proportionType == ProportionType.manual}*/}
-                    {/*    onChange={handleRadio}*/}
-                    {/*    value={ProportionType.manual}*/}
-                    {/*  />*/}
-                    {/*  <span>Произвольно</span>*/}
-                    {/*</TableCell>*/}
-                  </tr>
-                </thead>
-                <tbody>
-                  {productBatches.map(row => (
-                    <tr key={row.id}>
-                      <td>
-                        {row.id}: {row.product.sku}
-                      </td>
-                      <DataCell
-                        type={ProportionType.weight}
-                        row={row}
-                        label="кг"
-                        getValue={value => value / 1000}
-                      />
-                      <DataCell
-                        type={ProportionType.volume}
-                        row={row}
-                        label="л"
-                      />
-                      <DataCell
-                        type={ProportionType.costPricePerUnit}
-                        row={row}
-                        label="руб"
-                      />
-                      <DataCell
-                        type={ProportionType.costPrice}
-                        row={row}
-                        label="руб"
-                      />
-                      {/*<TableCell sx={{ padding: '0 10px' }}>*/}
-                      {/*  <Input />*/}
-                      {/*</TableCell>*/}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-        <Button type="submit" style={{ marginTop: '10px' }}>
-          Добавить
-        </Button>
-      </form>
-    </OperationFormContextProvider>
+      <Button type="submit" style={{ marginTop: '10px' }}>
+        Добавить
+      </Button>
+    </form>
   );
 };
 
@@ -307,29 +188,14 @@ export const createOperationValidationSchema =
       currencyCost: number().nullable(),
       exchangeRate: number().nullable(),
       date: string().required(),
-      proportionType: mixed<ProportionType>()
-        .oneOf(Object.values(ProportionType))
-        .when('groupId', {
-          is: (val: number | null) => !!val,
-          then: schema => schema.required(),
-        }),
-      groupId: number().nullable(),
-      productBatchProportions: array(
-        object().shape({
-          productBatchId: number().required(),
-          cost: number().required(),
-          proportion: number().required(),
-        }),
-      ).required(),
+      productBatchId: number().required(),
     });
   };
 
 const OperationForm = withFormik<Props, CreateOperationDto>({
-  validationSchema: () => createOperationValidationSchema(),
+  validationSchema: createOperationValidationSchema(),
   mapPropsToValues: props => {
     return {
-      proportionType:
-        props.productBatches.length == 1 ? ProportionType.equal : undefined,
       ...props.initialValues,
     } as CreateOperationDto;
   },
@@ -362,10 +228,6 @@ const OperationForm = withFormik<Props, CreateOperationDto>({
           currencyCost: values.currencyCost
             ? fromRouble(values.currencyCost)
             : null,
-          productBatchProportions: values.productBatchProportions.map(item => ({
-            ...item,
-            cost: fromRouble(item.cost),
-          })),
         };
         apolloClient
           .mutate({

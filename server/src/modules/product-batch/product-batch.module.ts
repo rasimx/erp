@@ -1,12 +1,13 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { CqrsModule } from '@nestjs/cqrs';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
-import { assembleProduct } from '@/common/assembleProduct.js';
 import { AppConfigModule } from '@/config/app/config.module.js';
 import { EventStoreModule } from '@/event-store/event-store.module.js';
 import { Microservices } from '@/microservices/microservices.js';
+import { OperationModule } from '@/operation/operation.module.js';
 import { ProductModule } from '@/product/product.module.js';
+import { CreateOperationHandler } from '@/product-batch/commands/create-operation/create-operation.handler.js';
 import { CreateProductBatchHandler } from '@/product-batch/commands/create-product-batch/create-product-batch.handler.js';
 import { CreateProductBatchesFromSourcesHandler } from '@/product-batch/commands/create-product-batches-from-sources/create-product-batches-from-sources.handler.js';
 import { DeleteProductBatchHandler } from '@/product-batch/commands/delete-product-batch/delete-product-batch.handler.js';
@@ -26,7 +27,16 @@ import { StatusModule } from '@/status/status.module.js';
 
 import { ProductBatchService } from './product-batch.service.js';
 
-// assembleProduct
+const commandHandlers = [
+  MoveProductBatchHandler,
+  DeleteProductBatchHandler,
+  CreateProductBatchHandler,
+  EditProductBatchHandler,
+  CreateProductBatchesFromSourcesHandler,
+  CreateOperationHandler,
+];
+
+const queryHandlers = [GetProductBatchHandler, GetProductBatchListHandler];
 
 @Module({
   imports: [
@@ -38,20 +48,16 @@ import { ProductBatchService } from './product-batch.service.js';
     StatusModule,
     CqrsModule,
     EventStoreModule,
+    forwardRef(() => OperationModule),
   ],
   providers: [
     ProductBatchService,
     ProductBatchResolver,
-    GetProductBatchHandler,
-    GetProductBatchListHandler,
-    MoveProductBatchHandler,
-    DeleteProductBatchHandler,
-    CreateProductBatchHandler,
-    EditProductBatchHandler,
-    CreateProductBatchesFromSourcesHandler,
     ProductBatchRepositoryProvider,
     ProductBatchEventRepositoryProvider,
     RequestModule,
+    ...commandHandlers,
+    ...queryHandlers,
   ],
   controllers: [ProductBatchController],
   exports: [

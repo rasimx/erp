@@ -4,7 +4,6 @@ import pick from 'lodash/pick.js';
 
 import { ContextService } from '@/context/context.service.js';
 import type { CustomDataSource } from '@/database/custom.data-source.js';
-import { ProductEventStore } from '@/product/eventstore/product.eventstore.js';
 import { EditProductBatchCommand } from '@/product-batch/commands/edit-product-batch/edit-product-batch.command.js';
 import { ProductBatchRepository } from '@/product-batch/domain/product-batch.repository.js';
 // import { ProductBatchEventStore } from '@/product-batch/eventstore/product-batch.eventstore.js';
@@ -18,8 +17,6 @@ export class EditProductBatchHandler
     @InjectDataSource()
     private dataSource: CustomDataSource,
     private readonly productBatchRepository: ProductBatchRepository,
-    // private readonly productBatchEventStore: ProductBatchEventStore,
-    private readonly productEventStore: ProductEventStore,
     private readonly contextService: ContextService,
     private readonly productBatchService: ProductBatchService,
   ) {}

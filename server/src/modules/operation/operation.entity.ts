@@ -3,13 +3,15 @@ import {
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
-  OneToMany,
+  ManyToOne,
   PrimaryGeneratedColumn,
+  type Relation,
+  RelationId,
   UpdateDateColumn,
 } from 'typeorm';
 
-import { ProportionType } from '@/operation/dtos/operation.dto.js';
-import { ProductBatchOperationEntity } from '@/product-batch-operation/product-batch-operation.entity.js';
+import { GroupOperationEntity } from '@/operation/group-operation.entity.js';
+import { ProductBatchEntity } from '@/product-batch/domain/product-batch.entity.js';
 
 @Entity({ name: 'operation' })
 export class OperationEntity {
@@ -43,15 +45,25 @@ export class OperationEntity {
   @Column()
   date: string;
 
-  @Column({
-    type: 'enum',
-    enum: ProportionType,
-    default: ProportionType.equal,
-  })
-  proportionType: ProportionType;
+  @Column({ type: 'float', default: 100 })
+  proportion: number;
 
-  @OneToMany(() => ProductBatchOperationEntity, entity => entity.operation)
-  productBatchOperations: ProductBatchOperationEntity[];
+  @ManyToOne(() => ProductBatchEntity)
+  productBatch: Relation<ProductBatchEntity>;
+
+  @RelationId((entity: OperationEntity) => entity.productBatch)
+  @Column()
+  productBatchId: number;
+
+  @ManyToOne(() => GroupOperationEntity, { cascade: ['insert'] })
+  groupOperation: Relation<GroupOperationEntity>;
+
+  @RelationId((entity: OperationEntity) => entity.groupOperation)
+  @Column({
+    type: 'integer',
+    nullable: true,
+  })
+  groupOperationId: number | null;
 
   @CreateDateColumn()
   createdAt: Date;
