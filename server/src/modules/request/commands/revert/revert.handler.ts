@@ -56,32 +56,31 @@ export class RevertHandler implements ICommandHandler<RevertCommand> {
       //   id: requestId,
       // });
 
-      // if (lastRollbackRequest.rollbackTargetId) {
-      //   const events = await productBatchEventRepo.find({
-      //     where: {
-      //       requestId: lastRollbackRequest.id,
-      //     },
-      //   });
-      //
-      //   await productBatchEventRepo.delete({
-      //     requestId: lastRollbackRequest.id,
-      //   });
-      //
-      //   await requestRepo.remove(lastRollbackRequest);
-      //
-      //   const productBatchMap = await this.productBatchFactory.getManyProjection({
-      //     ids: events.map(item => item.aggregateId),
-      //     queryRunner,
-      //   });
-      //
-      //   await this.productBatchService.saveAggregates({
-      //     aggregates: [...productBatchMap.values()].flatMap(item =>
-      //       item ? [item] : [],
-      //     ),
-      //     requestId,
-      //     queryRunner,
-      //   });
-      // }
+      if (lastRollbackRequest.rollbackTargetId) {
+        const events = await productBatchEventRepo.find({
+          where: {
+            requestId: lastRollbackRequest.id,
+          },
+        });
+
+        await productBatchEventRepo.delete({
+          requestId: lastRollbackRequest.id,
+        });
+
+        await requestRepo.remove(lastRollbackRequest);
+
+        const productBatchMap =
+          await this.productBatchService.getProjectionsMap({
+            ids: events.map(item => item.aggregateId),
+            queryRunner,
+          });
+
+        await this.productBatchService.saveAggregates({
+          aggregates: [...productBatchMap.values()],
+          requestId,
+          queryRunner,
+        });
+      }
 
       // await productBatchRepo.delete({
       //   id: In(
@@ -90,9 +89,9 @@ export class RevertHandler implements ICommandHandler<RevertCommand> {
       //       .map(([id]) => id),
       //   ),
       // });
-
+      //
       // await requestRepo.insert({ id: requestId });
-
+      //
       // const lastEvent = await requestRepo.findOne({
       //   relations: ['rollback'],
       //   where: { rollbackOf: IsNull(), rollback: null },

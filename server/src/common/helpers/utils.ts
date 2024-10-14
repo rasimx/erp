@@ -56,3 +56,39 @@ export type JSONCompatible<T> = T extends string | number | boolean | null
 export const isNil = <T>(value: T): value is Extract<T, null | undefined> => {
   return value === null || value === undefined;
 };
+
+export const deepFreeze = <T>(source: T, freezeParent = true): DRo<T> => {
+  if (freezeParent) Object.freeze(source);
+
+  Object.getOwnPropertyNames(source).forEach(function (prop) {
+    if (
+      Object.prototype.hasOwnProperty.call(source as never, prop) &&
+      (source as never)[prop] !== null &&
+      (typeof (source as never)[prop] === 'object' ||
+        typeof (source as never)[prop] === 'function')
+    ) {
+      if (Object.isFrozen((source as never)[prop])) {
+        deepFreeze((source as never)[prop], false);
+      } else {
+        deepFreeze((source as never)[prop], true);
+      }
+    }
+  });
+
+  return source as DRo<T>;
+};
+
+type DRo<T> = T extends (infer R)[]
+  ? DRoArr<R>
+  : // eslint-disable-next-line @typescript-eslint/ban-types
+    T extends Function
+    ? T
+    : T extends object
+      ? DRoObj<T>
+      : T;
+
+type DRoArr<T> = readonly DRo<T>[];
+
+type DRoObj<T> = {
+  readonly [P in keyof T]: DRo<T[P]>;
+};

@@ -174,13 +174,20 @@ export class ProductBatchService {
       });
 
     const readEntities = await productBatchReadRepo.save(
-      aggregates.map(item => {
-        const readEntity = new ProductBatchReadEntity();
-        Object.assign(readEntity, item.toObject());
+      aggregates
+        .filter(item => !item.isDeleted)
+        .map(item => {
+          const readEntity = new ProductBatchReadEntity();
+          Object.assign(readEntity, item.toObject());
 
-        return readEntity;
-      }),
+          return readEntity;
+        }),
     );
+
+    await productBatchReadRepo.delete({
+      id: In(aggregates.filter(item => item.isDeleted).map(item => item.id)),
+    });
+
     return {
       eventEntitiesByAggregateIdMap,
       aggregates: readEntities.map(item =>
@@ -260,7 +267,7 @@ export class ProductBatchService {
     });
   }
 
-  async getProductBatchProjections({
+  async getProjectionsMap({
     ids,
     queryRunner,
   }: {
@@ -319,12 +326,12 @@ export class ProductBatchService {
       eventEntitiesByAggregateIdMap.set(event.aggregateId, mapItem);
     });
 
-    const productBatchMap = await this.getProductBatchProjections({
+    const productBatchMap = await this.getProjectionsMap({
       ids: eventEntities.map(item => item.aggregateId),
       queryRunner,
     });
 
-    const productBatchMapForSave = new Map<number, ProductBatch>();
+    // const productBatchMapForSave = new Map<number, ProductBatch>();
 
     [...productBatchMap.values()].forEach(aggregate => {
       const eventEntities = eventEntitiesByAggregateIdMap.get(aggregate.id);
@@ -332,20 +339,13 @@ export class ProductBatchService {
       eventEntities.forEach(event => {
         aggregate.rollbackEvent(event.id);
       });
+      aggregate.rebuild();
     });
 
     await this.saveAggregates({
-      aggregates: [...productBatchMap.values()].filter(item => !item.isDeleted),
+      aggregates: [...productBatchMap.values()],
       queryRunner,
       requestId,
-    });
-
-    await productBatchReadRepo.delete({
-      id: In(
-        [...productBatchMapForSave.entries()]
-          .filter(([id, item]) => item.isDeleted)
-          .map(([id]) => id),
-      ),
     });
   }
 

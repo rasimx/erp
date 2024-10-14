@@ -1,7 +1,7 @@
 import _ from 'lodash';
 import { v7 as uuidV7 } from 'uuid';
 
-import { isNil } from '@/common/helpers/utils.js';
+import { deepFreeze, isNil } from '@/common/helpers/utils.js';
 import type { ProductBatchProps } from '@/product-batch/domain/product-batch.interfaces.js';
 import type { ProductBatchReadEntity } from '@/product-batch/domain/product-batch.read-entity.js';
 
@@ -43,7 +43,7 @@ export class ProductBatch {
     const event: ProductBatchCreatedEvent =
       productBatch.createEvent<ProductBatchCreatedEvent>({
         type: ProductBatchEventType.ProductBatchCreated,
-        data: props,
+        data: _.cloneDeep(props),
         metadata,
         revision: 0,
       });
@@ -151,20 +151,24 @@ export class ProductBatch {
     if (shouldSplit) this._shouldSplit = shouldSplit;
   }
 
+  public rebuild() {
+    this.applyEvents([...this._events, ...this._uncommittedEvents]);
+  }
+
   private createEvent<T extends ProductBatchEvent>(
     event: Omit<T, 'id' | 'revision'> & { revision?: number },
   ): T {
-    return Object.freeze({
+    return deepFreeze({
       ...event,
       id: uuidV7(),
       revision: event.revision ?? this._revision + 1,
-    }) as T;
+    }) as unknown as T;
   }
 
   private applyEvent(event: ProductBatchEvent) {
     switch (event.type) {
       case ProductBatchEventType.ProductBatchCreated:
-        this._props = event.data;
+        this._props = _.cloneDeep(event.data);
         break;
       case ProductBatchEventType.ProductBatchChildCreated:
         this._props.count -= event.data.count;
@@ -204,8 +208,7 @@ export class ProductBatch {
   }
 
   private appendEvent(event: ProductBatchEvent): void {
-    this._events.push(event);
-    this._uncommittedEvents.push(event);
+    this._uncommittedEvents.push(deepFreeze(event));
     this.applyEvent(event);
     this._revision = event.revision;
   }
@@ -219,7 +222,9 @@ export class ProductBatch {
       .map(item => item.rollbackTargetId);
 
     const nonRolledBackEvents = events.filter(
-      event => !rollbackEventIds.includes(event.id),
+      event =>
+        !rollbackEventIds.includes(event.id) &&
+        event.type != ProductBatchEventType.Rollback,
     );
     if (nonRolledBackEvents.length > 0) {
       nonRolledBackEvents.forEach((event, index) => {
@@ -240,6 +245,7 @@ export class ProductBatch {
   }
 
   clearEvents() {
+    this._events.push(...this._uncommittedEvents);
     this._uncommittedEvents = [];
   }
 
