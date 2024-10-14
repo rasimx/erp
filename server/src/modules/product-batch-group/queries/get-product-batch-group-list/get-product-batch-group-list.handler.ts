@@ -1,6 +1,6 @@
 import { type IQueryHandler, QueryHandler } from '@nestjs/cqrs';
 
-import { ProductBatchGroupRepository } from '../../domain/product-batch-group.repository.js';
+import { ProductBatchGroupReadRepo } from '../../domain/product-batch-group.read-repo.js';
 import { GetProductBatchGroupListQuery } from './get-product-batch-group-list.query.js';
 
 @QueryHandler(GetProductBatchGroupListQuery)
@@ -8,7 +8,7 @@ export class GetProductBatchGroupListHandler
   implements IQueryHandler<GetProductBatchGroupListQuery>
 {
   constructor(
-    private readonly productBatchGroupRepository: ProductBatchGroupRepository,
+    private readonly productBatchGroupRepository: ProductBatchGroupReadRepo,
   ) {}
 
   async execute(query: GetProductBatchGroupListQuery) {

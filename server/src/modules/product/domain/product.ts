@@ -1,74 +1,101 @@
+import _ from 'lodash';
 import { v7 as uuidV7 } from 'uuid';
+
+import { isNil } from '@/common/helpers/utils.js';
 
 import {
   type ProductCreatedEvent,
-  type ProductCreatedEventData,
   type ProductEvent,
   ProductEventType,
-  type RevisionProductEvent,
 } from './product.events.js';
-import type { CreateProductProps, ProductProps } from './product.interfaces.js';
+import type { ProductProps } from './product.interfaces.js';
+import type { ProductReadEntity } from './product.read-entity.js';
 
 export class Product {
   readonly id: number;
-  private revision: number;
-  private events: RevisionProductEvent[] = [];
-  constructor(private props: ProductProps) {
-    if (!props.id) throw new Error('id must be defined');
-    this.id = Number(props.id);
-  }
+  private _props: ProductProps;
+  private _revision: number;
+  private _uncommittedEvents: ProductEvent[] = [];
+  private _events: ProductEvent[] = [];
+  isDeleted = false;
 
-  public static create(
-    props: CreateProductProps,
-    metadata?: Record<string, unknown>,
-  ): Product {
+  public static create({
+    props,
+    metadata = null,
+  }: {
+    props: ProductProps;
+    metadata?: Record<string, unknown> | null;
+  }): Product {
     const product = new Product({
-      ...props,
+      id: props.id,
+      revision: 0,
+    });
+    const event = product.createEvent<ProductCreatedEvent>({
+      type: ProductEventType.ProductCreated,
+      data: props,
+      metadata,
+      revision: 0,
     });
 
-    const event: ProductCreatedEvent = {
-      id: uuidV7(),
-      type: ProductEventType.ProductCreated,
-      data: product.toObject(),
-      metadata,
-    };
-
-    product.revision = 0;
-    product.events.push({ ...event, revision: product.revision });
-
+    product.appendEvent(event);
     return product;
   }
 
-  public static buildFromEvents(origEvents: RevisionProductEvent[]) {
-    const events = [...origEvents].toSorted((a, b) => a.revision - b.revision);
-    const zeroEvent = events.shift();
-
-    if (!zeroEvent) throw new Error('not found');
-
-    const productBatch = new Product(zeroEvent.data as ProductCreatedEventData);
-    productBatch.revision = zeroEvent.revision;
-
-    events.forEach(event => {
-      productBatch.applyEvent(event);
-      productBatch.revision = event.revision;
+  public static createFromReadEntity(entity: ProductReadEntity) {
+    return new Product({
+      id: entity.id,
+      props: entity,
+      revision: entity.revision,
     });
-
-    return productBatch;
   }
 
-  private appendEvent(event: ProductEvent): void {
-    this.revision++;
-    this.events.push({ ...event, revision: this.revision });
-    if (event.type !== ProductEventType.ProductCreated) {
-      this.applyEvent(event);
+  public static buildProjection(origEvents: ProductEvent[]): Product {
+    const events = _.cloneDeep(origEvents).toSorted(
+      (a, b) => a.revision - b.revision,
+    );
+
+    if (events[0].type != ProductEventType.ProductCreated) {
+      throw new Error('error in first event');
     }
+
+    const product = new Product({
+      id: events[0].data.id,
+    });
+
+    product.applyEvents(events);
+    return product;
+  }
+
+  private constructor({
+    id,
+    revision,
+    props,
+  }: {
+    id: number;
+    revision?: number;
+    props?: ProductProps;
+  }) {
+    this.id = id;
+
+    if (!isNil(revision)) this._revision = revision;
+    if (props) this._props = props;
+  }
+
+  private createEvent<T extends ProductEvent>(
+    event: Omit<T, 'id' | 'revision'> & { revision?: number },
+  ): T {
+    return Object.freeze({
+      ...event,
+      id: uuidV7(),
+      revision: event.revision ?? this._revision + 1,
+    }) as T;
   }
 
   private applyEvent(event: ProductEvent) {
     switch (event.type) {
-      // case ProductBatchEventType.ProductBatchCreated:
-      //   this.props = event.data;
-      //   break;
+      case ProductEventType.ProductCreated:
+        this._props = event.data;
+        break;
 
       case ProductEventType.ProductArchived:
         // if (event.data.name) {
@@ -79,7 +106,7 @@ export class Product {
         // }
         break;
       case ProductEventType.ProductEdited:
-        this.props.name = event.data.name;
+        this._props.name = event.data.name;
 
         // if (event.data.name) {
         //   this.name = event.data.name;
@@ -93,12 +120,40 @@ export class Product {
     }
   }
 
-  getUncommittedEvents(): RevisionProductEvent[] {
-    return this.events;
+  private appendEvent(event: ProductEvent): void {
+    this._events.push(event);
+    this._uncommittedEvents.push(event);
+    this.applyEvent(event);
+    this._revision = event.revision;
+  }
+
+  applyEvents(events: ProductEvent[]) {
+    this._events = events;
+    const rollbackEventIds = events
+      .flatMap(event =>
+        event.type == ProductEventType.Rollback ? [event] : [],
+      )
+      .map(item => item.rollbackTargetId);
+
+    const nonRolledBackEvents = events.filter(
+      event => !rollbackEventIds.includes(event.id),
+    );
+    if (nonRolledBackEvents.length > 0) {
+      nonRolledBackEvents.forEach((event, index) => {
+        this.applyEvent(event);
+      });
+    } else {
+      this.isDeleted = true;
+    }
+    this._revision = events[events.length - 1].revision;
+  }
+
+  getUncommittedEvents(): ProductEvent[] {
+    return this._uncommittedEvents;
   }
 
   clearEvents() {
-    this.events = [];
+    this._uncommittedEvents = [];
   }
 
   getId(): number {
@@ -106,12 +161,13 @@ export class Product {
   }
 
   getWeight(): number {
-    return this.props.weight;
+    return this._props.weight;
   }
 
   getVolume(): number {
     const volume =
-      (((this.props.width * this.props.height * this.props.length) / 1000_000) *
+      (((this._props.width * this._props.height * this._props.length) /
+        1000_000) *
         100) /
       100;
 
@@ -119,6 +175,6 @@ export class Product {
   }
 
   toObject() {
-    return { ...this.props, id: this.id, revision: this.revision };
+    return { ...this._props, id: this.id, revision: this._revision };
   }
 }

@@ -1,4 +1,13 @@
-import { Column, CreateDateColumn, Entity, PrimaryColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  JoinColumn,
+  OneToOne,
+  PrimaryColumn,
+  type Relation,
+  RelationId,
+} from 'typeorm';
 
 @Entity({ name: 'request' })
 export class RequestEntity {
@@ -13,4 +22,15 @@ export class RequestEntity {
 
   @CreateDateColumn()
   createdAt: Date;
+
+  @OneToOne(() => RequestEntity, entity => entity.rollbackTarget)
+  rollback: Relation<RequestEntity> | null;
+
+  @OneToOne(() => RequestEntity)
+  @JoinColumn()
+  rollbackTarget: RequestEntity | null;
+
+  @RelationId((entity: RequestEntity) => entity.rollbackTarget)
+  @Column({ type: 'uuid', nullable: true })
+  rollbackTargetId: string | null;
 }

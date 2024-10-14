@@ -12,14 +12,14 @@ import { CreateProductBatchesFromSourcesHandler } from '@/product-batch/commands
 import { DeleteProductBatchHandler } from '@/product-batch/commands/delete-product-batch/delete-product-batch.handler.js';
 import { EditProductBatchHandler } from '@/product-batch/commands/edit-product-batch/edit-product-batch.handler.js';
 import { MoveProductBatchHandler } from '@/product-batch/commands/move-product-batch/move-product-batch.handler.js';
-import { ProductBatchEntity } from '@/product-batch/domain/product-batch.entity.js';
-import { ProductBatchRepositoryProvider } from '@/product-batch/domain/product-batch.repository.js';
-import { ProductBatchEventEntity } from '@/product-batch/domain/product-batch-event.entity.js';
-import { ProductBatchEventRepositoryProvider } from '@/product-batch/domain/product-batch-event.repository.js';
+import { ProductBatchEventEntity } from '@/product-batch/domain/product-batch.event-entity.js';
+import { ProductBatchEventRepositoryProvider } from '@/product-batch/domain/product-batch.event-repo.js';
+import { ProductBatchReadEntity } from '@/product-batch/domain/product-batch.read-entity.js';
+import { ProductBatchRepositoryProvider } from '@/product-batch/domain/product-batch.read-repo.js';
 import { ProductBatchController } from '@/product-batch/product-batch.controller.js';
 import { ProductBatchResolver } from '@/product-batch/product-batch.resolver.js';
-import { GetProductBatchHandler } from '@/product-batch/queries/handlers/get-product-batch.handler.js';
-import { GetProductBatchListHandler } from '@/product-batch/queries/handlers/get-product-batch-list.handler.js';
+import { GetProductBatchHandler } from '@/product-batch/queries/get-product-batch/get-product-batch.handler.js';
+import { GetProductBatchListHandler } from '@/product-batch/queries/get-product-batch-list/get-product-batch-list.handler.js';
 import { ProductBatchGroupModule } from '@/product-batch-group/product-batch-group.module.js';
 import { RequestModule } from '@/request/request.module.js';
 import { StatusModule } from '@/status/status.module.js';
@@ -39,7 +39,7 @@ const queryHandlers = [GetProductBatchHandler, GetProductBatchListHandler];
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([ProductBatchEntity, ProductBatchEventEntity]),
+    TypeOrmModule.forFeature([ProductBatchReadEntity, ProductBatchEventEntity]),
     AppConfigModule,
     Microservices,
     ProductModule,

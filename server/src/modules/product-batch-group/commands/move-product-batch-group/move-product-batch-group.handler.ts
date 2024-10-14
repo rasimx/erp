@@ -4,16 +4,10 @@ import { InjectDataSource } from '@nestjs/typeorm';
 import { isNil } from '@/common/helpers/utils.js';
 import { ContextService } from '@/context/context.service.js';
 import type { CustomDataSource } from '@/database/custom.data-source.js';
-import type { RevisionProductBatchEvent } from '@/product-batch/domain/product-batch.events.js';
-import { ProductBatch } from '@/product-batch/domain/product-batch.js';
-import { ProductBatchRepository } from '@/product-batch/domain/product-batch.repository.js';
-import { ProductBatchEventRepository } from '@/product-batch/domain/product-batch-event.repository.js';
+import { ProductBatchReadRepo } from '@/product-batch/domain/product-batch.read-repo.js';
 import { ProductBatchService } from '@/product-batch/product-batch.service.js';
 import { MoveProductBatchGroupCommand } from '@/product-batch-group/commands/move-product-batch-group/move-product-batch-group.command.js';
-import type { RevisionProductBatchGroupEvent } from '@/product-batch-group/domain/product-batch-group.events.js';
-import { ProductBatchGroup } from '@/product-batch-group/domain/product-batch-group.js';
-import { ProductBatchGroupRepository } from '@/product-batch-group/domain/product-batch-group.repository.js';
-import { ProductBatchGroupEventRepository } from '@/product-batch-group/domain/product-batch-group-event.repository.js';
+import { ProductBatchGroupService } from '@/product-batch-group/product-batch-group.service.js';
 import { RequestRepository } from '@/request/request.repository.js';
 
 @CommandHandler(MoveProductBatchGroupCommand)
@@ -25,10 +19,8 @@ export class MoveProductBatchGroupHandler
     private dataSource: CustomDataSource,
     private readonly requestRepo: RequestRepository,
     private readonly contextService: ContextService,
-    private readonly productBatchRepo: ProductBatchRepository,
-    private readonly productBatchEventRepo: ProductBatchEventRepository,
-    private readonly productBatchGroupRepo: ProductBatchGroupRepository,
-    private readonly productBatchGroupEventRepo: ProductBatchGroupEventRepository,
+    private readonly productBatchReadRepo: ProductBatchReadRepo,
+    private readonly productBatchGroupService: ProductBatchGroupService,
     private readonly productBatchService: ProductBatchService,
   ) {}
 
@@ -41,17 +33,7 @@ export class MoveProductBatchGroupHandler
     await queryRunner.startTransaction();
 
     const productBatchRepo = queryRunner.manager.withRepository(
-      this.productBatchRepo,
-    );
-    const productBatchEventRepo = queryRunner.manager.withRepository(
-      this.productBatchEventRepo,
-    );
-
-    const productBatchGroupRepo = queryRunner.manager.withRepository(
-      this.productBatchGroupRepo,
-    );
-    const productBatchGroupEventRepo = queryRunner.manager.withRepository(
-      this.productBatchGroupEventRepo,
+      this.productBatchReadRepo,
     );
 
     try {
@@ -60,12 +42,10 @@ export class MoveProductBatchGroupHandler
       const requestRepo = queryRunner.manager.withRepository(this.requestRepo);
       await requestRepo.insert({ id: requestId });
 
-      const targetEvents = await productBatchGroupEventRepo.findByAggregateId(
-        dto.id,
-      );
-      const group = ProductBatchGroup.buildFromEvents(
-        targetEvents as RevisionProductBatchGroupEvent[],
-      );
+      const group = await this.productBatchGroupService.getReadModel({
+        id: dto.id,
+        queryRunner,
+      });
 
       const otherItems: { id: number; order: number }[] = [];
       const otherGroups: { id: number; order: number }[] = [];
@@ -162,53 +142,39 @@ export class MoveProductBatchGroupHandler
       });
 
       // save productBatches
-      const otherEvents = await productBatchEventRepo.findManyByAggregateId(
-        otherItems.map(item => item.id),
-      );
-      const productBatchMap = new Map(
-        [...otherEvents.entries()].map(([aggregateId, events]) => [
-          aggregateId,
-          ProductBatch.buildFromEvents(events as RevisionProductBatchEvent[]),
-        ]),
-      );
+      const productBatchMap = await this.productBatchService.getReadModelMap({
+        queryRunner,
+        ids: otherItems.map(item => item.id),
+      });
       otherItems.forEach(({ id, order }) => {
         const productBatch = productBatchMap.get(id);
         if (!productBatch) throw new Error('product batch was not found');
         productBatch.move({ order });
       });
 
-      await productBatchEventRepo.saveAggregateEvents({
+      await this.productBatchService.saveAggregates({
         aggregates: [...productBatchMap.values()],
-        requestId: requestId,
+        requestId,
+        queryRunner,
       });
 
-      await productBatchRepo.move([...productBatchMap.values()]);
-
       // save groups
-      const groupEvents =
-        await productBatchGroupEventRepo.findManyByAggregateId(
-          otherGroups.map(item => item.id),
-        );
-      const groupMap = new Map(
-        [...groupEvents.entries()].map(([aggregateId, groupEvents]) => [
-          aggregateId,
-          ProductBatchGroup.buildFromEvents(
-            groupEvents as RevisionProductBatchGroupEvent[],
-          ),
-        ]),
-      );
+      const groupMap = await this.productBatchGroupService.getReadModelMap({
+        ids: otherGroups.map(item => item.id),
+        queryRunner,
+      });
+
       otherGroups.forEach(({ id, order }) => {
         const group = groupMap.get(id);
         if (!group) throw new Error('group was not found');
         group.move({ order });
       });
 
-      await productBatchGroupEventRepo.saveAggregateEvents({
+      await this.productBatchGroupService.saveAggregates({
         aggregates: [...groupMap.values(), group],
-        requestId: requestId,
+        requestId,
+        queryRunner,
       });
-
-      await productBatchGroupRepo.move([...[...groupMap.values()], group]);
 
       // const { id, statusId, oldStatusId, order, oldOrder, affectedGroupIds } =
       //   await productBatchGroupRepository.moveProductBatchGroup(dto);

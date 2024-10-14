@@ -8,7 +8,7 @@ import {
 } from 'typeorm';
 
 import { OperationEntity } from '@/operation/operation.entity.js';
-import { ProductBatchEntity } from '@/product-batch/domain/product-batch.entity.js';
+import { ProductBatchReadEntity } from '@/product-batch/domain/product-batch.read-entity.js';
 
 @Entity({ name: 'product_batch_operation' })
 export class ProductBatchOperationEntity {
@@ -27,8 +27,8 @@ export class ProductBatchOperationEntity {
   @Column()
   cost: number;
 
-  @ManyToOne(() => ProductBatchEntity)
-  productBatch: Relation<ProductBatchEntity>;
+  @ManyToOne(() => ProductBatchReadEntity)
+  productBatch: Relation<ProductBatchReadEntity>;
 
   @RelationId((entity: ProductBatchOperationEntity) => entity.productBatch)
   @Column()

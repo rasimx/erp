@@ -38,7 +38,7 @@ export class AddOperationHandler
       const requestRepo = queryRunner.manager.withRepository(this.requestRepo);
       await requestRepo.insert({ id: requestId });
 
-      let productBatch = await this.productBatchService.buildFromEvents({
+      let productBatch = await this.productBatchService.getReadModel({
         id: dto.productBatchId,
         queryRunner,
       });

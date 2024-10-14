@@ -5,8 +5,7 @@ import { ContextService } from '@/context/context.service.js';
 import type { CustomDataSource } from '@/database/custom.data-source.js';
 import { RequestRepository } from '@/request/request.repository.js';
 import { MoveStatusCommand } from '@/status/commands/move-status/move-status.command.js';
-import { StatusRepository } from '@/status/domain/status.repository.js';
-import { StatusEventRepository } from '@/status/domain/status-event.repository.js';
+import { StatusReadRepo } from '@/status/domain/status.read-repo.js';
 import { StatusService } from '@/status/status.service.js';
 
 @CommandHandler(MoveStatusCommand)
@@ -15,8 +14,7 @@ export class MoveStatusHandler implements ICommandHandler<MoveStatusCommand> {
     @InjectDataSource()
     private dataSource: CustomDataSource,
     private readonly requestRepo: RequestRepository,
-    private readonly statusRepo: StatusRepository,
-    private readonly statusEventRepo: StatusEventRepository,
+    private readonly statusReadRepo: StatusReadRepo,
     private readonly contextService: ContextService,
     private readonly statusService: StatusService,
   ) {}
@@ -30,9 +28,8 @@ export class MoveStatusHandler implements ICommandHandler<MoveStatusCommand> {
     await queryRunner.connect();
     await queryRunner.startTransaction();
 
-    const statusRepo = queryRunner.manager.withRepository(this.statusRepo);
-    const statusEventRepo = queryRunner.manager.withRepository(
-      this.statusEventRepo,
+    const statusReadRepo = queryRunner.manager.withRepository(
+      this.statusReadRepo,
     );
 
     try {
@@ -41,7 +38,7 @@ export class MoveStatusHandler implements ICommandHandler<MoveStatusCommand> {
 
       const { dto } = command;
 
-      const status = await this.statusService.buildFromEvents({
+      const status = await this.statusService.getReadModel({
         id: dto.id,
         queryRunner,
       });
@@ -55,7 +52,7 @@ export class MoveStatusHandler implements ICommandHandler<MoveStatusCommand> {
       const minOrder = Math.min(dto.order, oldOrder);
 
       let offset = 0;
-      (await statusRepo.getIdsMoreThanOrEqualOrder(minOrder))
+      (await statusReadRepo.getIdsMoreThanOrEqualOrder(minOrder))
         .filter(id => id != dto.id)
         .forEach((id, index) => {
           if (dto.order == minOrder + index) {
@@ -64,9 +61,9 @@ export class MoveStatusHandler implements ICommandHandler<MoveStatusCommand> {
           otherItems.push({ id, order: minOrder + index + offset });
         });
 
-      const otherStatusMap = await this.statusService.buildFromEvents({
+      const otherStatusMap = await this.statusService.getReadModelMap({
         queryRunner,
-        id: otherItems.map(item => item.id),
+        ids: otherItems.map(item => item.id),
       });
       otherItems.forEach(({ id, order }) => {
         const status = otherStatusMap.get(id);
@@ -90,7 +87,7 @@ export class MoveStatusHandler implements ICommandHandler<MoveStatusCommand> {
     }
   }
 
-  // async moveStatus(dto: MoveStatusDto): Promise<StatusEntity> {
+  // async moveStatus(dto: MoveStatusDto): Promise<StatusReadEntity> {
   //   const { id, order: newOrder } = dto;
   //   const status = await this.findOneByOrFail({
   //     id,
@@ -103,7 +100,7 @@ export class MoveStatusHandler implements ICommandHandler<MoveStatusCommand> {
   //   if (newOrder < oldOrder) {
   //     await this.manager
   //       .createQueryBuilder()
-  //       .update(StatusEntity)
+  //       .update(StatusReadEntity)
   //       .set({ order: () => '"order" + 1' })
   //       .where('"order" >= :newOrder AND "order" <= :oldOrder AND id != :id', {
   //         newOrder,
@@ -114,7 +111,7 @@ export class MoveStatusHandler implements ICommandHandler<MoveStatusCommand> {
   //   } else {
   //     await this.manager
   //       .createQueryBuilder()
-  //       .update(StatusEntity)
+  //       .update(StatusReadEntity)
   //       .set({ order: () => '"order" - 1' })
   //       .where('"order" >= :oldOrder AND "order" <= :newOrder AND id != :id', {
   //         oldOrder,

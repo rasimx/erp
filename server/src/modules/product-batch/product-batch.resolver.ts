@@ -20,8 +20,8 @@ import { MoveProductBatchDto } from './dtos/move-product-batch.dto.js';
 import { ProductBatchDto } from './dtos/product-batch.dto.js';
 import { ProductBatchDetailDto } from './dtos/product-batch-detail.dto.js';
 import { ProductBatchService } from './product-batch.service.js';
-import { GetProductBatchQuery } from './queries/impl/get-product-batch.query.js';
-import { GetProductBatchListQuery } from './queries/impl/get-product-batch-list.query.js';
+import { GetProductBatchQuery } from './queries/get-product-batch/get-product-batch.query.js';
+import { GetProductBatchListQuery } from './queries/get-product-batch-list/get-product-batch-list.query.js';
 
 @Resolver()
 @UseInterceptors(UserInterceptor)

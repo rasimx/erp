@@ -11,7 +11,7 @@ import {
 import { ProportionType } from '@/operation/dtos/operation.dto.js';
 import { OperationEntity } from '@/operation/operation.entity.js';
 
-@Entity({ name: 'group_operation' })
+@Entity({ name: 'group_operation_read' })
 export class GroupOperationEntity {
   @PrimaryGeneratedColumn()
   id: number;

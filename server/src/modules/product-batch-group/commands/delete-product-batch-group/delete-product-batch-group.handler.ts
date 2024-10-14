@@ -6,7 +6,7 @@ import type { CustomDataSource } from '@/database/custom.data-source.js';
 import { DeleteProductBatchCommand } from '@/product-batch/commands/delete-product-batch/delete-product-batch.command.js';
 import { ProductBatchService } from '@/product-batch/product-batch.service.js';
 import { DeleteProductBatchGroupCommand } from '@/product-batch-group/commands/delete-product-batch-group/delete-product-batch-group.command.js';
-import { ProductBatchGroupRepository } from '@/product-batch-group/domain/product-batch-group.repository.js';
+import { ProductBatchGroupReadRepo } from '@/product-batch-group/domain/product-batch-group.read-repo.js';
 
 @CommandHandler(DeleteProductBatchGroupCommand)
 export class DeleteProductBatchGroupHandler
@@ -16,7 +16,7 @@ export class DeleteProductBatchGroupHandler
     @InjectDataSource()
     private dataSource: CustomDataSource,
     private commandBus: CommandBus,
-    private readonly productBatchGroupRepository: ProductBatchGroupRepository,
+    private readonly productBatchGroupRepository: ProductBatchGroupReadRepo,
     private readonly contextService: ContextService,
     private readonly productBatchService: ProductBatchService,
   ) {}

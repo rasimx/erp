@@ -1,5 +1,3 @@
-import type { ProductProps } from '@/product/domain/product.interfaces.js';
-
 import type { AddOperationDto } from '../dtos/add-operation.dto.js';
 import type { CreateProductBatchItemDto } from '../dtos/create-product-batch-list.dto.js';
 
@@ -11,25 +9,32 @@ export enum ProductBatchEventType {
   ProductBatchDeleted = 'ProductBatchDeleted',
   OperationAdded = 'OperationAdded',
   GroupOperationAdded = 'GroupOperationAdded',
+  Rollback = 'Rollback',
 }
 
 export type UID = string;
 
+export interface BaseEvent {
+  id: UID;
+  revision: number;
+  metadata: Record<string, unknown> | null;
+  rollbackTargetId?: string | null;
+}
+
 export interface ProductBatchCreatedEventData
   extends CreateProductBatchItemDto {
   id: number;
-  productProps: ProductProps;
   initialCount: number;
   order: number;
   statusId: number | null;
   groupId: number | null;
   exchangeRate: number | null;
+  weight: number;
+  volume: number;
 }
-export interface ProductBatchCreatedEvent {
-  id: UID;
+export interface ProductBatchCreatedEvent extends BaseEvent {
   type: ProductBatchEventType.ProductBatchCreated;
   data: ProductBatchCreatedEventData;
-  metadata?: Record<string, unknown>;
 }
 
 export interface ProductBatchChildCreatedEventData {
@@ -37,11 +42,9 @@ export interface ProductBatchChildCreatedEventData {
   qty: number;
   count: number; // childCount = count * qty
 }
-export interface ProductBatchChildCreatedEvent {
-  id: UID;
+export interface ProductBatchChildCreatedEvent extends BaseEvent {
   type: ProductBatchEventType.ProductBatchChildCreated;
   data: ProductBatchChildCreatedEventData;
-  metadata?: Record<string, unknown>;
 }
 
 export interface ProductBatchMovedEventData {
@@ -49,21 +52,17 @@ export interface ProductBatchMovedEventData {
   groupId?: number | null;
   statusId?: number | null;
 }
-export interface ProductBatchMovedEvent {
-  id: UID;
+export interface ProductBatchMovedEvent extends BaseEvent {
   type: ProductBatchEventType.ProductBatchMoved;
   data: ProductBatchMovedEventData;
-  metadata?: Record<string, unknown>;
 }
 
 export interface ProductBatchEditedEventData {
   statusId: number;
 }
-export interface ProductBatchEditedEvent {
-  id: UID;
+export interface ProductBatchEditedEvent extends BaseEvent {
   type: ProductBatchEventType.ProductBatchEdited;
   data: ProductBatchEditedEventData;
-  metadata?: Record<string, unknown>;
 }
 
 export interface ProductBatchDeletedEventData {
@@ -71,22 +70,18 @@ export interface ProductBatchDeletedEventData {
   count: number;
   userId: number;
 }
-export interface ProductBatchDeletedEvent {
-  id: UID;
+export interface ProductBatchDeletedEvent extends BaseEvent {
   type: ProductBatchEventType.ProductBatchDeleted;
   data: ProductBatchDeletedEventData;
-  metadata?: Record<string, unknown>;
 }
 
 export interface OperationAddedEventData extends AddOperationDto {
   id: number;
 }
 
-export interface OperationAddedEvent {
-  id: UID;
+export interface OperationAddedEvent extends BaseEvent {
   type: ProductBatchEventType.OperationAdded;
   data: OperationAddedEventData;
-  metadata?: Record<string, unknown>;
 }
 export interface GroupOperationAddedEventData extends OperationAddedEventData {
   proportion: number;
@@ -94,11 +89,16 @@ export interface GroupOperationAddedEventData extends OperationAddedEventData {
   groupOperationCost: number;
 }
 
-export interface GroupOperationAddedEvent {
-  id: UID;
+export interface GroupOperationAddedEvent extends BaseEvent {
   type: ProductBatchEventType.GroupOperationAdded;
   data: GroupOperationAddedEventData;
-  metadata?: Record<string, unknown>;
+  metadata: Record<string, unknown>;
+}
+
+export interface RollbackEvent extends BaseEvent {
+  type: ProductBatchEventType.Rollback;
+  data: unknown;
+  rollbackTargetId: string;
 }
 
 export type ProductBatchEvent =
@@ -108,8 +108,5 @@ export type ProductBatchEvent =
   | ProductBatchMovedEvent
   | ProductBatchDeletedEvent
   | OperationAddedEvent
-  | GroupOperationAddedEvent;
-
-export type RevisionProductBatchEvent = ProductBatchEvent & {
-  revision: number;
-};
+  | GroupOperationAddedEvent
+  | RollbackEvent;

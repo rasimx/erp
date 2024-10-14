@@ -1,11 +1,9 @@
+import _ from 'lodash';
 import { v7 as uuidV7 } from 'uuid';
 
-import type { ProductProps } from '@/product/domain/product.interfaces.js';
-import { Product } from '@/product/domain/product.js';
-import type {
-  CreateProductBatchProps,
-  ProductBatchProps,
-} from '@/product-batch/domain/product-batch.interfaces.js';
+import { isNil } from '@/common/helpers/utils.js';
+import type { ProductBatchProps } from '@/product-batch/domain/product-batch.interfaces.js';
+import type { ProductBatchReadEntity } from '@/product-batch/domain/product-batch.read-entity.js';
 
 import {
   type GroupOperationAddedEvent,
@@ -13,56 +11,79 @@ import {
   type OperationAddedEvent,
   type OperationAddedEventData,
   type ProductBatchChildCreatedEvent,
+  type ProductBatchChildCreatedEventData,
   type ProductBatchCreatedEvent,
-  type ProductBatchCreatedEventData,
-  type ProductBatchEditedEvent,
   type ProductBatchEvent,
   ProductBatchEventType,
   type ProductBatchMovedEvent,
   type ProductBatchMovedEventData,
-  type RevisionProductBatchEvent,
+  type RollbackEvent,
 } from './product-batch.events.js';
 
 export class ProductBatch {
   readonly id: number;
-  private revision: number;
-  private events: RevisionProductBatchEvent[] = [];
-  private product: Product;
-  private lastEvent: ProductBatchEvent;
+  private _props: ProductBatchProps;
+  private _revision: number;
+  private _uncommittedEvents: ProductBatchEvent[] = [];
+  private _events: ProductBatchEvent[] = [];
+  private _shouldSplit = false;
+  isDeleted = false;
 
-  private constructor(private props: ProductBatchProps) {
-    if (!props.id) throw new Error('id must be defined');
-    this.id = Number(props.id);
-    this.product = new Product(props.productProps);
+  public static create({
+    props,
+    metadata = null,
+  }: {
+    props: ProductBatchProps;
+    metadata?: Record<string, unknown> | null;
+  }): ProductBatch {
+    const productBatch = new ProductBatch({
+      id: props.id,
+      revision: 0,
+    });
+    const event: ProductBatchCreatedEvent =
+      productBatch.createEvent<ProductBatchCreatedEvent>({
+        type: ProductBatchEventType.ProductBatchCreated,
+        data: props,
+        metadata,
+        revision: 0,
+      });
+
+    productBatch.appendEvent(event);
+    return productBatch;
   }
 
-  public static create(
-    props: CreateProductBatchProps,
-    metadata?: Record<string, unknown>,
-  ): ProductBatch {
+  public static createFromReadEntity(entity: ProductBatchReadEntity) {
+    return new ProductBatch({
+      id: entity.id,
+      props: entity,
+      revision: entity.revision,
+      shouldSplit: entity.shouldSplit,
+    });
+  }
+
+  public static buildProjection(origEvents: ProductBatchEvent[]): ProductBatch {
+    const events = _.cloneDeep(origEvents).toSorted(
+      (a, b) => a.revision - b.revision,
+    );
+
+    if (events[0].type != ProductBatchEventType.ProductBatchCreated) {
+      throw new Error('error in first event');
+    }
+
     const productBatch = new ProductBatch({
-      ...props,
-      initialCount: props.count,
+      id: events[0].data.id,
     });
 
-    const event: ProductBatchCreatedEvent = {
-      id: uuidV7(),
-      type: ProductBatchEventType.ProductBatchCreated,
-      data: productBatch.toObject(),
-      metadata,
-    };
-
-    productBatch.revision = 0;
-    productBatch.events.push({ ...event, revision: productBatch.revision });
-    productBatch.lastEvent = event;
-
+    productBatch.applyEvents(events);
     return productBatch;
   }
 
   public static createFromSources(data: {
     id: number;
     count: number;
-    productProps: ProductProps;
+    productId: number;
+    weight: number;
+    volume: number;
     statusId: number | null;
     groupId: number | null;
     order: number;
@@ -70,25 +91,21 @@ export class ProductBatch {
   }): ProductBatch {
     const sourceEvents: ProductBatchChildCreatedEvent[] = [];
     data.sources.forEach(item => {
-      const event: ProductBatchChildCreatedEvent = {
-        id: uuidV7(),
-        type: ProductBatchEventType.ProductBatchChildCreated,
-        data: {
+      sourceEvents.push(
+        item.productBatch.appendChildCreatedEvent({
           childId: data.id,
           qty: item.qty,
           count: item.qty * data.count,
-        },
-      };
-      item.productBatch.appendEvent(event);
-      sourceEvents.push(event);
+        }),
+      );
     });
 
-    return ProductBatch.create(
-      {
+    return this.create({
+      props: {
         id: data.id,
         count: data.count,
-        productProps: data.productProps,
-        productId: data.productProps.id,
+        initialCount: data.count,
+        productId: data.productId,
         costPricePerUnit: data.sources.reduce(
           (prev, cur) =>
             prev + cur.productBatch.toObject().costPricePerUnit * cur.qty,
@@ -110,200 +127,233 @@ export class ProductBatch {
         groupId: data.groupId,
         sourceIds: data.sources.map(item => item.productBatch.id),
         order: data.order,
+        weight: data.weight,
+        volume: data.volume,
       },
-      { sourceEvents },
-    );
-  }
-
-  public static buildFromEvents(origEvents: RevisionProductBatchEvent[]) {
-    const events = [...origEvents].toSorted((a, b) => a.revision - b.revision);
-    const zeroEvent = events.shift();
-
-    if (!zeroEvent) throw new Error('not found');
-
-    const productBatch = new ProductBatch(
-      zeroEvent.data as ProductBatchCreatedEventData,
-    );
-    productBatch.revision = zeroEvent.revision;
-    productBatch.lastEvent = zeroEvent;
-
-    events.forEach(event => {
-      productBatch.applyEvent(event);
-      productBatch.revision = event.revision;
+      metadata: { sourceEvents },
     });
-
-    return productBatch;
   }
 
-  private appendEvent(event: ProductBatchEvent): void {
-    this.revision++;
-    this.events.push({ ...event, revision: this.revision });
-    if (event.type !== ProductBatchEventType.ProductBatchCreated) {
-      this.applyEvent(event);
-    }
+  private constructor({
+    id,
+    revision,
+    props,
+    shouldSplit,
+  }: {
+    id: number;
+    revision?: number;
+    props?: ProductBatchProps;
+    shouldSplit?: boolean;
+  }) {
+    this.id = id;
+    if (!isNil(revision)) this._revision = revision;
+    if (props) this._props = props;
+    if (shouldSplit) this._shouldSplit = shouldSplit;
+  }
+
+  private createEvent<T extends ProductBatchEvent>(
+    event: Omit<T, 'id' | 'revision'> & { revision?: number },
+  ): T {
+    return Object.freeze({
+      ...event,
+      id: uuidV7(),
+      revision: event.revision ?? this._revision + 1,
+    }) as T;
   }
 
   private applyEvent(event: ProductBatchEvent) {
     switch (event.type) {
-      // case ProductBatchEventType.ProductBatchCreated:
-      //   this.props = event.data;
-      //   break;
-      case ProductBatchEventType.ProductBatchChildCreated:
-        this.props.count -= event.data.count;
-        if (this.props.count < 0)
-          throw new Error('count не может быть меньше 0');
+      case ProductBatchEventType.ProductBatchCreated:
+        this._props = event.data;
         break;
-
+      case ProductBatchEventType.ProductBatchChildCreated:
+        this._props.count -= event.data.count;
+        if (this._props.count < 0)
+          throw new Error('count не может быть меньше 0');
+        this._shouldSplit = true;
+        break;
       case ProductBatchEventType.ProductBatchDeleted:
-        // if (event.data.name) {
-        //   this.name = event.data.name;
-        // }
-        // if (event.data.quantity) {
-        //   this.quantity = event.data.quantity;
-        // }
         break;
       case ProductBatchEventType.ProductBatchEdited:
-        this.props.statusId = event.data.statusId;
+        this._props.statusId = event.data.statusId;
 
-        // if (event.data.name) {
-        //   this.name = event.data.name;
-        // }
-        // if (event.data.quantity) {
-        //   this.quantity = event.data.quantity;
-        // }
         break;
       case ProductBatchEventType.ProductBatchMoved:
-        this.props = { ...this.props, ...event.data };
+        this._props = { ...this._props, ...event.data };
+        this._shouldSplit = false;
         break;
       case ProductBatchEventType.GroupOperationAdded:
       case ProductBatchEventType.OperationAdded:
         {
-          const operationPricePerUnit = event.data.cost / this.props.count;
+          const operationPricePerUnit = event.data.cost / this._props.count;
 
-          this.props.operationsPricePerUnit += Number(
+          this._props.operationsPricePerUnit += Number(
             operationPricePerUnit.toFixed(0),
           );
-          this.props.operationsPrice = event.data.cost;
+          this._props.operationsPrice = event.data.cost;
         }
+        this._shouldSplit = false;
 
-        // if (event.data.name) {
-        //   this.name = event.data.name;
-        // }
-        // if (event.data.quantity) {
-        //   this.quantity = event.data.quantity;
-        // }
+        break;
+      case ProductBatchEventType.Rollback:
+        // skip
         break;
       default:
         throw new Error('unknown eventType');
     }
-
-    this.lastEvent = event;
   }
 
-  getUncommittedEvents(): RevisionProductBatchEvent[] {
-    return this.events;
+  private appendEvent(event: ProductBatchEvent): void {
+    this._events.push(event);
+    this._uncommittedEvents.push(event);
+    this.applyEvent(event);
+    this._revision = event.revision;
+  }
+
+  applyEvents(events: ProductBatchEvent[]) {
+    this._events = events;
+    const rollbackEventIds = events
+      .flatMap(event =>
+        event.type == ProductBatchEventType.Rollback ? [event] : [],
+      )
+      .map(item => item.rollbackTargetId);
+
+    const nonRolledBackEvents = events.filter(
+      event => !rollbackEventIds.includes(event.id),
+    );
+    if (nonRolledBackEvents.length > 0) {
+      nonRolledBackEvents.forEach((event, index) => {
+        this.applyEvent(event);
+      });
+    } else {
+      this.isDeleted = true;
+    }
+    this._revision = events[events.length - 1].revision;
+  }
+
+  getUncommittedEvents(): ProductBatchEvent[] {
+    return this._uncommittedEvents;
+  }
+
+  getEvents(): ProductBatchEvent[] {
+    return this._events;
   }
 
   clearEvents() {
-    this.events = [];
+    this._uncommittedEvents = [];
+  }
+
+  public getLastEvent(): ProductBatchEvent {
+    const rollbackEventIds = this._events
+      .filter(event => event.type == ProductBatchEventType.Rollback)
+      .map(item => (item as RollbackEvent).rollbackTargetId);
+
+    const nonRolledBackEvents = this._events.filter(
+      event =>
+        !rollbackEventIds.includes(event.id) &&
+        event.type != ProductBatchEventType.Rollback,
+    );
+
+    return nonRolledBackEvents[nonRolledBackEvents.length - 1];
   }
 
   getId(): number {
     return this.id;
   }
 
-  getWeight(): number {
-    return this.product.getWeight() * this.props.count;
-  }
-
-  getVolume(): number {
-    return this.product.getVolume() * this.props.count;
-  }
-
-  getOrder(): number {
-    return this.props.order;
-  }
   getProductId(): number {
-    return this.product.id;
-  }
-  getStatusId(): number | null {
-    return this.props.statusId;
-  }
-  getGroupId(): number | null {
-    return this.props.groupId;
+    return this._props.productId;
   }
 
-  getCostPricePerUnit(): number {
-    return this.props.costPricePerUnit;
+  shouldSplit(): boolean {
+    return this._shouldSplit;
   }
 
   toObject() {
-    return { ...this.props, id: this.id, revision: this.revision };
+    return {
+      ...this._props,
+      id: this.id,
+      revision: this._revision,
+      shouldSplit: this._shouldSplit,
+    };
   }
 
-  public move({ order, groupId, statusId }: ProductBatchMovedEventData): void {
+  public appendChildCreatedEvent(
+    data: ProductBatchChildCreatedEventData,
+    metadata: Record<string, unknown> | null = null,
+  ) {
+    const event = this.createEvent<ProductBatchChildCreatedEvent>({
+      type: ProductBatchEventType.ProductBatchChildCreated,
+      data,
+      metadata,
+    });
+
+    this.appendEvent(event);
+
+    return event;
+  }
+
+  public move(
+    { order, groupId, statusId }: ProductBatchMovedEventData,
+    metadata: Record<string, unknown> | null = null,
+  ): void {
     let valid = false;
     const data: ProductBatchMovedEventData = { order };
-    if (this.props.order !== order) {
+    if (this._props.order !== order) {
       valid = true;
     }
-    if (statusId !== undefined && this.props.statusId !== statusId) {
+    if (statusId !== undefined && this._props.statusId !== statusId) {
       valid = true;
       data.statusId = statusId;
     }
-    if (groupId !== undefined && this.props.groupId !== groupId) {
+    if (groupId !== undefined && this._props.groupId !== groupId) {
       valid = true;
       data.groupId = groupId;
     }
 
     if (valid) {
-      const event: ProductBatchMovedEvent = {
-        id: uuidV7(),
+      const event = this.createEvent<ProductBatchMovedEvent>({
         type: ProductBatchEventType.ProductBatchMoved,
         data,
-      };
+        metadata,
+      });
       this.appendEvent(event);
     }
   }
 
   public addOperation(
     data: OperationAddedEventData,
-    metadata?: Record<string, unknown>,
+    metadata: Record<string, unknown> | null = null,
   ): void {
-    const event: OperationAddedEvent = {
-      id: uuidV7(),
+    const event = this.createEvent<OperationAddedEvent>({
       type: ProductBatchEventType.OperationAdded,
       data,
       metadata,
-    };
+    });
     this.appendEvent(event);
   }
   public appendGroupOperation(
     data: GroupOperationAddedEventData,
-    metadata?: Record<string, unknown>,
+    metadata: Record<string, unknown>,
   ): void {
-    const event: GroupOperationAddedEvent = {
-      id: uuidV7(),
+    const event: GroupOperationAddedEvent = this.createEvent({
       type: ProductBatchEventType.GroupOperationAdded,
       data,
       metadata,
-    };
+    });
     this.appendEvent(event);
   }
 
-  public getLastEvent(): ProductBatchEvent {
-    return this.lastEvent;
-  }
-
-  changeStatus(statusId: number) {
-    const event: ProductBatchEditedEvent = {
-      id: uuidV7(),
-      type: ProductBatchEventType.ProductBatchEdited,
-      data: { statusId },
-    };
-
-    this.appendEvent(event);
-
-    return this;
+  rollbackEvent(
+    rollbackTargetId: string,
+    metadata: Record<string, unknown> | null = null,
+  ) {
+    const rollbackEvent: RollbackEvent = this.createEvent({
+      type: ProductBatchEventType.Rollback,
+      data: {},
+      rollbackTargetId,
+      metadata,
+    });
+    this.appendEvent(rollbackEvent);
   }
 }

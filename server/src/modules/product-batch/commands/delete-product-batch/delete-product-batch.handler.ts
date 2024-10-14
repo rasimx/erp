@@ -4,7 +4,7 @@ import pick from 'lodash/pick.js';
 
 import { ContextService } from '@/context/context.service.js';
 import type { CustomDataSource } from '@/database/custom.data-source.js';
-import { ProductBatchRepository } from '@/product-batch/domain/product-batch.repository.js';
+import { ProductBatchReadRepo } from '@/product-batch/domain/product-batch.read-repo.js';
 // import { ProductBatchEventStore } from '@/product-batch/eventstore/product-batch.eventstore.js';
 import { ProductBatchService } from '@/product-batch/product-batch.service.js';
 
@@ -17,7 +17,7 @@ export class DeleteProductBatchHandler
   constructor(
     @InjectDataSource()
     private dataSource: CustomDataSource,
-    private readonly productBatchRepository: ProductBatchRepository,
+    private readonly productBatchRepository: ProductBatchReadRepo,
     // private readonly productBatchEventStore: ProductBatchEventStore,
     private readonly contextService: ContextService,
     private readonly productBatchService: ProductBatchService,

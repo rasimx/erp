@@ -14,8 +14,8 @@ export class CreateProductBatchGroupHandler
   constructor(
     @InjectDataSource()
     private dataSource: CustomDataSource,
-    private readonly productBatchGroupService: ProductBatchGroupService,
     private readonly contextService: ContextService,
+    private readonly productBatchGroupService: ProductBatchGroupService,
   ) {}
 
   async execute(command: CreateProductBatchGroupCommand) {
@@ -30,8 +30,8 @@ export class CreateProductBatchGroupHandler
       const { dto } = command;
 
       await this.productBatchGroupService.create({
-        requestId,
         dto,
+        requestId,
         queryRunner,
       });
 

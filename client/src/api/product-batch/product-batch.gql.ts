@@ -117,3 +117,19 @@ export const EVENT_FRAGMENT = graphql(`
     data
   }
 `);
+
+export const ROLLBACK_MUTATION = graphql(`
+  mutation rollback {
+    rollback {
+      success
+    }
+  }
+`);
+
+export const REVERT_MUTATION = graphql(`
+  mutation revert {
+    revert {
+      success
+    }
+  }
+`);

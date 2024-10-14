@@ -1,12 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
-import type { QueryRunner } from 'typeorm';
+import { In } from 'typeorm';
 
 import { ContextService } from '@/context/context.service.js';
-import { ProductBatchRepository } from '@/product-batch/domain/product-batch.repository.js';
+import type { CustomPostgresQueryRunner } from '@/database/custom.query-runner.js';
+import { ProductBatchReadRepo } from '@/product-batch/domain/product-batch.read-repo.js';
+import { ProductBatchGroupEventRepo } from '@/product-batch-group/domain/product-batch-group.event-repo.js';
 import { ProductBatchGroup } from '@/product-batch-group/domain/product-batch-group.js';
-import { ProductBatchGroupRepository } from '@/product-batch-group/domain/product-batch-group.repository.js';
-import { ProductBatchGroupEventRepository } from '@/product-batch-group/domain/product-batch-group-event.repository.js';
+import { ProductBatchGroupReadRepo } from '@/product-batch-group/domain/product-batch-group.read-repo.js';
 import type { CreateProductBatchGroupDto } from '@/product-batch-group/dtos/create-product-batch-group.dto.js';
 
 @Injectable()
@@ -15,47 +16,127 @@ export class ProductBatchGroupService {
     private readonly contextService: ContextService,
     private commandBus: CommandBus,
     private queryBus: QueryBus,
-    private readonly productBatchGroupRepository: ProductBatchGroupRepository,
-    private readonly productBatchRepo: ProductBatchRepository,
-    private readonly productBatchGroupEventRepository: ProductBatchGroupEventRepository,
+    private readonly productBatchGroupReadRepo: ProductBatchGroupReadRepo,
+    private readonly productBatchReadRepo: ProductBatchReadRepo,
+    private readonly productBatchGroupEventRepo: ProductBatchGroupEventRepo,
   ) {}
 
-  async create({
+  public async create({
     requestId,
     dto,
     queryRunner,
   }: {
     requestId: string;
     dto: CreateProductBatchGroupDto;
-    queryRunner: QueryRunner;
+    queryRunner: CustomPostgresQueryRunner;
   }): Promise<ProductBatchGroup> {
-    const productBatchGroupRepository = queryRunner.manager.withRepository(
-      this.productBatchGroupRepository,
+    const productBatchGroupReadRepo = queryRunner.manager.withRepository(
+      this.productBatchGroupReadRepo,
     );
-    const productBatchGroupEventRepository = queryRunner.manager.withRepository(
-      this.productBatchGroupEventRepository,
-    );
-    const productBatchRepo = queryRunner.manager.withRepository(
-      this.productBatchRepo,
+    const productBatchReadRepo = queryRunner.manager.withRepository(
+      this.productBatchReadRepo,
     );
 
-    const aggregateId = await productBatchGroupRepository.nextId();
+    const aggregateId = await productBatchGroupReadRepo.nextId();
 
-    const lastOrder = await productBatchRepo.getLastOrderInStatus(dto.statusId);
+    const lastOrder = await productBatchReadRepo.getLastOrderInStatus(
+      dto.statusId,
+    );
 
-    const group = ProductBatchGroup.create({
-      ...dto,
-      id: aggregateId,
-      order: lastOrder ? lastOrder + 1 : 1,
+    const productBatchGroup = ProductBatchGroup.create({
+      props: {
+        ...dto,
+        id: aggregateId,
+        order: lastOrder ? lastOrder + 1 : 1,
+      },
     });
 
-    await productBatchGroupEventRepository.saveAggregateEvents({
-      aggregates: [group],
+    await this.saveAggregates({
+      aggregates: [productBatchGroup],
       requestId: requestId,
+      queryRunner,
     });
 
-    await productBatchGroupRepository.save(group.toObject());
+    return productBatchGroup;
+  }
 
-    return group;
+  async saveAggregates({
+    aggregates,
+    requestId,
+    queryRunner,
+  }: {
+    aggregates: ProductBatchGroup[];
+    requestId: string;
+    queryRunner: CustomPostgresQueryRunner;
+  }) {
+    const productBatchGroupReadRepo = queryRunner.manager.withRepository(
+      this.productBatchGroupReadRepo,
+    );
+    const productBatchGroupEventRepo = queryRunner.manager.withRepository(
+      this.productBatchGroupEventRepo,
+    );
+
+    const eventEntities =
+      await productBatchGroupEventRepo.saveUncommittedEvents({
+        aggregates,
+        requestId,
+      });
+
+    const readEntities = await productBatchGroupReadRepo.save(
+      aggregates.map(item => item.toObject()),
+    );
+    return {
+      eventEntities,
+      aggregates: readEntities.map(item =>
+        ProductBatchGroup.createFromReadEntity(item),
+      ),
+      readEntities,
+    };
+  }
+
+  async getReadModel({
+    id,
+    queryRunner,
+  }: {
+    id: number;
+    queryRunner?: CustomPostgresQueryRunner;
+  }): Promise<ProductBatchGroup> {
+    const productBatchGroupReadRepo = queryRunner
+      ? queryRunner.manager.withRepository(this.productBatchGroupReadRepo)
+      : this.productBatchGroupReadRepo;
+
+    const readEntity = await productBatchGroupReadRepo.findOneOrFail({
+      where: { id },
+      relations: ['product'],
+    });
+
+    return ProductBatchGroup.createFromReadEntity(readEntity);
+  }
+
+  async getReadModelMap({
+    ids,
+    queryRunner,
+  }: {
+    ids: number[];
+    queryRunner: CustomPostgresQueryRunner;
+  }): Promise<Map<number, ProductBatchGroup>> {
+    const productBatchGroupReadRepo = queryRunner.manager.withRepository(
+      this.productBatchGroupReadRepo,
+    );
+
+    const entities = await productBatchGroupReadRepo.find({
+      where: { id: In(ids) },
+    });
+
+    if (new Set(ids).size != entities.length) {
+      throw new Error('найдены не все элементы');
+    }
+
+    return new Map(
+      entities.map(item => [
+        item.id,
+        ProductBatchGroup.createFromReadEntity(item),
+      ]),
+    );
   }
 }

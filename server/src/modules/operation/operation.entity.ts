@@ -11,9 +11,9 @@ import {
 } from 'typeorm';
 
 import { GroupOperationEntity } from '@/operation/group-operation.entity.js';
-import { ProductBatchEntity } from '@/product-batch/domain/product-batch.entity.js';
+import { ProductBatchReadEntity } from '@/product-batch/domain/product-batch.read-entity.js';
 
-@Entity({ name: 'operation' })
+@Entity({ name: 'operation_read' })
 export class OperationEntity {
   @PrimaryGeneratedColumn()
   id: number;
@@ -48,8 +48,8 @@ export class OperationEntity {
   @Column({ type: 'float', default: 100 })
   proportion: number;
 
-  @ManyToOne(() => ProductBatchEntity)
-  productBatch: Relation<ProductBatchEntity>;
+  @ManyToOne(() => ProductBatchReadEntity)
+  productBatch: Relation<ProductBatchReadEntity>;
 
   @RelationId((entity: OperationEntity) => entity.productBatch)
   @Column()

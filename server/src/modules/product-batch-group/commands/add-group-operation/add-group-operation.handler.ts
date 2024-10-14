@@ -1,25 +1,18 @@
 import { CommandHandler, type ICommandHandler } from '@nestjs/cqrs';
-import { Field, Int } from '@nestjs/graphql';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { v7 as uuidV7 } from 'uuid';
 
 import { ContextService } from '@/context/context.service.js';
 import type { CustomDataSource } from '@/database/custom.data-source.js';
 import { OperationService } from '@/operation/operation.service.js';
-import type { RevisionProductBatchEvent } from '@/product-batch/domain/product-batch.events.js';
 import { ProductBatch } from '@/product-batch/domain/product-batch.js';
-import { ProductBatchRepository } from '@/product-batch/domain/product-batch.repository.js';
-import { ProductBatchEventRepository } from '@/product-batch/domain/product-batch-event.repository.js';
 import { ProductBatchService } from '@/product-batch/product-batch.service.js';
 import { AddGroupOperationCommand } from '@/product-batch-group/commands/add-group-operation/add-group-operation.command.js';
-import {
-  ProductBatchGroupEventType,
-  type RevisionProductBatchGroupEvent,
-} from '@/product-batch-group/domain/product-batch-group.events.js';
+import { ProductBatchGroupEventEntity } from '@/product-batch-group/domain/product-batch-group.event-entity.js';
+import { ProductBatchGroupEventRepo } from '@/product-batch-group/domain/product-batch-group.event-repo.js';
+import { ProductBatchGroupEventType } from '@/product-batch-group/domain/product-batch-group.events.js';
 import { ProductBatchGroup } from '@/product-batch-group/domain/product-batch-group.js';
-import { ProductBatchGroupRepository } from '@/product-batch-group/domain/product-batch-group.repository.js';
-import { ProductBatchGroupEventEntity } from '@/product-batch-group/domain/product-batch-group-event.entity.js';
-import { ProductBatchGroupEventRepository } from '@/product-batch-group/domain/product-batch-group-event.repository.js';
+import { ProductBatchGroupService } from '@/product-batch-group/product-batch-group.service.js';
 import { RequestRepository } from '@/request/request.repository.js';
 
 // import { ProductBatchEventStore } from '@/product-batch/eventstore/product-batch.eventstore.js';
@@ -34,11 +27,9 @@ export class AddGroupOperationHandler
     private readonly contextService: ContextService,
     private readonly operationService: OperationService,
     private readonly requestRepo: RequestRepository,
-    private readonly productBatchRepo: ProductBatchRepository,
-    private readonly productBatchEventRepo: ProductBatchEventRepository,
-    private readonly productBatchGroupRepo: ProductBatchGroupRepository,
-    private readonly productBatchGroupEventRepo: ProductBatchGroupEventRepository,
+    private readonly productBatchGroupEventRepo: ProductBatchGroupEventRepo,
     private readonly productBatchService: ProductBatchService,
+    private readonly productBatchGroupService: ProductBatchGroupService,
   ) {}
 
   async execute(command: AddGroupOperationCommand) {
@@ -49,9 +40,6 @@ export class AddGroupOperationHandler
 
     const queryRunner = this.dataSource.createQueryRunner();
 
-    const productBatchGroupRepo = queryRunner.manager.withRepository(
-      this.productBatchGroupRepo,
-    );
     const productBatchGroupEventRepo = queryRunner.manager.withRepository(
       this.productBatchGroupEventRepo,
     );
@@ -72,28 +60,25 @@ export class AddGroupOperationHandler
 
       let group: ProductBatchGroup | null = null;
       if (dto.groupId) {
-        const groupEvents = await productBatchGroupEventRepo.findByAggregateId(
-          dto.groupId,
-        );
-        group = ProductBatchGroup.buildFromEvents(
-          groupEvents as RevisionProductBatchGroupEvent[],
-        );
+        group = await this.productBatchGroupService.getReadModel({
+          id: dto.groupId,
+          queryRunner,
+        });
 
         group.addOperation({
           id: groupOperationEventId,
           data: { ...dto, id: groupOperation.id },
         });
 
-        await productBatchGroupEventRepo.saveAggregateEvents({
+        await this.productBatchGroupService.saveAggregates({
           aggregates: [group],
           requestId,
+          queryRunner,
         });
-
-        await productBatchGroupRepo.save(group.toObject());
       }
 
-      const productBatchMap = await this.productBatchService.buildFromEvents({
-        id: dto.items.map(item => item.productBatchId),
+      const productBatchMap = await this.productBatchService.getReadModelMap({
+        ids: dto.items.map(item => item.productBatchId),
         queryRunner,
       });
 
@@ -134,7 +119,7 @@ export class AddGroupOperationHandler
         }),
       );
 
-      const { events: operationEvents } =
+      const { eventEntitiesByAggregateIdMap } =
         await this.productBatchService.saveAggregates({
           aggregates: [...productBatchMap.values(), ...parentAggregates],
           requestId,
@@ -150,7 +135,11 @@ export class AddGroupOperationHandler
         event.revision = null;
         event.data = { ...dto, id: groupOperation.id };
 
-        event.metadata = { childEvents: operationEvents.map(item => item.id) };
+        event.metadata = {
+          childEvents: [...eventEntitiesByAggregateIdMap.values()].flatMap(
+            items => items.map(item => item.id),
+          ),
+        };
 
         await productBatchGroupEventRepo.save(event);
       }

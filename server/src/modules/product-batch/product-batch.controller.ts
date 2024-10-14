@@ -8,7 +8,7 @@ import {
   type ProductBatchListResponse,
   ProductBatchServiceControllerMethods,
 } from '@/microservices/proto/erp.pb.js';
-import { ProductBatchRepository } from '@/product-batch/domain/product-batch.repository.js';
+import { ProductBatchReadRepo } from '@/product-batch/domain/product-batch.read-repo.js';
 import { StatusService } from '@/status/status.service.js';
 
 @Controller()
@@ -17,7 +17,7 @@ import { StatusService } from '@/status/status.service.js';
 // export class ProductBatchController implements ProductBatchServiceController {
 export class ProductBatchController {
   constructor(
-    private readonly productBatchRepository: ProductBatchRepository,
+    private readonly productBatchRepository: ProductBatchReadRepo,
     private readonly statusService: StatusService,
   ) {}
 
@@ -37,6 +37,7 @@ export class ProductBatchController {
     request: CreateStatusRequest,
   ): Promise<CreateStatusResponse> {
     try {
+      // @ts-ignore todo:
       await this.statusService.createStatus(request);
     } catch (e: unknown) {
       return { error: (e as Error).message };

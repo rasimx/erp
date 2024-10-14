@@ -1,46 +1,51 @@
-import type { CreateProductProps } from './product.interfaces.js';
+import type { ProductProps } from './product.interfaces.js';
 
 export enum ProductEventType {
   ProductCreated = 'ProductCreated',
   ProductEdited = 'ProductEdited',
   ProductArchived = 'ProductArchived',
+  Rollback = 'Rollback',
 }
 
 export type UID = string;
 
-export type ProductCreatedEventData = CreateProductProps;
-export interface ProductCreatedEvent {
+export interface BaseEvent {
   id: UID;
+  revision: number;
+  metadata: Record<string, unknown> | null;
+  rollbackTargetId?: string | null;
+}
+
+export type ProductCreatedEventData = ProductProps;
+export interface ProductCreatedEvent extends BaseEvent {
   type: ProductEventType.ProductCreated;
   data: ProductCreatedEventData;
-  metadata?: Record<string, unknown>;
 }
 
 export interface ProductEditedEventData {
   name: string;
 }
-export interface ProductEditedEvent {
-  id: UID;
+export interface ProductEditedEvent extends BaseEvent {
   type: ProductEventType.ProductEdited;
   data: ProductEditedEventData;
-  metadata?: Record<string, unknown>;
 }
 
 export interface ProductArchivedEventData {
   id: number;
 }
-export interface ProductArchivedEvent {
-  id: UID;
+export interface ProductArchivedEvent extends BaseEvent {
   type: ProductEventType.ProductArchived;
   data: ProductArchivedEventData;
-  metadata?: Record<string, unknown>;
+}
+
+export interface RollbackEvent extends BaseEvent {
+  type: ProductEventType.Rollback;
+  data: unknown;
+  rollbackTargetId: string;
 }
 
 export type ProductEvent =
   | ProductCreatedEvent
   | ProductEditedEvent
-  | ProductArchivedEvent;
-
-export type RevisionProductEvent = ProductEvent & {
-  revision: number;
-};
+  | ProductArchivedEvent
+  | RollbackEvent;

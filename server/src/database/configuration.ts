@@ -13,7 +13,9 @@ export default registerAs<DataSourceOptions>(DATABASE_CONFIG_TOKEN, () => ({
   type: 'postgres',
   url: process.env.TYPEORM_URL,
   migrations: [path.join(__dirname, './migrations/*{.ts,.js}')],
-  entities: [path.join(__dirname, '../**/*.entity{.ts,.js}')],
+  entities: [
+    path.join(__dirname, '../**/*.{entity,read-entity,event-entity}{.ts,.js}'),
+  ],
   namingStrategy: new SnakeNamingStrategy(),
   synchronize: false,
   logging: process.env.TYPEORM_LOGGING == 'true',

@@ -1,3 +1,4 @@
+import { useMutation } from '@apollo/client';
 import { useModal } from '@ebay/nice-modal-react';
 import { Button } from 'primereact/button';
 import { Menu } from 'primereact/menu';
@@ -5,6 +6,10 @@ import { MenuItem } from 'primereact/menuitem';
 import { Toast } from 'primereact/toast';
 import React, { FC, useCallback, useMemo, useRef } from 'react';
 
+import {
+  REVERT_MUTATION,
+  ROLLBACK_MUTATION,
+} from '../../api/product-batch/product-batch.gql';
 import { useAppDispatch, useAppSelector } from '../../hooks';
 import { CreateProductBatchGroupModal } from '../CreateProductBatchGroup/CreateProductBatchGroupForm';
 import GroupOperationForm from '../GroupOperationForm/GroupOperationForm';
@@ -56,8 +61,26 @@ export const ProductBatchPageControl: FC = () => {
     ],
   );
 
+  const [rollback, { data }] = useMutation(ROLLBACK_MUTATION);
+
+  const rollbackHandle = useCallback(() => {
+    rollback().then(res => {
+      console.log(res);
+    });
+  }, [rollback]);
+
+  const [revert, { data: data2 }] = useMutation(REVERT_MUTATION);
+
+  const revertHandle = useCallback(() => {
+    revert().then(res => {
+      console.log(res);
+    });
+  }, [revert]);
+
   return (
     <div>
+      <Button onClick={rollbackHandle} size="small" label="Rollback" />
+      <Button onClick={revertHandle} size="small" label="Revert" />
       <Button
         onClick={selectingHandle}
         size="small"

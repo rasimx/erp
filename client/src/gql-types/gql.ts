@@ -33,6 +33,8 @@ const documents = {
     "\n  mutation editProductBatch($dto: EditProductBatchDto!) {\n    editProductBatch(dto: $dto) {\n      success\n    }\n  }\n": types.EditProductBatchDocument,
     "\n  mutation CreateProductBatchesFromSourcesListDto(\n    $dto: CreateProductBatchesFromSourcesListDto!\n  ) {\n    createProductBatchesFromSources(dto: $dto) {\n      success\n    }\n  }\n": types.CreateProductBatchesFromSourcesListDtoDocument,
     "\n  mutation deleteProductBatch($id: Int!) {\n    deleteProductBatch(id: $id) {\n      success\n    }\n  }\n": types.DeleteProductBatchDocument,
+    "\n  mutation rollback {\n    rollback {\n      success\n    }\n  }\n": types.RollbackDocument,
+    "\n  mutation revert {\n    revert {\n      success\n    }\n  }\n": types.RevertDocument,
     "\n  fragment SetItem on SetItemDto {\n    productId\n    name\n    sku\n    qty\n  }\n": types.SetItemFragmentDoc,
     "\n  fragment Product on ProductDto {\n    id\n    name\n    sku\n    setItems {\n      ...SetItem\n    }\n  }\n": types.ProductFragmentDoc,
     "\n  fragment ProductSet on ProductDto {\n    id\n    name\n    sku\n    setItems {\n      ...SetItem\n    }\n  }\n": types.ProductSetFragmentDoc,
@@ -139,6 +141,14 @@ export function graphql(source: "\n  mutation CreateProductBatchesFromSourcesLis
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n  mutation deleteProductBatch($id: Int!) {\n    deleteProductBatch(id: $id) {\n      success\n    }\n  }\n"): (typeof documents)["\n  mutation deleteProductBatch($id: Int!) {\n    deleteProductBatch(id: $id) {\n      success\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation rollback {\n    rollback {\n      success\n    }\n  }\n"): (typeof documents)["\n  mutation rollback {\n    rollback {\n      success\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation revert {\n    revert {\n      success\n    }\n  }\n"): (typeof documents)["\n  mutation revert {\n    revert {\n      success\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

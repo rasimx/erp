@@ -7,7 +7,7 @@ import {
   RelationId,
 } from 'typeorm';
 
-import { ProductEntity } from '@/product/domain/product.entity.js';
+import { ProductReadEntity } from '@/product/domain/product.read-entity.js';
 
 @Entity({ name: 'product_set_closure' })
 export class ProductSetClosureEntity {
@@ -20,15 +20,15 @@ export class ProductSetClosureEntity {
   })
   userId: number;
 
-  @ManyToOne(() => ProductEntity)
-  set: Relation<ProductEntity>;
+  @ManyToOne(() => ProductReadEntity)
+  set: Relation<ProductReadEntity>;
 
   @RelationId((entity: ProductSetClosureEntity) => entity.set)
   @Column()
   setId: number;
 
-  @ManyToOne(() => ProductEntity)
-  product: Relation<ProductEntity>;
+  @ManyToOne(() => ProductReadEntity)
+  product: Relation<ProductReadEntity>;
 
   @RelationId((entity: ProductSetClosureEntity) => entity.product)
   @Column()

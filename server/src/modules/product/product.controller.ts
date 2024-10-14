@@ -1,4 +1,5 @@
 import { Controller, UseInterceptors } from '@nestjs/common';
+import { CommandBus } from '@nestjs/cqrs';
 
 import { UserInterceptor } from '@/auth/user.interceptor.js';
 import { ContextService } from '@/context/context.service.js';
@@ -19,6 +20,7 @@ export class ProductController implements ProductServiceController {
   constructor(
     private readonly productService: ProductService,
     private readonly contextService: ContextService,
+    private commandBus: CommandBus,
   ) {}
 
   async insert({
@@ -28,7 +30,8 @@ export class ProductController implements ProductServiceController {
     if (inTransaction) {
       return this.productService.createInsertTransaction(newItems);
     }
-    const items = await this.productService.insert(newItems);
+    // const items = await this.productService.insert(newItems);
+    // @ts-ignore
     return { items };
   }
 

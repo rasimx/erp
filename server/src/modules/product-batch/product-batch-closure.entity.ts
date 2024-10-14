@@ -7,22 +7,22 @@ import {
   RelationId,
 } from 'typeorm';
 
-import { ProductBatchEntity } from '@/product-batch/domain/product-batch.entity.js';
+import { ProductBatchReadEntity } from '@/product-batch/domain/product-batch.read-entity.js';
 
 @Entity({ name: 'product_batch_closure' })
 export class ProductBatchClosureEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => ProductBatchEntity)
-  public source: Relation<ProductBatchEntity>;
+  @ManyToOne(() => ProductBatchReadEntity)
+  public source: Relation<ProductBatchReadEntity>;
 
   @Column()
   @RelationId((entity: ProductBatchClosureEntity) => entity.source)
   public sourceId: string;
 
-  @ManyToOne(() => ProductBatchEntity)
-  public destination: Relation<ProductBatchEntity>;
+  @ManyToOne(() => ProductBatchReadEntity)
+  public destination: Relation<ProductBatchReadEntity>;
 
   @Column()
   @RelationId((entity: ProductBatchClosureEntity) => entity.destination)
