@@ -1,7 +1,7 @@
 import _ from 'lodash';
 import { v7 as uuidV7 } from 'uuid';
 
-import { deepFreeze, isNil } from '@/common/helpers/utils.js';
+import { isNil } from '@/common/helpers/utils.js';
 import type { ProductBatchProps } from '@/product-batch/domain/product-batch.interfaces.js';
 import type { ProductBatchReadEntity } from '@/product-batch/domain/product-batch.read-entity.js';
 
@@ -17,14 +17,13 @@ import {
   ProductBatchEventType,
   type ProductBatchMovedEvent,
   type ProductBatchMovedEventData,
-  type RollbackEvent,
+  type ProductBatchRollbackEvent,
 } from './product-batch.events.js';
 
 export class ProductBatch {
   readonly id: number;
   private _props: ProductBatchProps;
   private _revision: number;
-  private _uncommittedEvents: ProductBatchEvent[] = [];
   private _events: ProductBatchEvent[] = [];
   private _shouldSplit = false;
   isDeleted = false;
@@ -147,22 +146,23 @@ export class ProductBatch {
   }) {
     this.id = id;
     if (!isNil(revision)) this._revision = revision;
-    if (props) this._props = props;
+    if (props) this._props = _.cloneDeep(props);
     if (shouldSplit) this._shouldSplit = shouldSplit;
   }
 
   public rebuild() {
-    this.applyEvents([...this._events, ...this._uncommittedEvents]);
+    this.applyEvents(this._events);
   }
 
   private createEvent<T extends ProductBatchEvent>(
     event: Omit<T, 'id' | 'revision'> & { revision?: number },
   ): T {
-    return deepFreeze({
+    return {
       ...event,
       id: uuidV7(),
       revision: event.revision ?? this._revision + 1,
-    }) as unknown as T;
+      isNew: true,
+    } as T;
   }
 
   private applyEvent(event: ProductBatchEvent) {
@@ -183,7 +183,7 @@ export class ProductBatch {
 
         break;
       case ProductBatchEventType.ProductBatchMoved:
-        this._props = { ...this._props, ...event.data };
+        this._props = { ...this._props, ..._.cloneDeep(event.data) };
         this._shouldSplit = false;
         break;
       case ProductBatchEventType.GroupOperationAdded:
@@ -208,28 +208,32 @@ export class ProductBatch {
   }
 
   private appendEvent(event: ProductBatchEvent): void {
-    this._uncommittedEvents.push(deepFreeze(event));
+    this._events.push(event);
     this.applyEvent(event);
     this._revision = event.revision;
   }
 
   applyEvents(events: ProductBatchEvent[]) {
-    this._events = events;
-    const rollbackEventIds = events
-      .flatMap(event =>
-        event.type == ProductBatchEventType.Rollback ? [event] : [],
-      )
-      .map(item => item.rollbackTargetId);
+    const _rolledBackEventIds = events.flatMap(event =>
+      event.type == ProductBatchEventType.Rollback
+        ? [event.rollbackTargetId]
+        : [],
+    );
 
-    const nonRolledBackEvents = events.filter(
+    this._events = events.map(event => ({
+      ...event,
+      isRolledBack: _rolledBackEventIds.includes(event.id),
+    }));
+
+    const nonRolledBackEvents = this._events.filter(
       event =>
-        !rollbackEventIds.includes(event.id) &&
-        event.type != ProductBatchEventType.Rollback,
+        !event.isRolledBack && event.type != ProductBatchEventType.Rollback,
     );
     if (nonRolledBackEvents.length > 0) {
       nonRolledBackEvents.forEach((event, index) => {
         this.applyEvent(event);
       });
+      this.isDeleted = false;
     } else {
       this.isDeleted = true;
     }
@@ -237,30 +241,15 @@ export class ProductBatch {
   }
 
   getUncommittedEvents(): ProductBatchEvent[] {
-    return this._uncommittedEvents;
+    return this._events.filter(item => item.isNew);
   }
 
   getEvents(): ProductBatchEvent[] {
     return this._events;
   }
 
-  clearEvents() {
-    this._events.push(...this._uncommittedEvents);
-    this._uncommittedEvents = [];
-  }
-
-  public getLastEvent(): ProductBatchEvent {
-    const rollbackEventIds = this._events
-      .filter(event => event.type == ProductBatchEventType.Rollback)
-      .map(item => (item as RollbackEvent).rollbackTargetId);
-
-    const nonRolledBackEvents = this._events.filter(
-      event =>
-        !rollbackEventIds.includes(event.id) &&
-        event.type != ProductBatchEventType.Rollback,
-    );
-
-    return nonRolledBackEvents[nonRolledBackEvents.length - 1];
+  commitEvents() {
+    this._events.forEach(item => (item.isNew = false));
   }
 
   getId(): number {
@@ -269,6 +258,10 @@ export class ProductBatch {
 
   getProductId(): number {
     return this._props.productId;
+  }
+
+  getOrder(): number {
+    return this._props.order;
   }
 
   shouldSplit(): boolean {
@@ -354,12 +347,30 @@ export class ProductBatch {
     rollbackTargetId: string,
     metadata: Record<string, unknown> | null = null,
   ) {
-    const rollbackEvent: RollbackEvent = this.createEvent({
+    const rolledBackEvent = this._events.find(
+      event => event.id === rollbackTargetId,
+    );
+    if (!rolledBackEvent) throw new Error('rolledBackEvent not found');
+    rolledBackEvent.isRolledBack = true;
+    rolledBackEvent.isJustRolledBack = true;
+
+    const rollbackEvent: ProductBatchRollbackEvent = this.createEvent({
       type: ProductBatchEventType.Rollback,
-      data: {},
+      data: null,
       rollbackTargetId,
       metadata,
     });
     this.appendEvent(rollbackEvent);
+  }
+
+  revertEvent(event: ProductBatchRollbackEvent) {
+    // меняем флаг у события которое компенсироваролось
+    const revertedEvent = this._events.find(
+      item => item.id === event.rollbackTargetId,
+    );
+    if (!revertedEvent) throw new Error('revertedEvent not found');
+    revertedEvent.isReverted = true;
+    // удаляем rollbackEvent
+    this._events = this._events.filter(item => item.id != event.id);
   }
 }

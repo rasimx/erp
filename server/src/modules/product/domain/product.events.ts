@@ -14,6 +14,10 @@ export interface BaseEvent {
   revision: number;
   metadata: Record<string, unknown> | null;
   rollbackTargetId?: string | null;
+  isNew?: boolean;
+  isRolledBack?: boolean;
+  isJustRolledBack?: boolean;
+  isReverted?: boolean;
 }
 
 export type ProductCreatedEventData = ProductProps;
@@ -38,9 +42,9 @@ export interface ProductArchivedEvent extends BaseEvent {
   data: ProductArchivedEventData;
 }
 
-export interface RollbackEvent extends BaseEvent {
+export interface ProductRollbackEvent extends BaseEvent {
   type: ProductEventType.Rollback;
-  data: unknown;
+  data: null;
   rollbackTargetId: string;
 }
 
@@ -48,4 +52,4 @@ export type ProductEvent =
   | ProductCreatedEvent
   | ProductEditedEvent
   | ProductArchivedEvent
-  | RollbackEvent;
+  | ProductRollbackEvent;

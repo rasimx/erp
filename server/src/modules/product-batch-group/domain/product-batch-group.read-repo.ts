@@ -7,7 +7,7 @@ import type { CreateProductBatchGroupDto } from '@/product-batch-group/dtos/crea
 import type { MoveProductBatchGroupDto } from '@/product-batch-group/dtos/move-product-batch-group.dto.js';
 import { StatusReadEntity } from '@/status/domain/status.read-entity.js';
 
-import type { ProductBatchGroup } from './product-batch-group.js';
+import type { RealProductBatchGroup } from './product-batch-group.js';
 import { ProductBatchGroupReadEntity } from './product-batch-group.read-entity.js';
 
 export class ProductBatchGroupReadRepo extends Repository<ProductBatchGroupReadEntity> {
@@ -18,7 +18,7 @@ export class ProductBatchGroupReadRepo extends Repository<ProductBatchGroupReadE
     return Number(a[0].nextval);
   }
 
-  async move(items: ProductBatchGroup[]) {
+  async move(items: RealProductBatchGroup[]) {
     if (items.length === 0) return;
     const values = items
       .map(item => {

@@ -10,6 +10,7 @@ import {
   StatusEventType,
   type StatusMovedEvent,
   type StatusMovedEventData,
+  type StatusRollbackEvent,
 } from './status.events.js';
 import type { StatusProps } from './status.interfaces.js';
 
@@ -17,7 +18,6 @@ export class Status {
   readonly id: number;
   private _props: StatusProps;
   private _revision: number;
-  private _uncommittedEvents: StatusEvent[] = [];
   private _events: StatusEvent[] = [];
   isDeleted = false;
 
@@ -80,23 +80,28 @@ export class Status {
     this.id = id;
 
     if (!isNil(revision)) this._revision = revision;
-    if (props) this._props = props;
+    if (props) this._props = _.cloneDeep(props);
+  }
+
+  public rebuild() {
+    this.applyEvents(this._events);
   }
 
   private createEvent<T extends StatusEvent>(
     event: Omit<T, 'id' | 'revision'> & { revision?: number },
   ): T {
-    return Object.freeze({
+    return {
       ...event,
       id: uuidV7(),
       revision: event.revision ?? this._revision + 1,
-    }) as T;
+      isNew: true,
+    } as T;
   }
 
   private applyEvent(event: StatusEvent) {
     switch (event.type) {
       case StatusEventType.StatusCreated:
-        this._props = event.data;
+        this._props = _.cloneDeep(event.data);
         break;
 
       case StatusEventType.StatusArchived:
@@ -119,24 +124,28 @@ export class Status {
 
   private appendEvent(event: StatusEvent): void {
     this._events.push(event);
-    this._uncommittedEvents.push(event);
     this.applyEvent(event);
     this._revision = event.revision;
   }
 
   applyEvents(events: StatusEvent[]) {
-    this._events = events;
-    const rollbackEventIds = events
-      .flatMap(event => (event.type == StatusEventType.Rollback ? [event] : []))
-      .map(item => item.rollbackTargetId);
+    const _rolledBackEventIds = events.flatMap(event =>
+      event.type == StatusEventType.Rollback ? [event.rollbackTargetId] : [],
+    );
 
-    const nonRolledBackEvents = events.filter(
-      event => !rollbackEventIds.includes(event.id),
+    this._events = events.map(event => ({
+      ...event,
+      isRolledBack: _rolledBackEventIds.includes(event.id),
+    }));
+
+    const nonRolledBackEvents = this._events.filter(
+      event => !event.isRolledBack && event.type != StatusEventType.Rollback,
     );
     if (nonRolledBackEvents.length > 0) {
       nonRolledBackEvents.forEach((event, index) => {
         this.applyEvent(event);
       });
+      this.isDeleted = false;
     } else {
       this.isDeleted = true;
     }
@@ -144,15 +153,15 @@ export class Status {
   }
 
   getUncommittedEvents(): StatusEvent[] {
-    return this._uncommittedEvents;
+    return this._events.filter(item => item.isNew);
   }
 
   getEvents(): StatusEvent[] {
     return this._events;
   }
 
-  clearEvents() {
-    this._uncommittedEvents = [];
+  commitEvents() {
+    this._events.forEach(item => (item.isNew = false));
   }
 
   toObject() {
@@ -176,5 +185,36 @@ export class Status {
       metadata,
     });
     this.appendEvent(event);
+  }
+
+  rollbackEvent(
+    rollbackTargetId: string,
+    metadata: Record<string, unknown> | null = null,
+  ) {
+    const rolledBackEvent = this._events.find(
+      event => event.id === rollbackTargetId,
+    );
+    if (!rolledBackEvent) throw new Error('rolledBackEvent not found');
+    rolledBackEvent.isRolledBack = true;
+    rolledBackEvent.isJustRolledBack = true;
+
+    const rollbackEvent: StatusRollbackEvent = this.createEvent({
+      type: StatusEventType.Rollback,
+      data: null,
+      rollbackTargetId,
+      metadata,
+    });
+    this.appendEvent(rollbackEvent);
+  }
+
+  revertEvent(event: StatusRollbackEvent) {
+    // меняем флаг у события которое компенсироваролось
+    const revertedEvent = this._events.find(
+      item => item.id === event.rollbackTargetId,
+    );
+    if (!revertedEvent) throw new Error('revertedEvent not found');
+    revertedEvent.isReverted = true;
+    // удаляем rollbackEvent
+    this._events = this._events.filter(item => item.id != event.id);
   }
 }

@@ -8,7 +8,7 @@ import { GetProductBatchQuery } from '@/product-batch/queries/get-product-batch/
 
 import {
   ProductBatchEventType,
-  type RollbackEvent,
+  type ProductBatchRollbackEvent,
 } from '../../domain/product-batch.events.js';
 
 @QueryHandler(GetProductBatchQuery)
@@ -27,7 +27,7 @@ export class GetProductBatchHandler
 
     const rollbackEventIds = events
       .filter(event => event.type == ProductBatchEventType.Rollback)
-      .map(item => (item as RollbackEvent).rollbackTargetId);
+      .map(item => (item as ProductBatchRollbackEvent).rollbackTargetId);
 
     const nonRolledBackEvents = events.filter(
       event =>

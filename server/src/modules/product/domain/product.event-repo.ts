@@ -23,13 +23,14 @@ export class ProductEventRepo extends Repository<ProductEventEntity> {
           event.revision = item.revision;
           event.data = item.data;
           event.metadata = item.metadata ?? null;
+          event.rollbackTargetId = item.rollbackTargetId ?? null;
 
           return event;
         }),
       ),
     );
     aggregates.forEach(aggregate => {
-      aggregate.clearEvents();
+      aggregate.commitEvents();
     });
     return events;
   }

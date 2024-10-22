@@ -4,6 +4,7 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToOne,
   PrimaryColumn,
   type Relation,
   RelationId,
@@ -51,6 +52,7 @@ export class StatusEventEntity {
 
   @Column({
     type: 'jsonb',
+    nullable: true,
   })
   public data: unknown;
 
@@ -59,4 +61,15 @@ export class StatusEventEntity {
     nullable: true,
   })
   public metadata: unknown;
+
+  @OneToOne(() => StatusEventEntity, entity => entity.rollbackTarget)
+  rollback: Relation<StatusEventEntity> | null;
+
+  @OneToOne(() => StatusEventEntity)
+  @JoinColumn()
+  rollbackTarget: StatusEventEntity | null;
+
+  @RelationId((entity: StatusEventEntity) => entity.rollbackTarget)
+  @Column({ type: 'uuid', nullable: true })
+  rollbackTargetId: string | null;
 }

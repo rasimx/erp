@@ -30,9 +30,6 @@ export class OperationDto {
   @Field(() => ProportionType)
   proportionType: ProportionType;
 
-  // @OneToMany(() => ProductBatchOperationEntity, entity => entity.operation)
-  // productBatchOperations: ProductBatchOperationEntity[];
-
   @Field(() => String)
   createdAt: Date;
 }

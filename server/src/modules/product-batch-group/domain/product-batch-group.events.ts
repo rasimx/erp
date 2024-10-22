@@ -1,3 +1,5 @@
+import { Field } from '@nestjs/graphql';
+
 import { type UID } from '@/product-batch/domain/product-batch.events.js';
 import type { AddGroupOperationDto } from '@/product-batch-group/dtos/add-group-operation.dto.js';
 import type { CreateProductBatchGroupDto } from '@/product-batch-group/dtos/create-product-batch-group.dto.js';
@@ -6,6 +8,11 @@ export interface BaseEvent {
   id: UID;
   revision: number;
   metadata: Record<string, unknown> | null;
+  rollbackTargetId?: string | null;
+  isNew?: boolean;
+  isRolledBack?: boolean;
+  isJustRolledBack?: boolean;
+  isReverted?: boolean;
 }
 
 export enum ProductBatchGroupEventType {
@@ -16,8 +23,9 @@ export enum ProductBatchGroupEventType {
   Rollback = 'Rollback',
 }
 
-export interface ProductBatchGroupCreatedEventData
-  extends CreateProductBatchGroupDto {
+export interface ProductBatchGroupCreatedEventData {
+  statusId: number;
+  name: string;
   id: number;
   order: number;
 }
@@ -46,14 +54,14 @@ export interface GroupOperationAddedEventData extends AddGroupOperationDto {
   id: number;
 }
 
-export interface GroupOperationCreatedEvent extends BaseEvent {
+export interface GroupOperationAddedEvent extends BaseEvent {
   type: ProductBatchGroupEventType.GroupOperationAdded;
   data: GroupOperationAddedEventData;
 }
 
-export interface RollbackEvent extends BaseEvent {
+export interface ProductBatchGroupRollbackEvent extends BaseEvent {
   type: ProductBatchGroupEventType.Rollback;
-  data: unknown;
+  data: null;
   rollbackTargetId: string;
 }
 
@@ -61,5 +69,5 @@ export type ProductBatchGroupEvent =
   | ProductBatchGroupCreatedEvent
   | ProductBatchGroupMovedEvent
   | ProductBatchGroupDeletedEvent
-  | GroupOperationCreatedEvent
-  | RollbackEvent;
+  | GroupOperationAddedEvent
+  | ProductBatchGroupRollbackEvent;

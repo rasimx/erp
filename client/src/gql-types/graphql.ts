@@ -44,6 +44,7 @@ export type CommandResponse = {
 };
 
 export type CreateProductBatchGroupDto = {
+  existProductBatchIds: Array<Scalars['Int']['input']>;
   name: Scalars['String']['input'];
   statusId: Scalars['Int']['input'];
 };

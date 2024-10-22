@@ -3,7 +3,7 @@ import { InjectDataSource } from '@nestjs/typeorm';
 
 import { ContextService } from '@/context/context.service.js';
 import type { CustomDataSource } from '@/database/custom.data-source.js';
-import { OperationService } from '@/operation/operation.service.js';
+import { OperationReadRepo } from '@/operation/operation.read-repo.js';
 import { ProductBatch } from '@/product-batch/domain/product-batch.js';
 import { ProductBatchService } from '@/product-batch/product-batch.service.js';
 import { RequestRepository } from '@/request/request.repository.js';
@@ -18,7 +18,7 @@ export class AddOperationHandler
     @InjectDataSource()
     private dataSource: CustomDataSource,
     private readonly contextService: ContextService,
-    private readonly operationService: OperationService,
+    private readonly operationReadRepo: OperationReadRepo,
     private readonly requestRepo: RequestRepository,
     private readonly productBatchService: ProductBatchService,
   ) {}
@@ -38,6 +38,10 @@ export class AddOperationHandler
       const requestRepo = queryRunner.manager.withRepository(this.requestRepo);
       await requestRepo.insert({ id: requestId });
 
+      const operationReadRepo = queryRunner.manager.withRepository(
+        this.operationReadRepo,
+      );
+
       let productBatch = await this.productBatchService.getReadModel({
         id: dto.productBatchId,
         queryRunner,
@@ -56,14 +60,11 @@ export class AddOperationHandler
         productBatch = newChildBatch;
       }
 
-      const operations = await this.operationService.createOperations(
-        [{ ...dto, productBatchId: productBatch.id }],
-        queryRunner,
-      );
+      const ids = await operationReadRepo.nextIds(1);
+      const id = ids[0];
+      if (!id) throw new Error('operationId id was not defined');
 
-      const operation = operations[0];
-
-      productBatch.addOperation({ ...dto, id: operation.id });
+      productBatch.addOperation({ ...dto, id });
 
       aggregates.push(productBatch);
 

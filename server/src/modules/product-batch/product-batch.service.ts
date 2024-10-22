@@ -7,18 +7,27 @@ import { ContextService } from '@/context/context.service.js';
 import { CustomDataSource } from '@/database/custom.data-source.js';
 import type { CustomPostgresQueryRunner } from '@/database/custom.query-runner.js';
 import { OzonPostingProductMicroservice } from '@/microservices/erp_ozon/ozon-posting-product-microservice.service.js';
+import { GroupOperationReadEntity } from '@/operation/group-operation.read-entity.js';
+import { OperationReadEntity } from '@/operation/operation.read-entity.js';
+import { OperationReadRepo } from '@/operation/operation.read-repo.js';
 import { ProductService } from '@/product/product.service.js';
 import type { ProductBatchEventEntity } from '@/product-batch/domain/product-batch.event-entity.js';
 import { ProductBatchEventRepo } from '@/product-batch/domain/product-batch.event-repo.js';
 import {
+  type OperationAddedEventData,
   type ProductBatchEvent,
   ProductBatchEventType,
+  type ProductBatchRollbackEvent,
 } from '@/product-batch/domain/product-batch.events.js';
 import { ProductBatch } from '@/product-batch/domain/product-batch.js';
 import { ProductBatchReadEntity } from '@/product-batch/domain/product-batch.read-entity.js';
 import { ProductBatchReadRepo } from '@/product-batch/domain/product-batch.read-repo.js';
 import { CreateProductBatchesFromSourcesListDto } from '@/product-batch/dtos/create-product-batches-from-sources-list.dto.js';
-import type { ProductBatchGroup } from '@/product-batch-group/domain/product-batch-group.js';
+import {
+  type GroupOperationAddedEventData,
+  ProductBatchGroupEventType,
+} from '@/product-batch-group/domain/product-batch-group.events.js';
+import type { RealProductBatchGroup } from '@/product-batch-group/domain/product-batch-group.js';
 import { ProductBatchGroupService } from '@/product-batch-group/product-batch-group.service.js';
 import { StatusService } from '@/status/status.service.js';
 
@@ -36,6 +45,7 @@ export class ProductBatchService {
     private readonly productService: ProductService,
     private readonly productBatchGroupService: ProductBatchGroupService,
     private readonly productBatchEventRepo: ProductBatchEventRepo,
+    private readonly operationReadRepo: OperationReadRepo,
   ) {}
 
   async relinkPostings({
@@ -167,11 +177,47 @@ export class ProductBatchService {
       this.productBatchEventRepo,
     );
 
-    const eventEntitiesByAggregateIdMap =
-      await productBatchEventRepo.saveUncommittedEvents({
-        aggregates,
-        requestId,
+    const operationReadRepo = queryRunner.manager.withRepository(
+      this.operationReadRepo,
+    );
+
+    const operationsForDeleteIds: number[] = [];
+    const operationsForSave: OperationReadEntity[] = [];
+
+    aggregates.forEach(aggregate => {
+      aggregate.getEvents().forEach(event => {
+        switch (event.type) {
+          case ProductBatchEventType.GroupOperationAdded:
+          case ProductBatchEventType.OperationAdded: {
+            if (event.isNew || event.isReverted) {
+              const operation = new OperationReadEntity();
+              Object.assign(operation, event.data);
+              operationsForSave.push(operation);
+            }
+            if (event.isJustRolledBack) {
+              operationsForDeleteIds.push(
+                (event.data as OperationAddedEventData).id,
+              );
+            }
+            break;
+          }
+
+          default:
+        }
       });
+    });
+
+    const eventEntities = await productBatchEventRepo.saveUncommittedEvents({
+      aggregates,
+      requestId,
+    });
+
+    if (operationsForDeleteIds.length) {
+      await operationReadRepo.delete(operationsForDeleteIds);
+    }
+    if (operationsForSave.length > 0) {
+      await operationReadRepo.save(operationsForSave);
+    }
 
     const readEntities = await productBatchReadRepo.save(
       aggregates
@@ -189,7 +235,7 @@ export class ProductBatchService {
     });
 
     return {
-      eventEntitiesByAggregateIdMap,
+      eventEntities,
       aggregates: readEntities.map(item =>
         ProductBatch.createFromReadEntity(item),
       ),
@@ -294,7 +340,7 @@ export class ProductBatchService {
     );
   }
 
-  async rollbackProductBatches({
+  async rollback({
     requestId,
     rolledBackRequestId,
     queryRunner,
@@ -306,35 +352,31 @@ export class ProductBatchService {
     const productBatchEventRepo = queryRunner.manager.withRepository(
       this.productBatchEventRepo,
     );
-    const productBatchReadRepo = queryRunner.manager.withRepository(
-      this.productBatchReadRepo,
-    );
+
     const eventEntities = await productBatchEventRepo.find({
       where: {
         requestId: rolledBackRequestId,
       },
       order: { revision: 'asc' },
     });
-    const eventEntitiesByAggregateIdMap = new Map<
+    const rolledBackEventsByAggregateIdMap = new Map<
       number,
       ProductBatchEventEntity[]
     >();
     eventEntities.forEach(event => {
       const mapItem =
-        eventEntitiesByAggregateIdMap.get(event.aggregateId) || [];
+        rolledBackEventsByAggregateIdMap.get(event.aggregateId) || [];
       mapItem.push(event);
-      eventEntitiesByAggregateIdMap.set(event.aggregateId, mapItem);
+      rolledBackEventsByAggregateIdMap.set(event.aggregateId, mapItem);
     });
 
-    const productBatchMap = await this.getProjectionsMap({
-      ids: eventEntities.map(item => item.aggregateId),
+    const aggregateMap = await this.getProjectionsMap({
+      ids: [...rolledBackEventsByAggregateIdMap.keys()],
       queryRunner,
     });
 
-    // const productBatchMapForSave = new Map<number, ProductBatch>();
-
-    [...productBatchMap.values()].forEach(aggregate => {
-      const eventEntities = eventEntitiesByAggregateIdMap.get(aggregate.id);
+    [...aggregateMap.values()].forEach(aggregate => {
+      const eventEntities = rolledBackEventsByAggregateIdMap.get(aggregate.id);
       if (!eventEntities) throw new Error('eventEntities was not defined');
       eventEntities.forEach(event => {
         aggregate.rollbackEvent(event.id);
@@ -343,9 +385,66 @@ export class ProductBatchService {
     });
 
     await this.saveAggregates({
-      aggregates: [...productBatchMap.values()],
+      aggregates: [...aggregateMap.values()],
       queryRunner,
       requestId,
+    });
+  }
+
+  async revert({
+    lastRollbackRequestId,
+    queryRunner,
+    requestId,
+  }: {
+    lastRollbackRequestId: string;
+    queryRunner: CustomPostgresQueryRunner;
+    requestId: string;
+  }) {
+    const productBatchEventRepo = queryRunner.manager.withRepository(
+      this.productBatchEventRepo,
+    );
+    const eventEntities = await productBatchEventRepo.find({
+      where: {
+        requestId: lastRollbackRequestId,
+      },
+      relations: ['rollbackTarget'],
+    });
+
+    const revertedEventsByAggregateIdMap = new Map<
+      number,
+      ProductBatchEventEntity[]
+    >();
+    eventEntities.forEach(event => {
+      const revertedEvent = event.rollbackTarget;
+      if (!revertedEvent) throw new Error('revertedEvent was not defined');
+      const mapItem =
+        revertedEventsByAggregateIdMap.get(revertedEvent.aggregateId) || [];
+      mapItem.push(event);
+      revertedEventsByAggregateIdMap.set(revertedEvent.aggregateId, mapItem);
+    });
+
+    const aggregateMap = await this.getProjectionsMap({
+      ids: [...revertedEventsByAggregateIdMap.keys()],
+      queryRunner,
+    });
+
+    [...aggregateMap.values()].forEach(aggregate => {
+      const revertedEvents = revertedEventsByAggregateIdMap.get(aggregate.id);
+      if (!revertedEvents) throw new Error('revertedEvents was not defined');
+      revertedEvents.forEach(event => {
+        aggregate.revertEvent(event as ProductBatchRollbackEvent);
+      });
+      aggregate.rebuild();
+    });
+
+    await this.saveAggregates({
+      aggregates: [...aggregateMap.values()],
+      requestId,
+      queryRunner,
+    });
+
+    await productBatchEventRepo.delete({
+      requestId: lastRollbackRequestId,
     });
   }
 
@@ -358,14 +457,14 @@ export class ProductBatchService {
     dto: CreateProductBatchesFromSourcesListDto;
     queryRunner: CustomPostgresQueryRunner;
   }): Promise<{
-    group: ProductBatchGroup | null;
+    group: RealProductBatchGroup | null;
     items: Map<number, ProductBatch>;
   }> {
     const productBatchReadRepo = queryRunner.manager.withRepository(
       this.productBatchReadRepo,
     );
 
-    let group: ProductBatchGroup | null = null;
+    let group: RealProductBatchGroup | null = null;
     if (dto.grouped) {
       if (!dto.statusId) throw new Error('dto.statusId was not defined');
       if (!dto.groupName) throw new Error('dto.groupName was not defined');

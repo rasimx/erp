@@ -15,7 +15,6 @@ import {
 import { ProductReadEntity } from '@/product/domain/product.read-entity.js';
 import { ProductBatchClosureEntity } from '@/product-batch/product-batch-closure.entity.js';
 import { ProductBatchGroupReadEntity } from '@/product-batch-group/domain/product-batch-group.read-entity.js';
-import { ProductBatchOperationEntity } from '@/product-batch-operation/product-batch-operation.entity.js';
 import { StatusReadEntity } from '@/status/domain/status.read-entity.js';
 
 @Entity({ name: 'product_batch_read' })
@@ -97,9 +96,6 @@ export class ProductBatchReadEntity {
 
   @Column()
   revision: number;
-
-  @OneToMany(() => ProductBatchOperationEntity, entity => entity.productBatch)
-  productBatchOperations: ProductBatchOperationEntity[];
 
   @Column({ default: false })
   shouldSplit: boolean;

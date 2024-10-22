@@ -7,6 +7,7 @@ import {
   type ProductCreatedEvent,
   type ProductEvent,
   ProductEventType,
+  type ProductRollbackEvent,
 } from './product.events.js';
 import type { ProductProps } from './product.interfaces.js';
 import type { ProductReadEntity } from './product.read-entity.js';
@@ -15,7 +16,6 @@ export class Product {
   readonly id: number;
   private _props: ProductProps;
   private _revision: number;
-  private _uncommittedEvents: ProductEvent[] = [];
   private _events: ProductEvent[] = [];
   isDeleted = false;
 
@@ -78,23 +78,28 @@ export class Product {
     this.id = id;
 
     if (!isNil(revision)) this._revision = revision;
-    if (props) this._props = props;
+    if (props) this._props = _.cloneDeep(props);
   }
 
   private createEvent<T extends ProductEvent>(
     event: Omit<T, 'id' | 'revision'> & { revision?: number },
   ): T {
-    return Object.freeze({
+    return {
       ...event,
       id: uuidV7(),
       revision: event.revision ?? this._revision + 1,
-    }) as T;
+      isNew: true,
+    } as T;
+  }
+
+  public rebuild() {
+    this.applyEvents(this._events);
   }
 
   private applyEvent(event: ProductEvent) {
     switch (event.type) {
       case ProductEventType.ProductCreated:
-        this._props = event.data;
+        this._props = _.cloneDeep(event.data);
         break;
 
       case ProductEventType.ProductArchived:
@@ -115,6 +120,9 @@ export class Product {
         //   this.quantity = event.data.quantity;
         // }
         break;
+      case ProductEventType.Rollback:
+        // skip
+        break;
       default:
         throw new Error('unknown eventType');
     }
@@ -122,26 +130,28 @@ export class Product {
 
   private appendEvent(event: ProductEvent): void {
     this._events.push(event);
-    this._uncommittedEvents.push(event);
     this.applyEvent(event);
     this._revision = event.revision;
   }
 
   applyEvents(events: ProductEvent[]) {
-    this._events = events;
-    const rollbackEventIds = events
-      .flatMap(event =>
-        event.type == ProductEventType.Rollback ? [event] : [],
-      )
-      .map(item => item.rollbackTargetId);
+    const _rolledBackEventIds = events.flatMap(event =>
+      event.type == ProductEventType.Rollback ? [event.rollbackTargetId] : [],
+    );
 
-    const nonRolledBackEvents = events.filter(
-      event => !rollbackEventIds.includes(event.id),
+    this._events = events.map(event => ({
+      ...event,
+      isRolledBack: _rolledBackEventIds.includes(event.id),
+    }));
+
+    const nonRolledBackEvents = this._events.filter(
+      event => !event.isRolledBack && event.type != ProductEventType.Rollback,
     );
     if (nonRolledBackEvents.length > 0) {
       nonRolledBackEvents.forEach((event, index) => {
         this.applyEvent(event);
       });
+      this.isDeleted = false;
     } else {
       this.isDeleted = true;
     }
@@ -149,11 +159,11 @@ export class Product {
   }
 
   getUncommittedEvents(): ProductEvent[] {
-    return this._uncommittedEvents;
+    return this._events.filter(item => item.isNew);
   }
 
-  clearEvents() {
-    this._uncommittedEvents = [];
+  commitEvents() {
+    this._events.forEach(item => (item.isNew = false));
   }
 
   getId(): number {
@@ -176,5 +186,36 @@ export class Product {
 
   toObject() {
     return { ...this._props, id: this.id, revision: this._revision };
+  }
+
+  rollbackEvent(
+    rollbackTargetId: string,
+    metadata: Record<string, unknown> | null = null,
+  ) {
+    const rolledBackEvent = this._events.find(
+      event => event.id === rollbackTargetId,
+    );
+    if (!rolledBackEvent) throw new Error('rolledBackEvent not found');
+    rolledBackEvent.isRolledBack = true;
+    rolledBackEvent.isJustRolledBack = true;
+
+    const rollbackEvent: ProductRollbackEvent = this.createEvent({
+      type: ProductEventType.Rollback,
+      data: null,
+      rollbackTargetId,
+      metadata,
+    });
+    this.appendEvent(rollbackEvent);
+  }
+
+  revertEvent(event: ProductRollbackEvent) {
+    // меняем флаг у события которое компенсироваролось
+    const revertedEvent = this._events.find(
+      item => item.id === event.rollbackTargetId,
+    );
+    if (!revertedEvent) throw new Error('revertedEvent not found');
+    revertedEvent.isReverted = true;
+    // удаляем rollbackEvent
+    this._events = this._events.filter(item => item.id != event.id);
   }
 }

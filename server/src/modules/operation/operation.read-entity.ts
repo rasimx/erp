@@ -4,18 +4,19 @@ import {
   DeleteDateColumn,
   Entity,
   ManyToOne,
+  PrimaryColumn,
   PrimaryGeneratedColumn,
   type Relation,
   RelationId,
   UpdateDateColumn,
 } from 'typeorm';
 
-import { GroupOperationEntity } from '@/operation/group-operation.entity.js';
+import { GroupOperationReadEntity } from '@/operation/group-operation.read-entity.js';
 import { ProductBatchReadEntity } from '@/product-batch/domain/product-batch.read-entity.js';
 
 @Entity({ name: 'operation_read' })
-export class OperationEntity {
-  @PrimaryGeneratedColumn()
+export class OperationReadEntity {
+  @PrimaryColumn()
   id: number;
 
   @Column({
@@ -51,14 +52,10 @@ export class OperationEntity {
   @ManyToOne(() => ProductBatchReadEntity)
   productBatch: Relation<ProductBatchReadEntity>;
 
-  @RelationId((entity: OperationEntity) => entity.productBatch)
+  @RelationId((entity: OperationReadEntity) => entity.productBatch)
   @Column()
   productBatchId: number;
 
-  @ManyToOne(() => GroupOperationEntity, { cascade: ['insert'] })
-  groupOperation: Relation<GroupOperationEntity>;
-
-  @RelationId((entity: OperationEntity) => entity.groupOperation)
   @Column({
     type: 'integer',
     nullable: true,
@@ -76,6 +73,6 @@ export class OperationEntity {
 }
 
 export type OperationInsertEntity = Pick<
-  OperationEntity,
+  OperationReadEntity,
   'name' | 'cost' | 'date'
 >;

@@ -3,18 +3,18 @@ import { CqrsModule } from '@nestjs/cqrs';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { AppConfigModule } from '@/config/app/config.module.js';
-import { GroupOperationEntity } from '@/operation/group-operation.entity.js';
-import { GroupOperationRepositoryProvider } from '@/operation/group-operation.repository.js';
-import { OperationRepositoryProvider } from '@/operation/operation.repository.js';
+import { GroupOperationReadEntity } from '@/operation/group-operation.read-entity.js';
+import { GroupOperationReadRepoProvider } from '@/operation/group-operation.read-repo.js';
+import { OperationReadRepoProvider } from '@/operation/operation.read-repo.js';
 import { ProductBatchModule } from '@/product-batch/product-batch.module.js';
 import { ProductBatchGroupModule } from '@/product-batch-group/product-batch-group.module.js';
 
-import { OperationEntity } from './operation.entity.js';
+import { OperationReadEntity } from './operation.read-entity.js';
 import { OperationService } from './operation.service.js';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([OperationEntity, GroupOperationEntity]),
+    TypeOrmModule.forFeature([OperationReadEntity, GroupOperationReadEntity]),
     AppConfigModule,
     CqrsModule,
     ProductBatchModule,
@@ -22,9 +22,13 @@ import { OperationService } from './operation.service.js';
   ],
   providers: [
     OperationService,
-    OperationRepositoryProvider,
-    GroupOperationRepositoryProvider,
+    OperationReadRepoProvider,
+    GroupOperationReadRepoProvider,
   ],
-  exports: [OperationService],
+  exports: [
+    OperationService,
+    OperationReadRepoProvider,
+    GroupOperationReadRepoProvider,
+  ],
 })
 export class OperationModule {}

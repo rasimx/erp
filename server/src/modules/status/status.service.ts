@@ -6,11 +6,22 @@ import { In } from 'typeorm';
 import { ContextService } from '@/context/context.service.js';
 import type { CustomDataSource } from '@/database/custom.data-source.js';
 import type { CustomPostgresQueryRunner } from '@/database/custom.query-runner.js';
-import { ProductBatchGroup } from '@/product-batch-group/domain/product-batch-group.js';
-import type { CreateProductBatchGroupDto } from '@/product-batch-group/dtos/create-product-batch-group.dto.js';
+import { OperationReadEntity } from '@/operation/operation.read-entity.js';
+import {
+  type OperationAddedEventData,
+  ProductBatchEventType,
+} from '@/product-batch/domain/product-batch.events.js';
+import { ProductBatch } from '@/product-batch/domain/product-batch.js';
+import { ProductBatchReadEntity } from '@/product-batch/domain/product-batch.read-entity.js';
 import { CreateStatusCommand } from '@/status/commands/create-status/create-status.command.js';
+import type { StatusEventEntity } from '@/status/domain/status.event-entity.js';
 import { StatusEventRepo } from '@/status/domain/status.event-repo.js';
+import type {
+  StatusEvent,
+  StatusRollbackEvent,
+} from '@/status/domain/status.events.js';
 import { Status } from '@/status/domain/status.js';
+import { StatusReadEntity } from '@/status/domain/status.read-entity.js';
 import { StatusReadRepo } from '@/status/domain/status.read-repo.js';
 import type { CreateStatusDto } from '@/status/dtos/create-status.dto.js';
 import type { StatusDto } from '@/status/dtos/status.dto.js';
@@ -137,8 +148,20 @@ export class StatusService {
     });
 
     const readEntities = await statusReadRepo.save(
-      aggregates.map(item => item.toObject()),
+      aggregates
+        .filter(item => !item.isDeleted)
+        .map(item => {
+          const readEntity = new StatusReadEntity();
+          Object.assign(readEntity, item.toObject());
+
+          return readEntity;
+        }),
     );
+
+    await statusReadRepo.delete({
+      id: In(aggregates.filter(item => item.isDeleted).map(item => item.id)),
+    });
+
     return {
       eventEntities,
       aggregates: readEntities.map(item => Status.createFromReadEntity(item)),
@@ -159,7 +182,6 @@ export class StatusService {
 
     const readEntity = await statusReadRepo.findOneOrFail({
       where: { id },
-      relations: ['product'],
     });
 
     return Status.createFromReadEntity(readEntity);
@@ -187,5 +209,140 @@ export class StatusService {
     return new Map(
       entities.map(item => [item.id, Status.createFromReadEntity(item)]),
     );
+  }
+
+  async getProjectionsMap({
+    ids,
+    queryRunner,
+  }: {
+    ids: number[];
+    queryRunner: CustomPostgresQueryRunner;
+  }): Promise<Map<number, Status>> {
+    // const productBatchReadRepo = queryRunner.manager.withRepository(
+    //   this.productBatchReadRepo,
+    // );
+    const statusEventRepo = queryRunner.manager.withRepository(
+      this.statusEventRepo,
+    );
+
+    const eventEntitiesByAggregateIdMap =
+      await statusEventRepo.findManyByAggregateId(ids);
+
+    return new Map(
+      [...eventEntitiesByAggregateIdMap.entries()].map(
+        ([id, eventEntities]) => [
+          id,
+          Status.buildProjection(eventEntities as StatusEvent[]),
+        ],
+      ),
+    );
+  }
+
+  async rollback({
+    requestId,
+    rolledBackRequestId,
+    queryRunner,
+  }: {
+    requestId: string;
+    rolledBackRequestId: string;
+    queryRunner: CustomPostgresQueryRunner;
+  }) {
+    const statusEventRepo = queryRunner.manager.withRepository(
+      this.statusEventRepo,
+    );
+
+    const eventEntities = await statusEventRepo.find({
+      where: {
+        requestId: rolledBackRequestId,
+      },
+      order: { revision: 'asc' },
+    });
+    const rolledBackEventsByAggregateIdMap = new Map<
+      number,
+      StatusEventEntity[]
+    >();
+    eventEntities.forEach(event => {
+      const mapItem =
+        rolledBackEventsByAggregateIdMap.get(event.aggregateId) || [];
+      mapItem.push(event);
+      rolledBackEventsByAggregateIdMap.set(event.aggregateId, mapItem);
+    });
+
+    const aggregateMap = await this.getProjectionsMap({
+      ids: [...rolledBackEventsByAggregateIdMap.keys()],
+      queryRunner,
+    });
+
+    [...aggregateMap.values()].forEach(aggregate => {
+      const eventEntities = rolledBackEventsByAggregateIdMap.get(aggregate.id);
+      if (!eventEntities) throw new Error('eventEntities was not defined');
+      eventEntities.forEach(event => {
+        aggregate.rollbackEvent(event.id);
+      });
+      aggregate.rebuild();
+    });
+
+    await this.saveAggregates({
+      aggregates: [...aggregateMap.values()],
+      queryRunner,
+      requestId,
+    });
+  }
+
+  async revert({
+    lastRollbackRequestId,
+    queryRunner,
+    requestId,
+  }: {
+    lastRollbackRequestId: string;
+    queryRunner: CustomPostgresQueryRunner;
+    requestId: string;
+  }) {
+    const statusEventRepo = queryRunner.manager.withRepository(
+      this.statusEventRepo,
+    );
+    const eventEntities = await statusEventRepo.find({
+      where: {
+        requestId: lastRollbackRequestId,
+      },
+      relations: ['rollbackTarget'],
+    });
+
+    const revertedEventsByAggregateIdMap = new Map<
+      number,
+      StatusEventEntity[]
+    >();
+    eventEntities.forEach(event => {
+      const revertedEvent = event.rollbackTarget;
+      if (!revertedEvent) throw new Error('revertedEvent was not defined');
+      const mapItem =
+        revertedEventsByAggregateIdMap.get(revertedEvent.aggregateId) || [];
+      mapItem.push(event);
+      revertedEventsByAggregateIdMap.set(revertedEvent.aggregateId, mapItem);
+    });
+
+    const aggregateMap = await this.getProjectionsMap({
+      ids: [...revertedEventsByAggregateIdMap.keys()],
+      queryRunner,
+    });
+
+    [...aggregateMap.values()].forEach(aggregate => {
+      const revertedEvents = revertedEventsByAggregateIdMap.get(aggregate.id);
+      if (!revertedEvents) throw new Error('revertedEvents was not defined');
+      revertedEvents.forEach(event => {
+        aggregate.revertEvent(event as StatusRollbackEvent);
+      });
+      aggregate.rebuild();
+    });
+
+    await this.saveAggregates({
+      aggregates: [...aggregateMap.values()],
+      requestId,
+      queryRunner,
+    });
+
+    await statusEventRepo.delete({
+      requestId: lastRollbackRequestId,
+    });
   }
 }

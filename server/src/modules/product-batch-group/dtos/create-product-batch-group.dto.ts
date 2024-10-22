@@ -7,4 +7,7 @@ export class CreateProductBatchGroupDto {
 
   @Field(() => String)
   name: string;
+
+  @Field(() => [Int])
+  existProductBatchIds: number[];
 }

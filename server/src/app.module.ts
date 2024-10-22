@@ -25,7 +25,6 @@ import { OperationModule } from '@/operation/operation.module.js';
 import { ProductModule } from '@/product/product.module.js';
 import { ProductBatchModule } from '@/product-batch/product-batch.module.js';
 import { ProductBatchGroupModule } from '@/product-batch-group/product-batch-group.module.js';
-import { ProductBatchOperationModule } from '@/product-batch-operation/product-batch-operation.module.js';
 import { StatusModule } from '@/status/status.module.js';
 import { TransactionModule } from '@/transaction/transaction.module.js';
 
@@ -52,7 +51,6 @@ if (getEnv('APP_ENV') != 'development') {
     ProductBatchModule,
     ProductBatchGroupModule,
     OperationModule,
-    ProductBatchOperationModule,
     Microservices,
     TransactionModule,
     ServeStaticModule.forRoot({

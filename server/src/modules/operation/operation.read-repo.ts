@@ -1,9 +1,15 @@
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
-import { OperationEntity } from '@/operation/operation.entity.js';
+import { OperationReadEntity } from '@/operation/operation.read-entity.js';
 
-export class OperationRepository extends Repository<OperationEntity> {
+export class OperationReadRepo extends Repository<OperationReadEntity> {
+  async nextIds(count = 1): Promise<number[]> {
+    const rows: { nextval: number }[] = await this.query(
+      `SELECT nextval('operation_read_id_seq')::int FROM generate_series(1, ${count.toString()});`,
+    );
+    return rows.map(item => item.nextval);
+  }
   // async createOperationTransaction(dto: CreateOperationDto): Promise<{
   //   commit: () => Promise<void>;
   //   rollback: () => Promise<void>;
@@ -15,7 +21,7 @@ export class OperationRepository extends Repository<OperationEntity> {
   //   await queryRunner.connect();
   //   await queryRunner.startTransaction();
   //   try {
-  //     let newOperation = new OperationEntity();
+  //     let newOperation = new OperationReadEntity();
   //     newOperation.date = dto.date;
   //     newOperation.cost = dto.cost;
   //     newOperation.name = dto.name;
@@ -62,11 +68,11 @@ export class OperationRepository extends Repository<OperationEntity> {
   // }
 }
 
-export const OperationRepositoryProvider = {
-  provide: OperationRepository,
-  inject: [getRepositoryToken(OperationEntity)],
-  useFactory: (repository: Repository<OperationEntity>) => {
-    return new OperationRepository(
+export const OperationReadRepoProvider = {
+  provide: OperationReadRepo,
+  inject: [getRepositoryToken(OperationReadEntity)],
+  useFactory: (repository: Repository<OperationReadEntity>) => {
+    return new OperationReadRepo(
       repository.target,
       repository.manager,
       repository.queryRunner,

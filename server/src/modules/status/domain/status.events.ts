@@ -16,6 +16,10 @@ export interface BaseEvent {
   revision: number;
   metadata: Record<string, unknown> | null;
   rollbackTargetId?: string | null;
+  isNew?: boolean;
+  isRolledBack?: boolean;
+  isJustRolledBack?: boolean;
+  isReverted?: boolean;
 }
 
 export interface StatusCreatedEventData extends CreateStatusDto {
@@ -51,9 +55,9 @@ export interface StatusArchivedEvent extends BaseEvent {
   data: StatusArchivedEventData;
 }
 
-export interface RollbackEvent extends BaseEvent {
+export interface StatusRollbackEvent extends BaseEvent {
   type: StatusEventType.Rollback;
-  data: unknown;
+  data: null;
   rollbackTargetId: string;
 }
 
@@ -62,7 +66,7 @@ export type StatusEvent =
   | StatusEditedEvent
   | StatusMovedEvent
   | StatusArchivedEvent
-  | RollbackEvent;
+  | StatusRollbackEvent;
 
 export type RevisionStatusEvent = StatusEvent & {
   revision: number;

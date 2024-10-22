@@ -4,16 +4,16 @@ import {
   DeleteDateColumn,
   Entity,
   OneToMany,
-  PrimaryGeneratedColumn,
+  PrimaryColumn,
   UpdateDateColumn,
 } from 'typeorm';
 
 import { ProportionType } from '@/operation/dtos/operation.dto.js';
-import { OperationEntity } from '@/operation/operation.entity.js';
+import { OperationReadEntity } from '@/operation/operation.read-entity.js';
 
 @Entity({ name: 'group_operation_read' })
-export class GroupOperationEntity {
-  @PrimaryGeneratedColumn()
+export class GroupOperationReadEntity {
+  @PrimaryColumn()
   id: number;
 
   @Column({
@@ -49,11 +49,6 @@ export class GroupOperationEntity {
     default: ProportionType.equal,
   })
   proportionType: ProportionType;
-
-  @OneToMany(() => OperationEntity, entity => entity.groupOperation, {
-    cascade: ['insert'],
-  })
-  operations: OperationEntity[];
 
   @CreateDateColumn()
   createdAt: Date;
