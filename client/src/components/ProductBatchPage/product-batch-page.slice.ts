@@ -26,6 +26,9 @@ export const productBatchSlice = createSlice({
   // The `reducers` field lets us define reducers and generate associated actions
   reducers: {
     toggleSelecting: state => {
+      if (state.isSelecting) {
+        state.selectedProductBatches = [];
+      }
       state.isSelecting = !state.isSelecting;
     },
     toggleSelect: (state, action: PayloadAction<ProductBatch>) => {

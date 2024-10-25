@@ -6,7 +6,7 @@ import { confirmDialog } from 'primereact/confirmdialog';
 
 import { CREATE_PRODUCT_BATCHES_FROM_SOURCES_LIST_MUTATION } from '../../api/product-batch/product-batch.gql';
 import apolloClient from '../../apollo-client';
-import { CreateProductBatchesFromSourcesDto } from '../../gql-types/graphql';
+import { CreateProductBatchesFromSourcesListDto } from '../../gql-types/graphql';
 import withModal from '../withModal';
 import Form from './form';
 import {
@@ -25,7 +25,7 @@ const CreateProductBatchesFromSourcesForm = withFormik<Props, FormValues>({
 
   // Add a custom validation function (this can be async too!)
   validate: (values: FormValues) => {
-    const errors: FormikErrors<CreateProductBatchesFromSourcesDto> = {};
+    const errors: FormikErrors<CreateProductBatchesFromSourcesListDto> = {};
     // if (!values.email) {
     //   errors.email = 'Required';
     // } else if (!isValidEmail(values.email)) {
@@ -54,10 +54,10 @@ const CreateProductBatchesFromSourcesForm = withFormik<Props, FormValues>({
             } else {
               formikBag.props.closeModal();
               formikBag.props.onSubmit(
-                values as CreateProductBatchesFromSourcesDto,
+                values as CreateProductBatchesFromSourcesListDto,
                 formikBag as FormikBag<
                   Props,
-                  CreateProductBatchesFromSourcesDto
+                  CreateProductBatchesFromSourcesListDto
                 >,
               );
             }

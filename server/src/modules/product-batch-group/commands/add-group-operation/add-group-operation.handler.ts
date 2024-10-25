@@ -111,7 +111,7 @@ export class AddGroupOperationHandler
               proportion: item.proportion,
               name: dto.name,
               currencyCost: dto.currencyCost,
-              exchangeRate: dto.currencyCost,
+              exchangeRate: dto.exchangeRate,
               date: dto.date,
               groupOperationCost: dto.cost,
               groupOperationId,

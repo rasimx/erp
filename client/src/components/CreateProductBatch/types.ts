@@ -1,17 +1,16 @@
 import { FormikProps } from 'formik';
-import { ColumnEditorOptions } from 'primereact/column';
 import { Nullable } from 'primereact/ts-helpers';
 import { array, boolean, number, object, ObjectSchema, string } from 'yup';
 
 import {
-  CreateProductBatchDto,
   CreateProductBatchItemDto,
+  CreateProductBatchListDto,
 } from '@/gql-types/graphql';
 
 import { Product } from '../../api/product/product.gql';
 import { DeepNullable } from '../../utils';
 
-export interface FormState extends DeepNullable<CreateProductBatchDto> {
+export interface FormState extends DeepNullable<CreateProductBatchListDto> {
   product?: Product | null;
 }
 
@@ -29,10 +28,10 @@ export const createProductBatchItemValidationSchema =
   };
 
 export const createProductBatchValidationSchema =
-  (): ObjectSchema<CreateProductBatchDto> => {
+  (): ObjectSchema<CreateProductBatchListDto> => {
     return object().shape({
       groupId: number().nullable(),
-      statusId: number().nullable(),
+      statusId: number().required(),
       exchangeRate: number().nullable(),
       grouped: boolean().nullable(),
       groupName: string().when('grouped', ([grouped], schema) => {
@@ -48,7 +47,7 @@ export interface DataRow extends DeepNullable<CreateProductBatchItemDto> {
 }
 export type DataRowKey = keyof DataRow;
 
-export interface FormValues extends DeepNullable<CreateProductBatchDto> {
+export interface FormValues extends DeepNullable<CreateProductBatchListDto> {
   items?: Nullable<DataRow[]>;
 }
 

@@ -12,7 +12,7 @@ import {
 } from 'primereact/inputnumber';
 import { InputText } from 'primereact/inputtext';
 import { RadioButton } from 'primereact/radiobutton';
-import React, { type FC, useCallback } from 'react';
+import React, { type FC, useCallback, useMemo } from 'react';
 import { array, mixed, number, object, ObjectSchema, string } from 'yup';
 
 import { ADD_GROUP_OPERATION_MUTATION } from '../../api/operation/operation.gql';
@@ -181,7 +181,7 @@ const Form: FC<Props & FormikProps<AddGroupOperationDto>> = props => {
               }
               dateFormat="yy-mm-dd"
             />
-            <label htmlFor="operationsPrice">Дата</label>
+            <label>Дата</label>
           </FloatLabel>
         </div>
 

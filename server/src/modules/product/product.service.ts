@@ -16,8 +16,6 @@ import {
   ProductReadEntity,
 } from '@/product/domain/product.read-entity.js';
 import { ProductReadRepo } from '@/product/domain/product.read-repo.js';
-import { ProductBatchReadEntity } from '@/product-batch/domain/product-batch.read-entity.js';
-import { Status } from '@/status/domain/status.js';
 
 @Injectable()
 export class ProductService {

@@ -25,7 +25,7 @@ import React, { type FC, ReactNode, useCallback, useState } from 'react';
 import { Product } from '../../api/product/product.gql';
 import { CREATE_PRODUCT_BATCH_MUTATION } from '../../api/product-batch/product-batch.gql';
 import apolloClient from '../../apollo-client';
-import { CreateProductBatchDto } from '../../gql-types/graphql';
+import { CreateProductBatchListDto } from '../../gql-types/graphql';
 import { fromRouble, isDefined, isInteger, isNil, isNumber } from '../../utils';
 import ProductSelect from '../Autocomplete/ProductSelect';
 import withModal from '../withModal';
@@ -685,7 +685,7 @@ export const CreateProductBatchForm = withFormik<Props, FormValues>({
                 : 0,
             })),
           ],
-        } as CreateProductBatchDto;
+        } as CreateProductBatchListDto;
 
         apolloClient
           .mutate({

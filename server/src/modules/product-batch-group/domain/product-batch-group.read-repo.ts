@@ -344,6 +344,9 @@ export class ProductBatchGroupReadRepo extends Repository<ProductBatchGroupReadE
     const entity = await this.findOneOrFail({
       where: { id },
       relations: ['productBatchList', 'productBatchList.product', 'status'],
+      order: {
+        productBatchList: { order: 'ASC' },
+      },
     });
 
     return {

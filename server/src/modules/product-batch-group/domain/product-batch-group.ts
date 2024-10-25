@@ -222,6 +222,15 @@ export class RealProductBatchGroup extends AbstractProductBatchGroup {
         // }
         break;
 
+      case ProductBatchGroupEventType.GroupOperationAdded:
+        // if (event.data.name) {
+        //   this.name = event.data.name;
+        // }
+        // if (event.data.quantity) {
+        //   this.quantity = event.data.quantity;
+        // }
+        break;
+
       case ProductBatchGroupEventType.Rollback:
         // skip
         break;
