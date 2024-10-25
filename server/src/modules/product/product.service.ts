@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { In } from 'typeorm';
 
+import { ContextService } from '@/context/context.service.js';
 import type { CustomDataSource } from '@/database/custom.data-source.js';
 import type { CustomPostgresQueryRunner } from '@/database/custom.query-runner.js';
 import type { ProductEventEntity } from '@/product/domain/product.event-entity.js';
@@ -10,18 +11,19 @@ import type {
   ProductEvent,
   ProductRollbackEvent,
 } from '@/product/domain/product.events.js';
+import type { ProductProps } from '@/product/domain/product.interfaces.js';
 import { Product } from '@/product/domain/product.js';
-import {
-  type ProductInsertEntity,
-  ProductReadEntity,
-} from '@/product/domain/product.read-entity.js';
+import { ProductReadEntity } from '@/product/domain/product.read-entity.js';
 import { ProductReadRepo } from '@/product/domain/product.read-repo.js';
+import { RequestRepository } from '@/request/request.repository.js';
 
 @Injectable()
 export class ProductService {
   constructor(
     private readonly productReadRepo: ProductReadRepo,
     private readonly productEventRepo: ProductEventRepo,
+    private readonly contextService: ContextService,
+    private readonly requestRepo: RequestRepository,
     @InjectDataSource()
     private readonly dataSource: CustomDataSource,
   ) {}
@@ -120,22 +122,40 @@ export class ProductService {
   //   });
   // }
 
-  async createInsertTransaction(items: ProductInsertEntity[]) {
+  async createInsertTransaction(
+    items: Omit<ProductProps, 'id' | 'setItems'>[],
+  ) {
+    const { userId, requestId } = this.contextService;
     const queryRunner = this.dataSource.createQueryRunner();
 
     await queryRunner.connect();
     await queryRunner.startTransaction();
     try {
-      await queryRunner.manager.insert(ProductReadEntity, items);
-      const newItems = await queryRunner.manager.find(ProductReadEntity, {
-        where: { sku: In(items.map(({ sku }) => sku)) },
+      const requestRepo = queryRunner.manager.withRepository(this.requestRepo);
+      await requestRepo.insert({ id: requestId });
+
+      const productReadRepo = queryRunner.manager.withRepository(
+        this.productReadRepo,
+      );
+
+      const aggregatedIds = await productReadRepo.nextIds(items.length);
+
+      const aggregates = items.map(item => {
+        const aggregateId = aggregatedIds.shift();
+        if (!aggregateId) throw new Error('aggregateId was not defined');
+
+        return Product.create({
+          props: { ...item, id: aggregateId, setItems: [] },
+        });
       });
+
+      await this.saveAggregates({ aggregates, requestId, queryRunner });
 
       const transactionId = await queryRunner.prepareTransaction();
 
       // todo: удалять транзакции по истечении какого-то времени
 
-      return { items: newItems, transactionId };
+      return { items: aggregates.map(item => item.toObject()), transactionId };
     } catch (error: unknown) {
       await queryRunner.rollbackTransaction();
       return { items: [], error: (error as Error).message };

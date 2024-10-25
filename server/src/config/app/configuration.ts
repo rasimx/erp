@@ -7,4 +7,5 @@ export default registerAs('app', () => ({
   port: process.env.APP_PORT,
   redisHost: process.env.REDIS_HOST,
   redisPort: process.env.REDIS_PORT,
+  grpcPort: process.env.GRPC_PORT,
 }));

@@ -4,14 +4,17 @@ import { ClsContextOptions } from 'nestjs-cls/dist/src/lib/cls.options.js';
 
 import { ContextVarNotFound } from '@/context/context.exceptions.js';
 
-import { USER_ID } from './context.constants.js';
+import { REQUEST_ID, USER_ID } from './context.constants.js';
 
 @Injectable()
 export class ContextService {
   constructor(private readonly clsService: ClsService) {}
 
   get requestId(): string {
-    return this.clsService.getId();
+    return this.clsService.get(REQUEST_ID) || this.clsService.getId();
+  }
+  set requestId(value: string) {
+    this.clsService.set(REQUEST_ID, value);
   }
   get userId(): number {
     const userId = this.clsService.get(USER_ID);

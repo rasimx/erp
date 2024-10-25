@@ -4,7 +4,7 @@ import {
   DeleteDateColumn,
   Entity,
   OneToMany,
-  PrimaryGeneratedColumn,
+  PrimaryColumn,
   Unique,
   UpdateDateColumn,
 } from 'typeorm';
@@ -14,7 +14,7 @@ import { ProductSetClosureEntity } from '@/product/domain/product-set-closure.en
 @Entity({ name: 'product_read' })
 @Unique(['sku'])
 export class ProductReadEntity {
-  @PrimaryGeneratedColumn()
+  @PrimaryColumn()
   id: number;
 
   @Column({
@@ -67,8 +67,3 @@ export class ProductReadEntity {
     return a;
   }
 }
-
-export type ProductInsertEntity = Pick<
-  ProductReadEntity,
-  'name' | 'sku' | 'width' | 'height' | 'length' | 'weight'
->;

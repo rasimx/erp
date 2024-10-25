@@ -6,6 +6,12 @@ import type { ProductListDto } from '@/product/dtos/product-list.dto.js';
 import { ProductReadEntity } from './product.read-entity.js';
 
 export class ProductReadRepo extends Repository<ProductReadEntity> {
+  async nextIds(count = 1): Promise<number[]> {
+    const rows: { nextval: number }[] = await this.query(
+      `SELECT nextval('product_id_seq')::int FROM generate_series(1, ${count.toString()});`,
+    );
+    return rows.map(item => item.nextval);
+  }
   async productList(ids: number[] = []): Promise<ProductListDto> {
     const where: FindOptionsWhere<ProductReadEntity> = {};
     if (ids.length) {

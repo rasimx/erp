@@ -30,6 +30,7 @@ data:
   JWT_GOOGLE_CLIENT_SECRET: 'YOUR_GOOGLE_CLIENT_SECRET'
 
   GRPC_ERP_OZON_URL: 'nest-erp-ozon.mp.svc.cluster.local:3001'
+  GRPC_PORT: '3001'
   EVENTSTORE_ENDPOINT: 'eventstoredb.mp.svc.cluster.local:2113'
 
 

@@ -26,6 +26,9 @@ export class AppConfigService {
   get port(): number {
     return Number(this.configService.get('app.port'));
   }
+  get grpcPort(): number {
+    return Number(this.configService.get('app.grpcPort'));
+  }
   get jsonConfig(): JsonConfig {
     return this.configService.get('json');
   }

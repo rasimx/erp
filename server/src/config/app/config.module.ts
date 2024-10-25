@@ -26,6 +26,7 @@ import jsonConfiguration from './json-configuration.js';
         APP_PORT: Joi.number().required(),
         REDIS_HOST: Joi.string(),
         REDIS_PORT: Joi.string(),
+        GRPC_PORT: Joi.number().required(),
       }),
     }),
   ],

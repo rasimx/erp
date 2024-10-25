@@ -1,3 +1,4 @@
+import { Metadata } from '@grpc/grpc-js';
 import { Controller, UseInterceptors } from '@nestjs/common';
 import { CommandBus } from '@nestjs/cqrs';
 
@@ -27,18 +28,18 @@ export class ProductController implements ProductServiceController {
     items: newItems,
     inTransaction,
   }: InsertProductListRequest): Promise<InsertProductListResponse> {
-    if (inTransaction) {
-      return this.productService.createInsertTransaction(newItems);
-    }
+    // if (inTransaction) {
+    return this.productService.createInsertTransaction(newItems);
+    // }
     // const items = await this.productService.insert(newItems);
-    // @ts-ignore
-    return { items };
+    // // @ts-ignore
+    // return { items };
   }
 
   async findManyBySku(
     request: FindManyBySkuRequest,
   ): Promise<FindManyBySkuResponse> {
-    const { userId } = this.contextService;
+    const { userId, requestId } = this.contextService;
     const items = await this.productService.findManyBySku(request.skuList);
     return { items };
   }

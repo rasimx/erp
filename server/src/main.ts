@@ -43,10 +43,12 @@ async function bootstrap() {
 
   app.useGlobalPipes(new ValidationPipe());
 
+  const appConfig: AppConfigService = app.get(AppConfigService);
+
   const microserviceGRPC = app.connectMicroservice<MicroserviceOptions>({
     transport: Transport.GRPC,
     options: {
-      url: '0.0.0.0:3001',
+      url: `0.0.0.0:${appConfig.grpcPort}`,
       package: 'erp',
       protoPath: getPathRelativeToRoot(
         'microservice_contracts/proto/erp.proto',
@@ -57,7 +59,6 @@ async function bootstrap() {
 
   await app.startAllMicroservices();
 
-  const appConfig: AppConfigService = app.get(AppConfigService);
   await app.listen(appConfig.port);
 }
 

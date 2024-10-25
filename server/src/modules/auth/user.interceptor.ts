@@ -34,6 +34,15 @@ export class UserInterceptor implements NestInterceptor {
           this.contextService.userId = userId;
         }
 
+        const requesIdMeta = metadata.get('requestId');
+        if (requesIdMeta.length) {
+          const requestId = requesIdMeta[0] as string;
+
+          if (requestId) {
+            this.contextService.requestId = requestId;
+          }
+        }
+
         return next.handle();
       });
     } else {
