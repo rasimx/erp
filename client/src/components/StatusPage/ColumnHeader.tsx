@@ -75,7 +75,10 @@ export const ColumnHeader = React.memo<Props>(props => {
         alignItems: 'center',
       }}
     >
-      <div style={{ flexGrow: 1 }}>{product.name}</div>
+      <div style={{ flexGrow: 1 }}>
+        <strong>{product.sku}</strong> <br />
+        {product.name}
+      </div>
 
       {/*<Menu*/}
       {/*  shadow="md"*/}

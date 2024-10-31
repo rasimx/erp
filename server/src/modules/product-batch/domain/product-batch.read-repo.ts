@@ -336,8 +336,8 @@ WITH all_batches AS (SELECT pb.id,
                             COALESCE(pbg.order, pb.order)         AS global_order,
                             s.store_id
                      FROM product_batch_read pb
-                              LEFT JOIN product_batch_group pbg ON pb.group_id = pbg.id
-                              LEFT JOIN status s ON pb.status_id = s.id or pbg.status_id = s.id
+                              LEFT JOIN product_batch_group_read pbg ON pb.group_id = pbg.id
+                              LEFT JOIN status_read s ON pb.status_id = s.id or pbg.status_id = s.id
                      ${withDeleted ? '' : 'WHERE pb.deleted_date is null'}),
      batches_in_target_status AS (select *
                                   from all_batches

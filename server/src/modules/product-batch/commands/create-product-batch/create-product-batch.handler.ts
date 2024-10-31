@@ -100,6 +100,7 @@ export class CreateProductBatchHandler
             volume: Number((product.getVolume() * item.count).toFixed(2)),
           },
         });
+        affectedIds.push(aggregateId);
 
         aggregates.push(productBatch);
       }

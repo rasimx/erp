@@ -39,4 +39,4 @@ spec:
             defaultMode: 511
         - name: tls-certs
           secret:
-            secretName: tls-secret
+            secretName: sellrix-ssl
